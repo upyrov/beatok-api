@@ -1,0 +1,14 @@
+bin/
+obj/
+
+# Rider
+.idea/
+
+# Visual Studio
+.vs/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
