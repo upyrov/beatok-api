@@ -1,13 +1,29 @@
+using Beatok.Application.Interfaces;
+using Beatok.Application.Interfaces.Repositories;
+using Beatok.Infrastructure.Authentication;
+using Beatok.Infrastructure.Persistence;
+using Beatok.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Beatok.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+        IConfiguration configuration)
     {
-        // Infrastructure services
-        // DbContext
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("NeonConnection")));
+
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        
+        services.AddScoped<IJwtProvider, JwtProvider>();
+        services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
+
+        services.AddScoped<IUserRepository, UserRepository>();
+        
         return services;
     }
 }
