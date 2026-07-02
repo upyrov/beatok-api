@@ -1,14 +1,18 @@
+using System.Security.Authentication;
+using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Repositories;
+using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
 
 namespace Beatok.Application.Services;
 
 public class AuthService(IPasswordHasher passwordHasher,
-    IUserRepository userRepository, IValidator<UserRegisterDto> validator): IAuthService
+    IUserRepository userRepository, IValidator<UserRegisterDto> validator,
+    IJwtProvider jwtProvider): IAuthService
 {
     public async Task RegisterAsync(UserRegisterDto dto)
     {
@@ -34,5 +38,30 @@ public class AuthService(IPasswordHasher passwordHasher,
         };
         
         await userRepository.AddAsync(user);
+    }
+
+    public async Task<AuthResult> LoginAsync(UserLoginDto dto)
+    {
+        var user = await userRepository.GetByEmailAsync(dto.Email);
+
+        if (user == null)
+        {
+            throw new InvalidCredentialException("Invalid email or password");
+        }
+        
+        var passwordVerified = passwordHasher.VerifyHash(dto.Password, user.PasswordHash!);
+
+        if (!passwordVerified)
+        {
+            throw new InvalidCredentialException("Invalid email or password");
+        }
+        
+        var jwtGenerateResult = jwtProvider.GenerateToken(user);
+
+        return new AuthResult
+        {
+            Token = jwtGenerateResult.Token,
+            Expires = jwtGenerateResult.Expires
+        };
     }
 }

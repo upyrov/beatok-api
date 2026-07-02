@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using Beatok.Application.DTOs.Error;
 using Beatok.Application.Exceptions;
 using FluentValidation;
@@ -14,6 +15,7 @@ public class GlobalExceptionHandler: IExceptionHandler
         {
             EmailAlreadyExistsException => StatusCodes.Status409Conflict,
             ValidationException => StatusCodes.Status400BadRequest,
+            InvalidCredentialException => StatusCodes.Status401Unauthorized,
             _ => StatusCodes.Status500InternalServerError
         };
         context.Response.StatusCode = statusCode;
