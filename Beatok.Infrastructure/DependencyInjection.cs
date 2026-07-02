@@ -1,4 +1,7 @@
+using Beatok.Application.Interfaces;
+using Beatok.Application.Interfaces.Repositories;
 using Beatok.Infrastructure.Persistence;
+using Beatok.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +15,10 @@ public static class DependencyInjection
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("NeonConnection")));
+
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+        services.AddScoped<IUserRepository, UserRepository>();
         
         return services;
     }
