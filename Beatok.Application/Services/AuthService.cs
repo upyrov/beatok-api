@@ -34,7 +34,8 @@ public class AuthService(IPasswordHasher passwordHasher,
         {
             Name = dto.Name,
             Email = dto.Email,
-            PasswordHash = passwordHash
+            PasswordHash = passwordHash,
+            LastActiveAt = null
         };
         
         await userRepository.AddAsync(user);
@@ -72,7 +73,8 @@ public class AuthService(IPasswordHasher passwordHasher,
         var user = new User
         {
             Name = userName,
-            IsAnonymous = true
+            IsAnonymous = true,
+            LastActiveAt = DateTime.UtcNow
         };
         
         await userRepository.AddAsync(user);
