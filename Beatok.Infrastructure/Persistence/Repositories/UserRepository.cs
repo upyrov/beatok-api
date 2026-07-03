@@ -38,4 +38,13 @@ public class UserRepository(ApplicationDbContext context): IUserRepository
             AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == id);
     }
+
+    public async Task<int> DeleteExpiredAnonymousUsersAsync(DateTime threshold)
+    {
+        return await context.Users
+            .Where(u => u.IsAnonymous
+                        && u.LastActiveAt != null
+                        && u.LastActiveAt < threshold)
+            .ExecuteDeleteAsync();
+    }
 }

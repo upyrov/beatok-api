@@ -9,4 +9,5 @@ public interface IUserRepository
     Task<User?> GetByEmailAsync(string email);
     Task UpdateLastActiveAtAsync(Guid userId);
     Task<User?> GetByIdAsync(Guid id);
+    Task<int> DeleteExpiredAnonymousUsersAsync(DateTime threshold);
 }

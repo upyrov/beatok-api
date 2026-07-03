@@ -1,6 +1,7 @@
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Repositories;
 using Beatok.Infrastructure.Authentication;
+using Beatok.Infrastructure.BackgroundServices;
 using Beatok.Infrastructure.Persistence;
 using Beatok.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,8 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("NeonConnection")));
 
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+        services.AddHostedService<InactiveUserCleanupService>();
         
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
