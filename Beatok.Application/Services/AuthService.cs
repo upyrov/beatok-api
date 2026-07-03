@@ -77,7 +77,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         
         await userRepository.AddAsync(user);
         
-        var jwtGenerateResult = jwtProvider.GenerateToken(user);
+        var jwtGenerateResult = jwtProvider.GenerateToken(user, true);
         return new AuthResult
         {
             Token = jwtGenerateResult.Token,

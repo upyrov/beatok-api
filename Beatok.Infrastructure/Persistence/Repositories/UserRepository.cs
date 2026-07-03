@@ -23,4 +23,19 @@ public class UserRepository(ApplicationDbContext context): IUserRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email);
     }
+
+    public async Task UpdateLastActiveAtAsync(Guid userId)
+    {
+        await context.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => 
+                s.SetProperty(u => u.LastActiveAt, DateTime.UtcNow));
+    }
+
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        return await context.Users.
+            AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
 }
