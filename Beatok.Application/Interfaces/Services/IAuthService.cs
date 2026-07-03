@@ -7,4 +7,5 @@ public interface IAuthService
 {
     Task RegisterAsync(UserRegisterDto dto);
     Task<AuthResult> LoginAsync(UserLoginDto dto);
+    Task<AuthResult> LoginAnonymousAsync();
 }

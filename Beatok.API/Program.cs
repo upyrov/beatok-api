@@ -1,5 +1,6 @@
 using Beatok.API.ExceptionHandling;
 using Beatok.API.Extensions;
+using Beatok.API.Middlewares;
 using Beatok.Application;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
@@ -33,6 +34,8 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ImplicitAnonymousMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
