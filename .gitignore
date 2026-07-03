@@ -13,4 +13,4 @@ obj/
 # macOS
 .DS_Store
 
-nt.json
+*.DotSettings.user

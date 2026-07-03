@@ -13,6 +13,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(UserRegisterDtoValidator).Assembly);
         
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserService, UserService>();
         
         return services;
     }

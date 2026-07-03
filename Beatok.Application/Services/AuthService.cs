@@ -34,7 +34,8 @@ public class AuthService(IPasswordHasher passwordHasher,
         {
             Name = dto.Name,
             Email = dto.Email,
-            PasswordHash = passwordHash
+            PasswordHash = passwordHash,
+            LastActiveAt = null
         };
         
         await userRepository.AddAsync(user);
@@ -63,5 +64,47 @@ public class AuthService(IPasswordHasher passwordHasher,
             Token = jwtGenerateResult.Token,
             Expires = jwtGenerateResult.Expires
         };
+    }
+
+    public async Task<AuthResult> LoginAnonymousAsync()
+    {
+        var userName = GenerateAnonymousName();
+
+        var user = new User
+        {
+            Name = userName,
+            IsAnonymous = true,
+            LastActiveAt = DateTime.UtcNow
+        };
+        
+        await userRepository.AddAsync(user);
+        
+        var jwtGenerateResult = jwtProvider.GenerateToken(user, true);
+        return new AuthResult
+        {
+            Token = jwtGenerateResult.Token,
+            Expires = jwtGenerateResult.Expires
+        };
+    }
+
+    private string GenerateAnonymousName()
+    {
+        string[] adjectives = 
+        [
+            "Swift", "Silent", "Clever", "Brave", "Bright", "Calm", "Fierce", 
+            "Quick", "Wise", "Bold", "Kind", "Lucky", "Wild", "Sharp", "Active"
+        ];
+
+        string[] animals = 
+        [
+            "Fox", "Owl", "Wolf", "Bear", "Cat", "Hawk", "Deer", 
+            "Lion", "Lynx", "Falcon", "Eagle", "Tiger", "Panda", "Badger"
+        ];
+        
+        var adjective = adjectives[Random.Shared.Next(adjectives.Length)];
+        var animal = animals[Random.Shared.Next(animals.Length)];
+        var number = Random.Shared.Next(1000, 10000); 
+
+        return $"{adjective}{animal}{number}";
     }
 }

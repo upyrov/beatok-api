@@ -1,5 +1,6 @@
 using Beatok.API.ExceptionHandling;
 using Beatok.API.Extensions;
+using Beatok.API.Middlewares;
 using Beatok.Application;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
@@ -12,6 +13,18 @@ builder.Services.AddProblemDetails();
 
 var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
 builder.Services.AddApiAuthentication(jwtOptions!);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddApplication();
@@ -33,6 +46,10 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
+
+app.UseMiddleware<ImplicitAnonymousMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

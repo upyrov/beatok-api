@@ -13,9 +13,11 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
 {
     private readonly JwtOptions _options = options.Value;
     
-    public JwtGenerateResult GenerateToken(User user)
+    public JwtGenerateResult GenerateToken(User user, bool isAnonymous = false)
     {
-        Claim[] claims = [new(ClaimTypes.NameIdentifier, user.Id.ToString())];
+        Claim[] claims = [
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new("is_anonymous", isAnonymous.ToString().ToLower())];
         
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)), 
