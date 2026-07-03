@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Beatok.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("users")]
     [ApiController]
     public class UsersController(IUserService userService) : ControllerBase
     {

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Beatok.API.Controllers
 {
-    [Route("[controller]")]
+    [Route("auth")]
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
     {
