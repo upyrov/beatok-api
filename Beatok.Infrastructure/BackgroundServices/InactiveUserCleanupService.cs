@@ -9,9 +9,9 @@ public class InactiveUserCleanupService(
     IServiceProvider serviceProvider,
     ILogger<InactiveUserCleanupService> logger): BackgroundService
 {
-    private readonly TimeSpan _period = TimeSpan.FromSeconds(30);
+    private readonly TimeSpan _period = TimeSpan.FromDays(1);
     
-    private readonly TimeSpan _expirationThreshold = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _expirationThreshold = TimeSpan.FromDays(30);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
