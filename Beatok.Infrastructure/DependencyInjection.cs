@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IGenreRepository, GenreRepository>();
         
         return services;
     }

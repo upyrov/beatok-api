@@ -1,0 +1,31 @@
+using Beatok.Application.DTOs.Genre;
+using Beatok.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Beatok.API.Controllers
+{
+    [Route("genres")]
+    [ApiController]
+    public class GenresController(IGenreService genreService) : ControllerBase
+    {
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateGenreDto dto)
+        {
+            await genreService.CreateAsync(dto);
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(await genreService.GetAllAsync());
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            await genreService.DeleteAsync(id);
+            return Ok();
+        }
+    }
+}
