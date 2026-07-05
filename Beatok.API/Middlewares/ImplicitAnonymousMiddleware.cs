@@ -23,7 +23,7 @@ public class ImplicitAnonymousMiddleware(RequestDelegate next)
             {
                 var authResult = await authService.LoginAnonymousAsync();
             
-                context.Response.Cookies.Append("jwt", authResult.Token, new CookieOptions
+                context.Response.Cookies.Append("jwt", authResult.AccessToken, new CookieOptions
                 {
                     HttpOnly = true, 
                     Secure = true,   
@@ -31,7 +31,7 @@ public class ImplicitAnonymousMiddleware(RequestDelegate next)
                     SameSite = SameSiteMode.Strict
                 });
             
-                context.Request.Headers.Append("Authorization", $"Bearer {authResult.Token}");
+                context.Request.Headers.Append("Authorization", $"Bearer {authResult.AccessToken}");
             }
             else
             {

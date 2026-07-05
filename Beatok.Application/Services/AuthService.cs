@@ -12,7 +12,7 @@ namespace Beatok.Application.Services;
 
 public class AuthService(IPasswordHasher passwordHasher,
     IUserRepository userRepository, IValidator<UserRegisterDto> validator,
-    IJwtProvider jwtProvider): IAuthService
+    IJwtProvider jwtProvider, IRefreshTokenRepository refreshTokenRepository): IAuthService
 {
     public async Task RegisterAsync(UserRegisterDto dto)
     {
@@ -57,12 +57,23 @@ public class AuthService(IPasswordHasher passwordHasher,
             throw new InvalidCredentialException("Invalid email or password");
         }
         
-        var jwtGenerateResult = jwtProvider.GenerateToken(user);
+        var accessToken = jwtProvider.GenerateToken(user);
+        var refreshToken = jwtProvider.GenerateRefreshToken();
+        
+        var refreshTokenEntity = new RefreshToken
+        {
+            TokenHash = jwtProvider.ComputeHash(refreshToken),
+            UserId = user.Id,
+            Expires = DateTime.UtcNow.AddDays(30)
+        };
 
+        await refreshTokenRepository.AddAsync(refreshTokenEntity);
+        
         return new AuthResult
         {
-            Token = jwtGenerateResult.Token,
-            Expires = jwtGenerateResult.Expires
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            Expires = refreshTokenEntity.Expires
         };
     }
 
@@ -79,11 +90,41 @@ public class AuthService(IPasswordHasher passwordHasher,
         
         await userRepository.AddAsync(user);
         
-        var jwtGenerateResult = jwtProvider.GenerateToken(user, true);
+        var jwt = jwtProvider.GenerateToken(user, true);
         return new AuthResult
         {
-            Token = jwtGenerateResult.Token,
-            Expires = jwtGenerateResult.Expires
+            AccessToken = jwt,
+            Expires = DateTime.UtcNow.AddDays(30)
+        };
+    }
+
+    public async Task<AuthResult> RefreshTokenAsync(string refreshToken)
+    {
+        var tokenHash = jwtProvider.ComputeHash(refreshToken);
+        var refreshTokenEntity = await refreshTokenRepository.GetAsync(tokenHash);
+
+        if (refreshTokenEntity == null || refreshTokenEntity.Expires < DateTime.UtcNow)
+        {
+            throw new TokenExpiredException("The refresh token has expired");
+        }
+
+        string accessToken = jwtProvider.GenerateToken(refreshTokenEntity.User!);
+        string newRefreshToken = jwtProvider.GenerateRefreshToken();
+
+        RefreshToken newRefreshTokenEntity = new RefreshToken
+        {
+            TokenHash = jwtProvider.ComputeHash(newRefreshToken),
+            Expires = DateTime.UtcNow.AddDays(30),
+            UserId = refreshTokenEntity.UserId
+        };
+        
+        await refreshTokenRepository.AddAsync(newRefreshTokenEntity);
+
+        return new AuthResult
+        {
+            AccessToken = accessToken,
+            RefreshToken = newRefreshToken,
+            Expires = refreshTokenEntity.Expires
         };
     }
 
