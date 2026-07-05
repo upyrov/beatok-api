@@ -1,13 +1,13 @@
 using Beatok.Application.DTOs.Genre;
 using Beatok.Application.Exceptions;
-using Beatok.Application.Interfaces.Repositories;
+using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
 
 namespace Beatok.Application.Services;
 
-public class GenreService(IGenreRepository genreRepository,
+public class GenreService(IUnitOfWork unitOfWork,
     IValidator<CreateGenreDto> validator): IGenreService
 {
     public async Task CreateAsync(CreateGenreDto dto)
@@ -19,15 +19,16 @@ public class GenreService(IGenreRepository genreRepository,
             throw new ValidationException(fluentValidation.Errors);
         }
 
-        await genreRepository.CreateAsync(new Genre
+        await unitOfWork.Genres.CreateAsync(new Genre
         {
             Name = dto.Name
         });
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<GenreDto>> GetAllAsync()
     {
-        var genres = await genreRepository.GetAllAsync();
+        var genres = await unitOfWork.Genres.GetAllAsync();
         return genres.Select(g => new GenreDto
         {
             Id = g.Id,
@@ -37,12 +38,13 @@ public class GenreService(IGenreRepository genreRepository,
 
     public async Task DeleteAsync(int id)
     {
-        var genre = await genreRepository.GetByIdAsync(id);
+        var genre = await unitOfWork.Genres.GetByIdAsync(id);
         if (genre == null)
         {
             throw new NotFoundException("Genre not found");
         }
         
-        await genreRepository.DeleteAsync(genre);
+        unitOfWork.Genres.Delete(genre);
+        await unitOfWork.SaveChangesAsync();
     }
 }

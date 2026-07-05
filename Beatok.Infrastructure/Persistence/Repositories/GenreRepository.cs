@@ -9,7 +9,6 @@ public class GenreRepository(ApplicationDbContext context): IGenreRepository
     public async Task CreateAsync(Genre genre)
     {
         await context.Genres.AddAsync(genre);
-        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Genre>> GetAllAsync()
@@ -22,9 +21,8 @@ public class GenreRepository(ApplicationDbContext context): IGenreRepository
         return await context.Genres.FindAsync(id);
     }
 
-    public async Task DeleteAsync(Genre genre)
+    public void Delete(Genre genre)
     {
         context.Genres.Remove(genre);
-        await context.SaveChangesAsync();
     }
 }

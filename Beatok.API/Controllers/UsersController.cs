@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Beatok.API.Controllers
@@ -10,6 +11,7 @@ namespace Beatok.API.Controllers
     public class UsersController(IUserService userService) : ControllerBase
     {
         [HttpGet("me")]
+        [Authorize]
         [ImplicitAnonymous]
         public async Task<IActionResult> GetMe()
         {

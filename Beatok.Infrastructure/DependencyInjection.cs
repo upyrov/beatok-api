@@ -29,6 +29,8 @@ public static class DependencyInjection
         services.AddScoped<IGenreRepository, GenreRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        
         return services;
     }
 }
