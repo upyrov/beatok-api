@@ -11,7 +11,7 @@ public class RefreshTokenRepository(ApplicationDbContext context): IRefreshToken
         await context.RefreshTokens.AddAsync(token);
     }
 
-    public async Task<RefreshToken?> GetAsync(string tokenHash)
+    public async Task<RefreshToken?> GetByHashAsync(string tokenHash)
     {
         return await context.RefreshTokens
             .Include(t => t.User)
@@ -23,5 +23,10 @@ public class RefreshTokenRepository(ApplicationDbContext context): IRefreshToken
         return await context.RefreshTokens
             .Where(t => t.Expires < DateTime.UtcNow)
             .ExecuteDeleteAsync();
+    }
+
+    public void Delete(RefreshToken token)
+    {
+        context.RefreshTokens.Remove(token);
     }
 }

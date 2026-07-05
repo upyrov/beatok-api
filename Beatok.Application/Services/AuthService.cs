@@ -115,12 +115,14 @@ public class AuthService(IPasswordHasher passwordHasher,
     public async Task<AuthResult> RefreshTokenAsync(string refreshToken)
     {
         var tokenHash = jwtProvider.ComputeHash(refreshToken);
-        var refreshTokenEntity = await unitOfWork.RefreshTokens.GetAsync(tokenHash);
+        var refreshTokenEntity = await unitOfWork.RefreshTokens.GetByHashAsync(tokenHash);
 
         if (refreshTokenEntity == null || refreshTokenEntity.Expires < DateTime.UtcNow)
         {
             throw new TokenExpiredException("The refresh token has expired");
         }
+        
+        unitOfWork.RefreshTokens.Delete(refreshTokenEntity);
 
         string accessToken = jwtProvider.GenerateToken(refreshTokenEntity.User!);
         string newRefreshToken = jwtProvider.GenerateRefreshToken();
