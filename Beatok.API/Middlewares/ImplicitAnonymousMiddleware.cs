@@ -22,14 +22,17 @@ public class ImplicitAnonymousMiddleware(RequestDelegate next)
             if (!hasToken)
             {
                 var authResult = await authService.LoginAnonymousAsync();
-            
-                context.Response.Cookies.Append("jwt", authResult.AccessToken, new CookieOptions
+
+                var cookieOptions = new CookieOptions
                 {
-                    HttpOnly = true, 
-                    Secure = true,   
+                    HttpOnly = true,
+                    Secure = true,
                     Expires = authResult.Expires,
                     SameSite = SameSiteMode.Strict
-                });
+                };
+            
+                context.Response.Cookies.Append("jwt", authResult.AccessToken, cookieOptions);
+                context.Response.Cookies.Append("refresh_token", authResult.RefreshToken, cookieOptions);
             
                 context.Request.Headers.Append("Authorization", $"Bearer {authResult.AccessToken}");
             }

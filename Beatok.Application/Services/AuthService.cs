@@ -90,11 +90,23 @@ public class AuthService(IPasswordHasher passwordHasher,
         
         await userRepository.AddAsync(user);
         
-        var jwt = jwtProvider.GenerateToken(user, true);
+        var accessToken = jwtProvider.GenerateToken(user, true);
+        var refreshToken = jwtProvider.GenerateRefreshToken();
+
+        var refreshTokenEntity = new RefreshToken
+        {
+            TokenHash = jwtProvider.ComputeHash(refreshToken),
+            UserId = user.Id,
+            Expires = DateTime.UtcNow.AddYears(1)
+        };
+        
+        await refreshTokenRepository.AddAsync(refreshTokenEntity);
+        
         return new AuthResult
         {
-            AccessToken = jwt,
-            Expires = DateTime.UtcNow.AddDays(30)
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            Expires = refreshTokenEntity.Expires
         };
     }
 
@@ -114,7 +126,8 @@ public class AuthService(IPasswordHasher passwordHasher,
         RefreshToken newRefreshTokenEntity = new RefreshToken
         {
             TokenHash = jwtProvider.ComputeHash(newRefreshToken),
-            Expires = DateTime.UtcNow.AddDays(30),
+            Expires = refreshTokenEntity.User!.IsAnonymous ? 
+                DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddDays(30), 
             UserId = refreshTokenEntity.UserId
         };
         
@@ -124,7 +137,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         {
             AccessToken = accessToken,
             RefreshToken = newRefreshToken,
-            Expires = refreshTokenEntity.Expires
+            Expires = newRefreshTokenEntity.Expires
         };
     }
 
