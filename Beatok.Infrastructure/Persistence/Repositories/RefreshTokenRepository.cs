@@ -17,4 +17,11 @@ public class RefreshTokenRepository(ApplicationDbContext context): IRefreshToken
             .Include(t => t.User)
             .FirstOrDefaultAsync(t => t.TokenHash == tokenHash);  
     }
+
+    public async Task<int> DeleteExpiredAsync()
+    {
+        return await context.RefreshTokens
+            .Where(t => t.Expires < DateTime.UtcNow)
+            .ExecuteDeleteAsync();
+    }
 }

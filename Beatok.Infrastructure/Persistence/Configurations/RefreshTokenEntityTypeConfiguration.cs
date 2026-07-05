@@ -16,6 +16,8 @@ public class RefreshTokenEntityTypeConfiguration: IEntityTypeConfiguration<Refre
         builder.HasIndex(x => x.TokenHash)
             .IsUnique();
         
+        builder.HasIndex(x => x.Expires);
+        
         builder.HasOne(x => x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId);
