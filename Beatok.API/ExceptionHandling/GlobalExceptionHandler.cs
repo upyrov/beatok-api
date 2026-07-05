@@ -17,6 +17,7 @@ public class GlobalExceptionHandler: IExceptionHandler
             ValidationException => StatusCodes.Status400BadRequest,
             InvalidCredentialException => StatusCodes.Status401Unauthorized,
             UserNotFoundException => StatusCodes.Status401Unauthorized,
+            NotFoundException => StatusCodes.Status404NotFound,
             _ => StatusCodes.Status500InternalServerError
         };
         context.Response.StatusCode = statusCode;
