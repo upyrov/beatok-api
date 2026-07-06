@@ -52,6 +52,9 @@ app.UseCors("AllowFrontend");
 app.UseMiddleware<ImplicitAnonymousMiddleware>();
 
 app.UseAuthentication();
+
+app.UseMiddleware<AnonymousActivityMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();

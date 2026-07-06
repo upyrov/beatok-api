@@ -20,7 +20,22 @@ namespace Beatok.API.Controllers
         {
             var authResult = await authService.LoginAsync(dto);
             
-            SetCookie(authResult.Token, authResult.Expires);
+            SetCookie(authResult.AccessToken, authResult.RefreshToken, authResult.Expires);
+            return Ok();
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            var token = Request.Cookies["refresh_token"];
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+            
+            var authResult = await authService.RefreshTokenAsync(token);
+            SetCookie(authResult.AccessToken, authResult.RefreshToken, authResult.Expires);
             return Ok();
         }
 
@@ -31,7 +46,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
         
-        private void SetCookie(string token, DateTime expires)
+        private void SetCookie(string token, string refreshToken, DateTime expires)
         {
             var cookieOptions = new CookieOptions
             {
@@ -42,6 +57,7 @@ namespace Beatok.API.Controllers
             };
 
             Response.Cookies.Append("jwt", token, cookieOptions);
+            Response.Cookies.Append("refresh_token", refreshToken, cookieOptions);
         }
     }
 }

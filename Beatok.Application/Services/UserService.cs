@@ -1,20 +1,21 @@
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
-using Beatok.Application.Interfaces.Repositories;
+using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 
 namespace Beatok.Application.Services;
 
-public class UserService(IUserRepository userRepository): IUserService
+public class UserService(IUnitOfWork unitOfWork): IUserService
 {
     public async Task UpdateLastActiveAtAsync(Guid userId)
     {
-        await userRepository.UpdateLastActiveAtAsync(userId);
+        await unitOfWork.Users.UpdateLastActiveAtAsync(userId);
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task<GetUserDto> GetUserByIdAsync(string userId)
     {
-        var user = await userRepository.GetByIdAsync(Guid.Parse(userId));
+        var user = await unitOfWork.Users.GetByIdAsync(Guid.Parse(userId));
 
         if (user == null)
         {

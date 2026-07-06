@@ -5,5 +5,7 @@ namespace Beatok.Application.Interfaces;
 
 public interface IJwtProvider
 {
-    JwtGenerateResult GenerateToken(User user, bool isAnonymous = false);
+    string GenerateToken(User user, bool isAnonymous = false);
+    string GenerateRefreshToken();
+    string ComputeHash(string input);
 }

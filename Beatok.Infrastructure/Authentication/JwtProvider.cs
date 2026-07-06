@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
-using Beatok.Application.DTOs;
 using Beatok.Application.Interfaces;
 using Beatok.Domain.Entities;
 using Microsoft.Extensions.Options;
@@ -13,7 +13,7 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
 {
     private readonly JwtOptions _options = options.Value;
     
-    public JwtGenerateResult GenerateToken(User user, bool isAnonymous = false)
+    public string GenerateToken(User user, bool isAnonymous = false)
     {
         Claim[] claims = [
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -28,15 +28,22 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
             signingCredentials: signingCredentials,
             issuer: _options.Issuer,
             audience: _options.Audience,
-            expires: DateTime.UtcNow.AddHours(_options.ExpiresHours)
+            expires: DateTime.UtcNow.AddMinutes(_options.ExpiresMinutes)
         );
         
         var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
 
-        return new JwtGenerateResult
-        {
-            Token = tokenValue,
-            Expires = token.ValidTo
-        };
+        return tokenValue;
+    }
+
+    public string GenerateRefreshToken()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    }
+    
+    public string ComputeHash(string input)
+    {
+        using var sha256 = SHA256.Create();
+        return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(input)));
     }
 }

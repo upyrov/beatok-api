@@ -21,12 +21,16 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
 
         services.AddHostedService<InactiveUserCleanupService>();
+        services.AddHostedService<TokenCleanupService>();
         
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGenreRepository, GenreRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;
     }

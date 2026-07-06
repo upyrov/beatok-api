@@ -1,5 +1,6 @@
 using Beatok.Application.DTOs.Genre;
 using Beatok.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Beatok.API.Controllers
@@ -15,6 +16,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {

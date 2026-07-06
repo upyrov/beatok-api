@@ -3,7 +3,6 @@ using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
-using Beatok.Application.Interfaces.Repositories;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
@@ -11,8 +10,8 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class AuthService(IPasswordHasher passwordHasher,
-    IUserRepository userRepository, IValidator<UserRegisterDto> validator,
-    IJwtProvider jwtProvider): IAuthService
+    IValidator<UserRegisterDto> validator,
+    IJwtProvider jwtProvider, IUnitOfWork unitOfWork): IAuthService
 {
     public async Task RegisterAsync(UserRegisterDto dto)
     {
@@ -23,7 +22,7 @@ public class AuthService(IPasswordHasher passwordHasher,
             throw new ValidationException(fluentValidationResult.Errors);
         }
         
-        if (await userRepository.ExistsByEmailAsync(dto.Email))
+        if (await unitOfWork.Users.ExistsByEmailAsync(dto.Email))
         {
             throw new EmailAlreadyExistsException("User with this email already exists");
         }
@@ -38,12 +37,13 @@ public class AuthService(IPasswordHasher passwordHasher,
             LastActiveAt = null
         };
         
-        await userRepository.AddAsync(user);
+        await unitOfWork.Users.AddAsync(user);
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task<AuthResult> LoginAsync(UserLoginDto dto)
     {
-        var user = await userRepository.GetByEmailAsync(dto.Email);
+        var user = await unitOfWork.Users.GetByEmailAsync(dto.Email);
 
         if (user == null)
         {
@@ -57,12 +57,24 @@ public class AuthService(IPasswordHasher passwordHasher,
             throw new InvalidCredentialException("Invalid email or password");
         }
         
-        var jwtGenerateResult = jwtProvider.GenerateToken(user);
+        var accessToken = jwtProvider.GenerateToken(user);
+        var refreshToken = jwtProvider.GenerateRefreshToken();
+        
+        var refreshTokenEntity = new RefreshToken
+        {
+            TokenHash = jwtProvider.ComputeHash(refreshToken),
+            UserId = user.Id,
+            Expires = DateTime.UtcNow.AddDays(30)
+        };
 
+        await unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity);
+        await unitOfWork.SaveChangesAsync();
+        
         return new AuthResult
         {
-            Token = jwtGenerateResult.Token,
-            Expires = jwtGenerateResult.Expires
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            Expires = refreshTokenEntity.Expires
         };
     }
 
@@ -77,13 +89,60 @@ public class AuthService(IPasswordHasher passwordHasher,
             LastActiveAt = DateTime.UtcNow
         };
         
-        await userRepository.AddAsync(user);
+        await unitOfWork.Users.AddAsync(user);
         
-        var jwtGenerateResult = jwtProvider.GenerateToken(user, true);
+        var accessToken = jwtProvider.GenerateToken(user, true);
+        var refreshToken = jwtProvider.GenerateRefreshToken();
+
+        var refreshTokenEntity = new RefreshToken
+        {
+            TokenHash = jwtProvider.ComputeHash(refreshToken),
+            UserId = user.Id,
+            Expires = DateTime.UtcNow.AddYears(1)
+        };
+        
+        await unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity);
+        await unitOfWork.SaveChangesAsync();
+        
         return new AuthResult
         {
-            Token = jwtGenerateResult.Token,
-            Expires = jwtGenerateResult.Expires
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            Expires = refreshTokenEntity.Expires
+        };
+    }
+
+    public async Task<AuthResult> RefreshTokenAsync(string refreshToken)
+    {
+        var tokenHash = jwtProvider.ComputeHash(refreshToken);
+        var refreshTokenEntity = await unitOfWork.RefreshTokens.GetByHashAsync(tokenHash);
+
+        if (refreshTokenEntity == null || refreshTokenEntity.Expires < DateTime.UtcNow)
+        {
+            throw new TokenExpiredException("The refresh token has expired");
+        }
+        
+        unitOfWork.RefreshTokens.Delete(refreshTokenEntity);
+
+        string accessToken = jwtProvider.GenerateToken(refreshTokenEntity.User!);
+        string newRefreshToken = jwtProvider.GenerateRefreshToken();
+
+        RefreshToken newRefreshTokenEntity = new RefreshToken
+        {
+            TokenHash = jwtProvider.ComputeHash(newRefreshToken),
+            Expires = refreshTokenEntity.User!.IsAnonymous ? 
+                DateTime.UtcNow.AddYears(1) : DateTime.UtcNow.AddDays(30), 
+            UserId = refreshTokenEntity.UserId
+        };
+        
+        await unitOfWork.RefreshTokens.AddAsync(newRefreshTokenEntity);
+        await unitOfWork.SaveChangesAsync();
+
+        return new AuthResult
+        {
+            AccessToken = accessToken,
+            RefreshToken = newRefreshToken,
+            Expires = newRefreshTokenEntity.Expires
         };
     }
 
