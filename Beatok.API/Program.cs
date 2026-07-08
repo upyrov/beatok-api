@@ -1,5 +1,6 @@
 using Beatok.API.ExceptionHandling;
 using Beatok.API.Extensions;
+using Beatok.API.Hubs;
 using Beatok.API.Middlewares;
 using Beatok.Application;
 using Beatok.Infrastructure;
@@ -31,6 +32,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -58,5 +60,6 @@ app.UseMiddleware<AnonymousActivityMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<LobbyHub>("/lobby");
 
 app.Run();
