@@ -7,5 +7,7 @@ public class User
     public string? Email { get; set; }
     public string? PasswordHash { get; set; }
     public bool IsAnonymous { get; set; } = false;
-    public DateTime? LastActiveAt { get; set; } 
+    public DateTime? LastActiveAt { get; set; }
+    public ICollection<Lobby> OwnedLobbies { get; set; } = [];
+    public ICollection<Participation> Participations { get; set; } = [];
 }
