@@ -18,6 +18,6 @@ public class Lobby
     public TimeSpan SubmissionTimeLimit { get; set; }
     public TimeSpan VotingTimeLimit { get; set; }
     public Guid OwnerId { get; set; }
-    public required User Owner { get; set; }
+    public User? Owner { get; set; }
     public ICollection<Participation> Participants { get; set; } = [];
 }
