@@ -25,13 +25,21 @@ public class LobbyService(IUnitOfWork unitOfWork,
             throw new NotFoundException("User not found");
         }
 
-        await unitOfWork.Lobbies.AddAsync(new Lobby
+        var lobby = new Lobby
         {
             Name = dto.Name,
             OwnerId = owner.Id,
             ParticipantLimit = dto.ParticipantLimit,
             SubmissionTimeLimit = dto.SubmissionTimeLimit,
             VotingTimeLimit = dto.VotingTimeLimit
+        };
+
+        await unitOfWork.Lobbies.AddAsync(lobby);
+
+        await unitOfWork.Participation.AddAsync(new Participation
+        {
+            LobbyId = lobby.Id,
+            UserId = owner.Id
         });
         await unitOfWork.SaveChangesAsync();
     }

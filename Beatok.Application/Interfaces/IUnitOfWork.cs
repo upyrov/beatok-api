@@ -8,6 +8,7 @@ public interface IUnitOfWork
     public IGenreRepository Genres { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
     public ILobbyRepository Lobbies { get; }
+    public IParticipationRepository Participation { get; }
     
     public Task SaveChangesAsync();
 }

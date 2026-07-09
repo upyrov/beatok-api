@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Genre> Genres { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Lobby> Lobbies { get; set; }
+    public DbSet<Participation> Participation { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
