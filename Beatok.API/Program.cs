@@ -3,6 +3,7 @@ using Beatok.API.Extensions;
 using Beatok.API.Hubs;
 using Beatok.API.Middlewares;
 using Beatok.Application;
+using Beatok.Application.Interfaces.Services;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
 using Scalar.AspNetCore;
@@ -31,6 +32,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -43,6 +46,18 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var soundService = scope.ServiceProvider.GetRequiredService<ISoundService>();
+    await soundService.RefreshCacheAsync(); 
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var soundService = scope.ServiceProvider.GetRequiredService<ISoundService>();
+    soundService.GenerateOneShotKit("trap");
 }
 
 app.UseExceptionHandler();
