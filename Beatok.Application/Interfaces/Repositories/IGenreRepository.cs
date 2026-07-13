@@ -6,6 +6,6 @@ public interface IGenreRepository
 {
     Task CreateAsync(Genre genre);
     Task<IEnumerable<Genre>> GetAllAsync();
-    Task<Genre?> GetByIdAsync(int id);
+    Task<Genre?> GetByIdAsync(Guid id);
     void Delete(Genre genre);
 }

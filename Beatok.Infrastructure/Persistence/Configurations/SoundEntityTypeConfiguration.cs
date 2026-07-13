@@ -13,7 +13,7 @@ namespace Beatok.Infrastructure.Persistence.Configurations
             builder.Property(x => x.Value).IsRequired();
 
             builder.HasOne(x => x.Category)
-                .WithMany()
+                .WithMany(c => c.Sounds)
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

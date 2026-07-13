@@ -24,7 +24,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             await genreService.DeleteAsync(id);
             return Ok();

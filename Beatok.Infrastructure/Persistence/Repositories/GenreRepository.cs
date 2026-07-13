@@ -16,7 +16,7 @@ public class GenreRepository(ApplicationDbContext context): IGenreRepository
         return await context.Genres.ToListAsync();
     }
 
-    public async Task<Genre?> GetByIdAsync(int id)
+    public async Task<Genre?> GetByIdAsync(Guid id)
     {
         return await context.Genres.FindAsync(id);
     }

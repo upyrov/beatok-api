@@ -12,7 +12,7 @@ public class Lobby
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
-    public int GenreId { get; set; }
+    public Guid GenreId { get; set; }
     public Genre? Genre { get; set; }
     public short ParticipantLimit { get; set; }
     public LobbyPhase Phase { get; set; } = LobbyPhase.NotStarted;
