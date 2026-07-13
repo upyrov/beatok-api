@@ -8,7 +8,7 @@ namespace Beatok.API.Controllers
 {
     [Route("users")]
     [ApiController]
-    public class UsersController(IUserService userService) : ControllerBase
+    public class UserController(IUserService userService) : ControllerBase
     {
         [HttpGet("me")]
         [Authorize]

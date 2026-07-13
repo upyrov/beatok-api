@@ -7,7 +7,7 @@ namespace Beatok.API.Controllers
 {
     [Route("genres")]
     [ApiController]
-    public class GenresController(IGenreService genreService) : ControllerBase
+    public class GenreController(IGenreService genreService) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateGenreDto dto)

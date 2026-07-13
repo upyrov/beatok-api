@@ -10,7 +10,7 @@ namespace Beatok.API.Controllers
 {
     [Route("lobbies")]
     [ApiController]
-    public class LobbiesController(ILobbyService lobbyService) : ControllerBase
+    public class LobbyController(ILobbyService lobbyService) : ControllerBase
     {
         [HttpPost]
         [Authorize]
