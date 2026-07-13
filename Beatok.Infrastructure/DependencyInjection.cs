@@ -29,7 +29,10 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGenreRepository, GenreRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-        
+        services.AddScoped<IKitRepository, KitRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ISoundRepository, SoundRepository>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;
