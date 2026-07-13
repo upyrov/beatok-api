@@ -22,8 +22,4 @@
       <ProjectReference Include="..\Beatok.Infrastructure\Beatok.Infrastructure.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Controllers\" />
-    </ItemGroup>
-
 </Project>

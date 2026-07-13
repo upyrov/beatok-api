@@ -26,7 +26,7 @@ public class KitRepository(ApplicationDbContext context) : IKitRepository
     }
 
 
-    public async Task<Kit?> GetAsync()
+    public async Task<Kit?> GetRandomAsync()
     {
         return await context.Kits.Include(k => k.Categories)
             .ThenInclude(f => f.Sounds)

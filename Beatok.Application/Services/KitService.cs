@@ -49,9 +49,9 @@ public class KitService(IUnitOfWork unitOfWork,
         });
     }
 
-    public async Task<KitDto> GetAsync()
+    public async Task<KitDto> GetRandomAsync()
     {
-        var kit = await unitOfWork.Kits.GetAsync();
+        var kit = await unitOfWork.Kits.GetRandomAsync();
         if (kit == null)
         {
             throw new NotFoundException("Kit not found");
