@@ -2,9 +2,12 @@ using Beatok.API.ExceptionHandling;
 using Beatok.API.Extensions;
 using Beatok.API.Hubs;
 using Beatok.API.Middlewares;
+using Beatok.API.Notifications;
 using Beatok.Application;
+using Beatok.Application.Interfaces;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
+using Hangfire;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +33,10 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddScoped<ILobbyNotifier, SignalRLobbyNotifier>();
+
+builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -58,6 +65,8 @@ app.UseAuthentication();
 app.UseMiddleware<AnonymousActivityMiddleware>();
 
 app.UseAuthorization();
+
+app.UseHangfireDashboard();
 
 app.MapControllers();
 app.MapHub<LobbyHub>("/lobby");

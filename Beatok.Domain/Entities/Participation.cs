@@ -7,6 +7,6 @@ public class Participation
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
     public Guid UserId { get; set; }
     public Guid LobbyId { get; set; }
-    public required User User { get; set; }
-    public required Lobby Lobby { get; set; }
+    public User? User { get; set; }
+    public Lobby? Lobby { get; set; }
 }
