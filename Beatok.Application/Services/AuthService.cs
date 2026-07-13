@@ -10,10 +10,10 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class AuthService(IPasswordHasher passwordHasher,
-    IValidator<UserRegisterDto> validator,
+    IValidator<UserSignupDto> validator,
     IJwtProvider jwtProvider, IUnitOfWork unitOfWork): IAuthService
 {
-    public async Task RegisterAsync(UserRegisterDto dto)
+    public async Task SignUpAsync(UserSignupDto dto)
     {
         var fluentValidationResult = await validator.ValidateAsync(dto);
 
@@ -41,7 +41,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<AuthResult> LoginAsync(UserLoginDto dto)
+    public async Task<AuthResultDto> SignInAsync(UserSigninDto dto)
     {
         var user = await unitOfWork.Users.GetByEmailAsync(dto.Email);
 
@@ -70,7 +70,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         await unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity);
         await unitOfWork.SaveChangesAsync();
         
-        return new AuthResult
+        return new AuthResultDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
@@ -78,7 +78,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         };
     }
 
-    public async Task<AuthResult> LoginAnonymousAsync()
+    public async Task<AuthResultDto> SignInAnonymousAsync()
     {
         var userName = GenerateAnonymousName();
 
@@ -104,7 +104,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         await unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity);
         await unitOfWork.SaveChangesAsync();
         
-        return new AuthResult
+        return new AuthResultDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
@@ -112,7 +112,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         };
     }
 
-    public async Task<AuthResult> RefreshTokenAsync(string refreshToken)
+    public async Task<AuthResultDto> RefreshTokenAsync(string refreshToken)
     {
         var tokenHash = jwtProvider.ComputeHash(refreshToken);
         var refreshTokenEntity = await unitOfWork.RefreshTokens.GetByHashAsync(tokenHash);
@@ -138,7 +138,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         await unitOfWork.RefreshTokens.AddAsync(newRefreshTokenEntity);
         await unitOfWork.SaveChangesAsync();
 
-        return new AuthResult
+        return new AuthResultDto
         {
             AccessToken = accessToken,
             RefreshToken = newRefreshToken,

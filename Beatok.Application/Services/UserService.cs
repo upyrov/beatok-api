@@ -13,7 +13,7 @@ public class UserService(IUnitOfWork unitOfWork): IUserService
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<GetUserDto> GetUserByIdAsync(string userId)
+    public async Task<UserDto> GetUserByIdAsync(string userId)
     {
         var user = await unitOfWork.Users.GetByIdAsync(Guid.Parse(userId));
 
@@ -22,7 +22,7 @@ public class UserService(IUnitOfWork unitOfWork): IUserService
             throw new UserNotFoundException();
         }
 
-        return new GetUserDto
+        return new UserDto
         {
             Name = user.Name
         };
