@@ -13,7 +13,7 @@ public interface IUnitOfWork
     public ISoundRepository Sounds { get; }
   
     public ILobbyRepository Lobbies { get; }
-    public IParticipationRepository Participation { get; }
+    public IParticipationRepository Participations { get; }
     
     public Task SaveChangesAsync();
 }

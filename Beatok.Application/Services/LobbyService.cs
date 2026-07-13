@@ -46,7 +46,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
 
         await unitOfWork.Lobbies.AddAsync(lobby);
 
-        await unitOfWork.Participation.AddAsync(new Participation
+        await unitOfWork.Participations.AddAsync(new Participation
         {
             LobbyId = lobby.Id,
             UserId = owner.Id
