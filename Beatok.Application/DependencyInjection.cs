@@ -1,3 +1,4 @@
+using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Application.Services;
 using Beatok.Application.Validators;
@@ -15,6 +16,8 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGenreService, GenreService>();
+        services.AddScoped<ILobbyService, LobbyService>();   
+        services.AddSingleton<ISoundService, SoundService>();
         
         return services;
     }
