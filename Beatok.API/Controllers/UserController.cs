@@ -17,7 +17,7 @@ namespace Beatok.API.Controllers
         {
             var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
-            return Ok(await userService.GetUserByIdAsync(userId));
+            return Ok(await userService.GetUserByIdAsync(Guid.Parse(userId)));
         }
     }
 }

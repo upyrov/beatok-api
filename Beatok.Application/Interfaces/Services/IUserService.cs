@@ -5,5 +5,5 @@ namespace Beatok.Application.Interfaces.Services;
 public interface IUserService
 {
     Task UpdateLastActiveAtAsync(Guid userId);
-    Task<UserDto> GetUserByIdAsync(string userId);
+    Task<UserDto> GetUserByIdAsync(Guid userId);
 }
