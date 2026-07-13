@@ -10,6 +10,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<User> Users { get; set; }
     public DbSet<Genre> Genres { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Kit> Kits { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Sound> Sounds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

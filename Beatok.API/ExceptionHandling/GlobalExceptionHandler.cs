@@ -1,5 +1,5 @@
 using System.Security.Authentication;
-using Beatok.Application.DTOs.Error;
+using Beatok.Application.DTOs;
 using Beatok.Application.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
