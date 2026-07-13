@@ -5,7 +5,6 @@ using Beatok.API.Middlewares;
 using Beatok.API.Notifications;
 using Beatok.Application;
 using Beatok.Application.Interfaces;
-using Beatok.Application.Interfaces.Services;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
 using Hangfire;
@@ -51,12 +50,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
-}
-
-using (var scope = app.Services.CreateScope())
-{
-    var soundService = scope.ServiceProvider.GetRequiredService<ISoundService>();
-    await soundService.RefreshCacheAsync(); 
 }
 
 app.UseExceptionHandler();

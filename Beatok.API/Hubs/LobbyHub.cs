@@ -8,16 +8,16 @@ namespace Beatok.API.Hubs
     public interface ILobbyClient
     {
         // TODO: Replace sounds and submissions with corresponding DTOs
-        Task ParticipantJoined(GetUserDto user);
-        Task ParticipantLeft(GetUserDto user);
+        Task ParticipantJoined(UserDto user);
+        Task ParticipantLeft(UserDto user);
         Task OwnerChanged(Guid ownerId);
         Task MMRWithheld(); 
-        Task MessageReceived(string content, GetUserDto sender);
+        Task MessageReceived(string content, UserDto sender);
         Task Started(List<string> sounds);
         Task SubmissionRegistered(string userSubmission);
         Task VotingStarted(List<string> submissions);
         Task VoteRegistered(string userVote);
-        Task Ended(GetUserDto winner, string submission);
+        Task Ended(UserDto winner, string submission);
     }
 
     [Authorize]
