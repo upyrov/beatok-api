@@ -14,3 +14,4 @@ obj/
 .DS_Store
 
 *.DotSettings.user
+*.user

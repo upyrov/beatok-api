@@ -1,53 +1,54 @@
+﻿using Beatok.Application.DTOs.Sound;
+using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
-using Microsoft.Extensions.Caching.Memory;
+using Beatok.Domain.Entities;
+using FluentValidation;
 
 namespace Beatok.Application.Services;
 
-public class SoundService(ISoundStorage soundStorage, IMemoryCache cache): ISoundService
+public class SoundService(IUnitOfWork unitOfWork,
+    IValidator<CreateSoundDto> createValidator, IValidator<UpdateSoundDto> updateValidator)
+    : ISoundService
 {
-    private readonly Random _random = new();
-    
-    public async Task RefreshCacheAsync()
+    public async Task CreateAsync(CreateSoundDto dto)
     {
-        var keys = await soundStorage.ListSoundKeysAsync();
-        cache.Set("sound_keys", keys);
+        var fluentValidationResult = await createValidator.ValidateAsync(dto);
+
+        if (!fluentValidationResult.IsValid)
+        {
+            throw new ValidationException(fluentValidationResult.Errors);
+        }
+
+        await unitOfWork.Sounds.CreateAsync(new Sound
+        {
+            Value = dto.Value,
+            CategoryId = dto.Category.Id
+        });
+        await unitOfWork.SaveChangesAsync();
     }
 
-    public List<string> GenerateOneShotKit(string genre)
+    public async Task UpdateNameAsync(Guid id, UpdateSoundDto dto)
     {
-        var allKeys = cache.Get<List<string>>("sound_keys") ?? new List<string>();
-        var baseCategoryPath = $"{genre}/one-shots/";
-
-        var kitIds = allKeys
-            .Where(k => k.StartsWith(baseCategoryPath) && k != baseCategoryPath)
-            .Select(k => k.Replace(baseCategoryPath, "").Split('/')[0])
-            .Distinct()
-            .ToList();
-        
-        var randomKitId = kitIds[_random.Next(kitIds.Count)];
-        var kitPath = $"{baseCategoryPath}{randomKitId}/";
-
-        var subFolders = allKeys
-            .Where(k => k.StartsWith(kitPath) && k != kitPath)
-            .Select(k => k.Replace(kitPath, "").Split('/')[0])
-            .Distinct()
-            .ToList();
-
-        var soundUrls = new List<string>();
-        
-        foreach (var folder in subFolders)
+        var fluentValidationResult = await updateValidator.ValidateAsync(dto);
+        if (!fluentValidationResult.IsValid)
         {
-            var folderPath = $"{kitPath}{folder}/";
-            var filesInFolder = allKeys.Where(k => k.StartsWith(folderPath)).ToList();
-
-            if (filesInFolder.Any())
-            {
-                var randomFile = filesInFolder[_random.Next(filesInFolder.Count)];
-            
-                soundUrls.Add(soundStorage.GeneratePresignedSoundUrl(randomFile, TimeSpan.FromMinutes(15)));
-            }
+            throw new ValidationException(fluentValidationResult.Errors);
         }
-        return soundUrls;
+
+        var sound = await unitOfWork.Sounds.GetByIdAsync(id)
+            ?? throw new NotFoundException("Sound not found");
+
+        await unitOfWork.Sounds.UpdateValueAsync(sound.Id, dto.Value); 
+    }
+
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var sound = await unitOfWork.Sounds.GetByIdAsync(id) 
+            ?? throw new NotFoundException("Sound not found");
+
+        unitOfWork.Sounds.Delete(sound);
+        await unitOfWork.SaveChangesAsync();
     }
 }
