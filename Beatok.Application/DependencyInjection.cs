@@ -16,8 +16,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGenreService, GenreService>();
-        services.AddScoped<ILobbyService, LobbyService>();   
-        services.AddSingleton<ISoundService, SoundService>();
+        services.AddScoped<ISoundService, SoundService>();
         
         return services;
     }
