@@ -1,6 +1,6 @@
 namespace Beatok.Application.DTOs.Genre;
 
-public class CreateGenreDto
+public record CreateGenreDto
 {
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
 }

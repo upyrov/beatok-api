@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Beatok.Application.Validators;
 
-public class UserRegisterDtoValidator: AbstractValidator<UserRegisterDto>
+public class UserSignupDtoValidator: AbstractValidator<UserSignupDto>
 {
-    public UserRegisterDtoValidator()
+    public UserSignupDtoValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required")

@@ -9,18 +9,18 @@ namespace Beatok.API.Controllers
     public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("sign-up")]
-        public async Task<IActionResult> SignUp(UserRegisterDto dto)
+        public async Task<IActionResult> SignUp(UserSignupDto dto)
         {
-            await authService.RegisterAsync(dto);
+            await authService.SignUpAsync(dto);
             return Ok();
         }
 
         [HttpPost("sign-in")]
-        public async Task<IActionResult> SignIn(UserLoginDto dto)
+        public async Task<IActionResult> SignIn(UserSigninDto dto)
         {
-            var authResult = await authService.LoginAsync(dto);
+            var AuthResultDto = await authService.SignInAsync(dto);
             
-            SetCookie(authResult.AccessToken, authResult.RefreshToken, authResult.Expires);
+            SetCookie(AuthResultDto.AccessToken, AuthResultDto.RefreshToken, AuthResultDto.Expires);
             return Ok();
         }
 
@@ -34,8 +34,8 @@ namespace Beatok.API.Controllers
                 return Unauthorized();
             }
             
-            var authResult = await authService.RefreshTokenAsync(token);
-            SetCookie(authResult.AccessToken, authResult.RefreshToken, authResult.Expires);
+            var AuthResultDto = await authService.RefreshTokenAsync(token);
+            SetCookie(AuthResultDto.AccessToken, AuthResultDto.RefreshToken, AuthResultDto.Expires);
             return Ok();
         }
 
