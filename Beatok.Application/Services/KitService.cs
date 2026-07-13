@@ -10,11 +10,12 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class KitService(IUnitOfWork unitOfWork, 
-    IValidator<CreateKitDto> validator) : IKitService
+    IValidator<CreateKitDto> createValidator, IValidator<UpdateKitDto> updateValidator)
+    : IKitService
 {
     public async Task CreateAsync(CreateKitDto dto)
     {
-        var fluentValidationResult = await validator.ValidateAsync(dto);
+        var fluentValidationResult = await createValidator.ValidateAsync(dto);
 
         if (!fluentValidationResult.IsValid)
         {
@@ -73,6 +74,19 @@ public class KitService(IUnitOfWork unitOfWork,
         };
     }
 
+    public async Task UpdateNameAsync(Guid id, UpdateKitDto dto)
+    {
+        var fluentValidationResult = await updateValidator.ValidateAsync(dto);
+        if (!fluentValidationResult.IsValid)
+        {
+            throw new ValidationException(fluentValidationResult.Errors);
+        }
+
+        var kit = await unitOfWork.Kits.GetByIdAsync(id)
+            ?? throw new NotFoundException("Kit not found");
+
+        await unitOfWork.Kits.UpdateNameAsync(kit.Id, dto.Name);
+    }
 
     public async Task DeleteAsync(Guid id)
     {
