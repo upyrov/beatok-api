@@ -1,4 +1,4 @@
-﻿using Beatok.Application.DTOs.Sound;
+using Beatok.Application.DTOs.Sound;
 
 namespace Beatok.Application.Interfaces.Services;
 

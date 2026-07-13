@@ -1,3 +1,4 @@
+using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Application.Services;
 using Beatok.Application.Validators;

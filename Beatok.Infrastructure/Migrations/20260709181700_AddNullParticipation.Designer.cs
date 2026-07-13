@@ -3,6 +3,7 @@ using System;
 using Beatok.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Beatok.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709181700_AddNullParticipation")]
+    partial class AddNullParticipation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,9 +52,6 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("GenreId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -73,8 +73,6 @@ namespace Beatok.Infrastructure.Migrations
                         .HasColumnType("interval");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GenreId");
 
                     b.HasIndex("OwnerId");
 
@@ -172,19 +170,11 @@ namespace Beatok.Infrastructure.Migrations
 
             modelBuilder.Entity("Beatok.Domain.Entities.Lobby", b =>
                 {
-                    b.HasOne("Beatok.Domain.Entities.Genre", "Genre")
-                        .WithMany()
-                        .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Beatok.Domain.Entities.User", "Owner")
                         .WithMany("OwnedLobbies")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Genre");
 
                     b.Navigation("Owner");
                 });
