@@ -5,6 +5,8 @@ using Beatok.Infrastructure.Authentication;
 using Beatok.Infrastructure.BackgroundServices;
 using Beatok.Infrastructure.Persistence;
 using Beatok.Infrastructure.Persistence.Repositories;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,6 +57,11 @@ public static class DependencyInjection
         services.AddSingleton<ISoundStorage, R2StorageSound>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddHangfire(h =>
+            h.UsePostgreSqlStorage(options => 
+                options.UseNpgsqlConnection(configuration.GetConnectionString("NeonConnection"))));
+        services.AddHangfireServer();
         
         return services;
     }

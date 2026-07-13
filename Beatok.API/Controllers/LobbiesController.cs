@@ -28,5 +28,15 @@ namespace Beatok.API.Controllers
         {
             return Ok(await lobbyService.GetAllAsync(filter));
         }
+
+        [Authorize]
+        [HttpPatch("{id}/start")]
+        public async Task<IActionResult> StartLobby([FromRoute] Guid id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await lobbyService.StartLobbyAsync(id, Guid.Parse(userId!));
+            
+            return Ok();
+        }
     }
 }

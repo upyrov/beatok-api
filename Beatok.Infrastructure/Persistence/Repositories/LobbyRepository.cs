@@ -31,4 +31,11 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
         
         return await query.ToListAsync();
     }
+
+    public async Task<Lobby?> GetByIdAsync(Guid id)
+    {
+        return await context.Lobbies
+            .Include(l => l.Participants)
+            .FirstOrDefaultAsync(l => l.Id == id);
+    }
 }

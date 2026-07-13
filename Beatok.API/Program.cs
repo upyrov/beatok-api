@@ -2,10 +2,13 @@ using Beatok.API.ExceptionHandling;
 using Beatok.API.Extensions;
 using Beatok.API.Hubs;
 using Beatok.API.Middlewares;
+using Beatok.API.Notifications;
 using Beatok.Application;
+using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
+using Hangfire;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +35,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddScoped<ILobbyNotifier, SignalRLobbyNotifier>();
+
 builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
@@ -54,12 +59,6 @@ using (var scope = app.Services.CreateScope())
     await soundService.RefreshCacheAsync(); 
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var soundService = scope.ServiceProvider.GetRequiredService<ISoundService>();
-    soundService.GenerateOneShotKit("trap");
-}
-
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
@@ -73,6 +72,8 @@ app.UseAuthentication();
 app.UseMiddleware<AnonymousActivityMiddleware>();
 
 app.UseAuthorization();
+
+app.UseHangfireDashboard();
 
 app.MapControllers();
 app.MapHub<LobbyHub>("/lobby");
