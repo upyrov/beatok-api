@@ -4,11 +4,16 @@ using Beatok.Application.Interfaces.Repositories;
 namespace Beatok.Infrastructure.Persistence;
 
 public class UnitOfWork(ApplicationDbContext context, IUserRepository users,
-    IGenreRepository genres, IRefreshTokenRepository refreshTokens): IUnitOfWork
+    IGenreRepository genres, IRefreshTokenRepository refreshTokens,
+    IKitRepository kits, ICategoryRepository categories, ISoundRepository sounds)
+    : IUnitOfWork
 {
     public IUserRepository Users { get; } = users;
     public IGenreRepository Genres { get; } = genres;
     public IRefreshTokenRepository RefreshTokens { get; } = refreshTokens;
+    public IKitRepository Kits { get; } = kits;
+    public ICategoryRepository Categories { get; } = categories;
+    public ISoundRepository Sounds { get; } = sounds;
 
     public async Task SaveChangesAsync()
     {
