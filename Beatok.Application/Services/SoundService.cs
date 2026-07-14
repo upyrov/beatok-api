@@ -28,7 +28,7 @@ public class SoundService(IUnitOfWork unitOfWork,
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateNameAsync(Guid id, UpdateSoundDto dto)
+    public async Task UpdateValueAsync(Guid id, UpdateSoundDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)
