@@ -20,10 +20,16 @@ public class CategoryService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
+        var kit = await unitOfWork.Kits.GetByIdAsync(dto.KitId);
+        if (kit == null)
+        {
+            throw new NotFoundException("Kit not found");      
+        }
+
         await unitOfWork.Categories.CreateAsync(new Category
         {
             Name = dto.Name,
-            KitId = dto.Kit.Id
+            KitId = dto.KitId
         });
         await unitOfWork.SaveChangesAsync();
     }

@@ -22,24 +22,21 @@ public class KitRepository(ApplicationDbContext context) : IKitRepository
 
     public async Task<Kit?> GetByIdAsync(Guid id)
     {
-        return await context.Kits.FindAsync(id);
+        return await context.Kits
+            .Include(k => k.Categories)
+            .ThenInclude(f => f.Sounds)
+            .Include(k => k.Genres)
+            .FirstOrDefaultAsync(k => k.Id == id);
     }
 
 
     public async Task<Kit?> GetRandomAsync()
     {
-        return await context.Kits.Include(k => k.Categories)
+        return await context.Kits
+            .Include(k => k.Categories)
             .ThenInclude(f => f.Sounds)
             .OrderBy(r => EF.Functions.Random())
             .FirstOrDefaultAsync();
-    }
-
-    public async Task UpdateNameAsync(Guid kitId, string name)
-    {
-        await context.Kits
-            .Where(k => k.Id == kitId)
-            .ExecuteUpdateAsync(s =>
-                s.SetProperty(k => k.Name, name));
     }
 
     public void Delete(Kit kit)

@@ -8,6 +8,5 @@ public interface IKitRepository
     Task<IEnumerable<Kit>> GetAllAsync();
     Task<Kit?> GetByIdAsync(Guid kitId);
     Task<Kit?> GetRandomAsync();
-    Task UpdateNameAsync(Guid kitId, string name);
     void Delete(Kit kit);
 }

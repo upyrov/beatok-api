@@ -22,9 +22,17 @@ public class KitService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
+        var genres = await unitOfWork.Genres.GetByIdsAsync(dto.GenreIds);
+
+        if (genres.Count != dto.GenreIds.Count())
+        {
+            throw new NotFoundException("One or more genres not found");
+        }
+    
         await unitOfWork.Kits.CreateAsync(new Kit
         {
-            Name = dto.Name
+            Name = dto.Name,
+            Genres = genres
         });
         await unitOfWork.SaveChangesAsync();
     }
@@ -32,6 +40,7 @@ public class KitService(IUnitOfWork unitOfWork,
     public async Task<IEnumerable<KitDto>> GetAllAsync()
     {
         var kits = await unitOfWork.Kits.GetAllAsync();
+        
         return kits.Select(k => new KitDto
         {
             Id = k.Id,
@@ -74,7 +83,7 @@ public class KitService(IUnitOfWork unitOfWork,
         };
     }
 
-    public async Task UpdateNameAsync(Guid id, UpdateKitDto dto)
+    public async Task UpdateAsync(Guid id, UpdateKitDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)
@@ -84,8 +93,15 @@ public class KitService(IUnitOfWork unitOfWork,
 
         var kit = await unitOfWork.Kits.GetByIdAsync(id)
             ?? throw new NotFoundException("Kit not found");
-
-        await unitOfWork.Kits.UpdateNameAsync(kit.Id, dto.Name);
+        
+        var genres = await unitOfWork.Genres.GetByIdsAsync(dto.GenreIds);
+        if (genres.Count != dto.GenreIds.Count())
+        {
+            throw new NotFoundException("One or more genres not found");
+        }
+        kit.Name = dto.Name;
+        kit.Genres = genres;
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)

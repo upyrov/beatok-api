@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Beatok.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260709181042_CreateParticipation")]
-    partial class CreateParticipation
+    [Migration("20260714091344_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,13 +25,32 @@ namespace Beatok.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Beatok.Domain.Entities.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("KitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KitId");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("Beatok.Domain.Entities.Genre", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -43,6 +62,38 @@ namespace Beatok.Infrastructure.Migrations
                     b.ToTable("Genres");
                 });
 
+            modelBuilder.Entity("Beatok.Domain.Entities.GenreKit", b =>
+                {
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("KitId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("GenreId", "KitId");
+
+                    b.HasIndex("KitId", "GenreId")
+                        .IsUnique();
+
+                    b.ToTable("GenreKit");
+                });
+
+            modelBuilder.Entity("Beatok.Domain.Entities.Kit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Kits");
+                });
+
             modelBuilder.Entity("Beatok.Domain.Entities.Lobby", b =>
                 {
                     b.Property<Guid>("Id")
@@ -51,6 +102,9 @@ namespace Beatok.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -73,6 +127,8 @@ namespace Beatok.Infrastructure.Migrations
                         .HasColumnType("interval");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GenreId");
 
                     b.HasIndex("OwnerId");
 
@@ -136,6 +192,26 @@ namespace Beatok.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Beatok.Domain.Entities.Sound", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Sounds");
+                });
+
             modelBuilder.Entity("Beatok.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -168,13 +244,51 @@ namespace Beatok.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Beatok.Domain.Entities.Category", b =>
+                {
+                    b.HasOne("Beatok.Domain.Entities.Kit", "Kit")
+                        .WithMany("Categories")
+                        .HasForeignKey("KitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Kit");
+                });
+
+            modelBuilder.Entity("Beatok.Domain.Entities.GenreKit", b =>
+                {
+                    b.HasOne("Beatok.Domain.Entities.Genre", "Genre")
+                        .WithMany()
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Beatok.Domain.Entities.Kit", "Kit")
+                        .WithMany()
+                        .HasForeignKey("KitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("Kit");
+                });
+
             modelBuilder.Entity("Beatok.Domain.Entities.Lobby", b =>
                 {
+                    b.HasOne("Beatok.Domain.Entities.Genre", "Genre")
+                        .WithMany()
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Beatok.Domain.Entities.User", "Owner")
                         .WithMany("OwnedLobbies")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Genre");
 
                     b.Navigation("Owner");
                 });
@@ -207,6 +321,27 @@ namespace Beatok.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Beatok.Domain.Entities.Sound", b =>
+                {
+                    b.HasOne("Beatok.Domain.Entities.Category", "Category")
+                        .WithMany("Sounds")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Beatok.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Sounds");
+                });
+
+            modelBuilder.Entity("Beatok.Domain.Entities.Kit", b =>
+                {
+                    b.Navigation("Categories");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.Lobby", b =>

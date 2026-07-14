@@ -15,7 +15,7 @@ public class CategoryEntityTypeConfiguration : IEntityTypeConfiguration<Category
             .HasMaxLength(100);
 
         builder.HasOne(x => x.Kit)
-            .WithMany()
+            .WithMany(k => k.Categories)
             .HasForeignKey(x => x.KitId)
             .OnDelete(DeleteBehavior.Cascade);
     }

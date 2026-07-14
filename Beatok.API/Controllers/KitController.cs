@@ -26,7 +26,7 @@ namespace Beatok.API.Controllers
         [HttpPut]
         public async Task<IActionResult> UpdateName([FromQuery] Guid id, [FromBody] UpdateKitDto dto)
         {
-            await kitService.UpdateNameAsync(id, dto);
+            await kitService.UpdateAsync(id, dto);
             return Ok();
         }
 

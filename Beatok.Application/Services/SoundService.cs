@@ -20,10 +20,14 @@ public class SoundService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
+        var category = await unitOfWork.Categories.GetByIdAsync(dto.CategoryId);
+        if (category == null)
+            throw new BadRequestException("Category not found");
+
         await unitOfWork.Sounds.CreateAsync(new Sound
         {
             Value = dto.Value,
-            CategoryId = dto.Category.Id
+            CategoryId = dto.CategoryId
         });
         await unitOfWork.SaveChangesAsync();
     }
