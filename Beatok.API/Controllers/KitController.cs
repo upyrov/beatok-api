@@ -23,12 +23,6 @@ namespace Beatok.API.Controllers
             return Ok(await kitService.GetAllAsync());
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetRandom()
-        {
-            return Ok(await kitService.GetRandomAsync());
-        }
-
         [HttpPut]
         public async Task<IActionResult> UpdateName([FromQuery] Guid id, [FromBody] UpdateKitDto dto)
         {
