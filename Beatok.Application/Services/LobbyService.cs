@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 
 public class LobbyService(IUnitOfWork unitOfWork,
     IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier): ILobbyService
+    ILobbyNotifier lobbyNotifier, ISoundStorage soundStorage): ILobbyService
 {
     public async Task CreateAsync(CreateLobbyDto dto, Guid ownerId)
     {
@@ -93,10 +93,18 @@ public class LobbyService(IUnitOfWork unitOfWork,
         lobby.Phase = LobbyPhase.Submission;
         await unitOfWork.SaveChangesAsync();
 
-        // TODO: [Stub] Replace with actual SoundKit generation service call
-        var kit = new List<string>();
+        var kit = await unitOfWork.Kits.GetRandomAsync();
+        if (kit == null)
+        {
+            throw new NotFoundException("Kit not found");      
+        }
+        var sounds = kit.Categories
+            .SelectMany(c => c.Sounds)
+            .Select(s => 
+                soundStorage.GeneratePresignedSoundUrl(s.Value, TimeSpan.FromHours(1)))
+            .ToList();
         
-        lobbyNotifier.Started(lobby.Id, kit);
+        lobbyNotifier.Started(lobby.Id, sounds);
 
         backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
