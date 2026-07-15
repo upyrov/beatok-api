@@ -9,9 +9,9 @@ namespace Beatok.API.Controllers
     [Route("sounds")]
     [ApiController]
     [Authorize]
+    [Authorize(Roles = nameof(UserRole.Administrator))]
     public class SoundController(ISoundService soundService) : ControllerBase
     {
-        [Authorize(Roles = nameof(UserRole.Administrator))]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateSoundDto dto)
         {
@@ -19,7 +19,6 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = nameof(UserRole.Administrator))]
         [HttpPut]
         public async Task<IActionResult> UpdateValue([FromQuery] Guid id, [FromBody] UpdateSoundDto dto)
         {
@@ -27,7 +26,6 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = nameof(UserRole.Administrator))]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
