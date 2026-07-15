@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Beatok.API.Notifications;
 
-public class LobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext)
+public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext)
     : ILobbyNotifier
 {
     public void Started(Guid lobbyId, ICollection<RandomCategoryDto> categories)

@@ -10,7 +10,7 @@ public class R2StorageSound(IAmazonS3 s3Client): ISoundStorage
     {
         return s3Client.GetPreSignedURL(new GetPreSignedUrlRequest
         {
-            BucketName = "sounds",
+            BucketName = "beatok",
             Key = key,
             Expires = DateTime.UtcNow.Add(expires)
         });
