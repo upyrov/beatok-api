@@ -18,20 +18,20 @@ public class ImplicitAnonymousMiddleware(RequestDelegate next)
             var hasToken = context.Request.Cookies.ContainsKey("jwt");
             if (!hasToken)
             {
-                var authResult = await authService.LoginAnonymousAsync();
+                var AuthResultDto = await authService.SignInAnonymousAsync();
 
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
-                    Expires = authResult.Expires,
+                    Expires = AuthResultDto.Expires,
                     SameSite = SameSiteMode.Strict
                 };
             
-                context.Response.Cookies.Append("jwt", authResult.AccessToken, cookieOptions);
-                context.Response.Cookies.Append("refresh_token", authResult.RefreshToken, cookieOptions);
+                context.Response.Cookies.Append("jwt", AuthResultDto.AccessToken, cookieOptions);
+                context.Response.Cookies.Append("refresh_token", AuthResultDto.RefreshToken, cookieOptions);
             
-                context.Request.Headers.Append("Authorization", $"Bearer {authResult.AccessToken}");
+                context.Request.Headers.Append("Authorization", $"Bearer {AuthResultDto.AccessToken}");
             }
         }
         await next(context);

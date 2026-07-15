@@ -6,5 +6,5 @@ public interface IGenreService
 {
     Task CreateAsync(CreateGenreDto dto);
     Task<IEnumerable<GenreDto>> GetAllAsync();
-    Task DeleteAsync(int id);
+    Task DeleteAsync(Guid id);
 }

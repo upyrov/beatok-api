@@ -1,9 +1,14 @@
 using Beatok.API.ExceptionHandling;
 using Beatok.API.Extensions;
+using Beatok.API.Hubs;
 using Beatok.API.Middlewares;
+using Beatok.API.Notifications;
 using Beatok.Application;
+using Beatok.Application.Interfaces;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
+using Hangfire;
+using Beatok.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +35,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddScoped<ILobbyNotifier, SignalRLobbyNotifier>();
+
+builder.Services.AddMemoryCache();
+
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -41,6 +51,12 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await DatabaseInitializer.SeedAsync(services);
 }
 
 app.UseExceptionHandler();
@@ -57,6 +73,9 @@ app.UseMiddleware<AnonymousActivityMiddleware>();
 
 app.UseAuthorization();
 
+app.UseHangfireDashboard();
+
 app.MapControllers();
+app.MapHub<LobbyHub>("/lobby");
 
 app.Run();

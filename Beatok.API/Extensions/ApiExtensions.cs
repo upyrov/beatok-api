@@ -1,4 +1,5 @@
 using System.Text;
+using Beatok.Domain.Entities;
 using Beatok.Infrastructure.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -35,6 +36,8 @@ public static class ApiExtensions
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+            options.AddPolicy("OnlyAdmin", policy =>
+                policy.RequireRole(nameof(UserRole.Administrator))));
     }
 }

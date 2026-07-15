@@ -23,5 +23,15 @@ public class UserEntityTypeConfiguration: IEntityTypeConfiguration<User>
 
         builder.HasIndex(x => x.Email)
             .IsUnique();
+
+        builder.HasMany(x => x.OwnedLobbies)
+            .WithOne(x => x.Owner)
+            .HasForeignKey(x => x.OwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(x => x.Participations)
+            .WithOne(x => x.User)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

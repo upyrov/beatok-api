@@ -16,9 +16,16 @@ public class GenreRepository(ApplicationDbContext context): IGenreRepository
         return await context.Genres.ToListAsync();
     }
 
-    public async Task<Genre?> GetByIdAsync(int id)
+    public async Task<Genre?> GetByIdAsync(Guid id)
     {
         return await context.Genres.FindAsync(id);
+    }
+
+    public async Task<ICollection<Genre>> GetByIdsAsync(IEnumerable<Guid> ids)
+    {
+        return await context.Genres
+            .Where(g => ids.Contains(g.Id))
+            .ToListAsync();
     }
 
     public void Delete(Genre genre)

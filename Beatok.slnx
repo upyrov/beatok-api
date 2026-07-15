@@ -1,6 +1,6 @@
 <Solution>
-  <Project Path="Beatok.API\Beatok.API.csproj" Type="Classic C#" />
-  <Project Path="Beatok.Application\Beatok.Application.csproj" Type="Classic C#" />
-  <Project Path="Beatok.Domain\Beatok.Domain.csproj" Type="Classic C#" />
-  <Project Path="Beatok.Infrastructure\Beatok.Infrastructure.csproj" Type="Classic C#" />
+  <Project Path="Beatok.API\Beatok.API.csproj" />
+  <Project Path="Beatok.Application\Beatok.Application.csproj" />
+  <Project Path="Beatok.Domain\Beatok.Domain.csproj" />
+  <Project Path="Beatok.Infrastructure\Beatok.Infrastructure.csproj" />
 </Solution>

@@ -36,7 +36,7 @@ public class GenreService(IUnitOfWork unitOfWork,
         });
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(Guid id)
     {
         var genre = await unitOfWork.Genres.GetByIdAsync(id);
         if (genre == null)
