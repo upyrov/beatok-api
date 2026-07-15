@@ -38,4 +38,9 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
             .Include(l => l.Participants)
             .FirstOrDefaultAsync(l => l.Id == id);
     }
+
+    public void Delete(Lobby lobby)
+    {
+        context.Lobbies.Remove(lobby);
+    }
 }

@@ -9,4 +9,9 @@ public class ParticipationRepository(ApplicationDbContext context): IParticipati
     {
         await context.Participation.AddAsync(participation);
     }
+    
+    public void Delete(Participation participation)
+    {
+        context.Participation.Remove(participation);
+    }
 }

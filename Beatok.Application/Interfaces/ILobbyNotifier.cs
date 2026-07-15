@@ -7,13 +7,13 @@ public interface ILobbyNotifier
 {
     Task ParticipantJoinedAsync(Guid lobbyId, UserDto user);
     Task ParticipantRejoinedAsync(Guid lobbyId, UserDto user);
-    // Task ParticipantLeftAsync(Guid lobbyId, GetUserDto user);
-    // Task OwnerChangedAsync(Guid lobbyId, Guid ownerId);
+    Task ParticipantLeftAsync(Guid lobbyId, UserDto user);
+    Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId);
     // Task MMRWithheldAsync();
-    // Task MessageReceivedAsync(Guid lobbyId, string content, GetUserDto sender);
+    // Task MessageReceivedAsync(Guid lobbyId, string content, UserDto sender);
     Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories);
     // Task SubmissionRegisteredAsync(Guid lobbyId, string userSubmission);
     Task VotingStartedAsync(Guid lobbyId, ICollection<string> submissions);
     // Task VoteRegisteredAsync(Guid lobbyId, string userVote);
-    // Task EndedAsync(Guid lobbyId, GetUserDto winner, string submission);
+    // Task EndedAsync(Guid lobbyId, UserDto winner, string submission);
 }

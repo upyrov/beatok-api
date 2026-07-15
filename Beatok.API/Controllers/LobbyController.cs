@@ -47,5 +47,14 @@ namespace Beatok.API.Controllers
             await lobbyService.JoinAsync(id, Guid.Parse(userId!));
             return Ok();
         }
+
+        [Authorize]
+        [HttpDelete("{id}/participants/me")]
+        public async Task<IActionResult> Leave([FromRoute] Guid id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await lobbyService.LeaveAsync(id, Guid.Parse(userId!));
+            return Ok();
+        }
     }
 }
