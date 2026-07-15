@@ -2,6 +2,7 @@ using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
+using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -45,6 +46,51 @@ public class LobbyService(IUnitOfWork unitOfWork,
             UserId = owner.Id
         });
         await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task JoinAsync(Guid lobbyId, Guid userId)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+        var user = await unitOfWork.Users.GetByIdAsync(userId)
+            ??throw new NotFoundException("User not found");
+
+        var participant = lobby.Participants.FirstOrDefault(p =>
+            p.UserId == user.Id && p.LobbyId == lobby.Id);
+        if (participant != null)
+        {
+            await RejoinAsync(user, lobby, participant);
+        }
+        else
+        {
+            if (lobby.Phase != LobbyPhase.NotStarted)
+                throw new BadRequestException("Lobby is already started");
+            if (lobby.Participants.Count >= lobby.ParticipantLimit)
+                throw new BadRequestException("Lobby is full");
+
+            var newParticipant = new Participation
+            {
+                LobbyId = lobby.Id,
+                UserId = user.Id
+            };
+            await unitOfWork.Participations.AddAsync(newParticipant);
+            await unitOfWork.SaveChangesAsync();
+
+            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, new UserDto
+            {
+                Name = user.Name
+            });
+        }
+    }
+
+    private async Task RejoinAsync(User user, Lobby lobby, Participation participant)
+    {
+        participant.IsConnected = true;
+        await unitOfWork.SaveChangesAsync();
+        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, new UserDto
+        {
+            Name = user.Name
+        });
     }
 
     public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter)
@@ -92,7 +138,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 Value = soundStorage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1))
             })]
         }).ToList();
-        lobbyNotifier.Started(lobby.Id, categories);
+        await lobbyNotifier.StartedAsync(lobby.Id, categories);
 
         backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
@@ -114,6 +160,6 @@ public class LobbyService(IUnitOfWork unitOfWork,
         // Needs to be integrated with a FileStorageService to fetch submission URLs from the bucket.
         var submissions = new List<string>();
 
-        lobbyNotifier.VotingStarted(lobby.Id, submissions);
+        await lobbyNotifier.VotingStartedAsync(lobby.Id, submissions);
     }
 }

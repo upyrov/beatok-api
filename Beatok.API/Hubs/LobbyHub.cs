@@ -1,6 +1,5 @@
 ﻿using Beatok.API.Attributes;
 using Beatok.Application.DTOs.Category;
-using Beatok.Application.DTOs.Kit;
 using Beatok.Application.DTOs.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -11,6 +10,7 @@ namespace Beatok.API.Hubs
     {
         // TODO: Replace sounds and submissions with corresponding DTOs
         Task ParticipantJoined(UserDto user);
+        Task ParticipantRejoined(UserDto user);
         Task ParticipantLeft(UserDto user);
         Task OwnerChanged(Guid ownerId);
         Task MMRWithheld(); 

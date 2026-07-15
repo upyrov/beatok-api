@@ -1,5 +1,6 @@
 using Beatok.API.Hubs;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 
@@ -8,17 +9,31 @@ namespace Beatok.API.Notifications;
 public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext)
     : ILobbyNotifier
 {
-    public void Started(Guid lobbyId, ICollection<RandomCategoryDto> categories)
+    public async Task ParticipantJoinedAsync(Guid lobbyId, UserDto user)
     {
-        hubContext.Clients
+        await hubContext.Clients
+            .Group(lobbyId.ToString())
+            .ParticipantJoined(user);
+    }
+    
+    public async Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories)
+    {
+        await hubContext.Clients
             .Group(lobbyId.ToString())
             .Started(categories);
     }
 
-    public void VotingStarted(Guid lobbyId, ICollection<string> submissions)
+    public async Task VotingStartedAsync(Guid lobbyId, ICollection<string> submissions)
     {
-        hubContext.Clients
+        await hubContext.Clients
             .Group(lobbyId.ToString())
             .VotingStarted(submissions);
+    }
+
+    public async Task ParticipantRejoinedAsync(Guid lobbyId, UserDto user)
+    {
+        await hubContext.Clients
+            .Group(lobbyId.ToString())
+            .ParticipantRejoined(user);
     }
 }
