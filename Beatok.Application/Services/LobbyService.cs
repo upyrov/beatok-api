@@ -1,5 +1,7 @@
 using Beatok.Application.DTOs;
+using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
+using Beatok.Application.DTOs.Sound;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -11,7 +13,7 @@ namespace Beatok.Application.Services;
 
 public class LobbyService(IUnitOfWork unitOfWork,
     IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, ISoundStorage soundStorage): ILobbyService
+    ILobbyNotifier lobbyNotifier, ISoundStorage soundStorage, IKitService kitService): ILobbyService
 {
     public async Task CreateAsync(CreateLobbyDto dto, Guid ownerId)
     {
@@ -21,19 +23,10 @@ public class LobbyService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidation.Errors);
         }
 
-        var owner = await unitOfWork.Users.GetByIdAsync(ownerId);
-
-        if (owner == null)
-        {
-            throw new NotFoundException("User not found");
-        }
-        
-        var genre = await unitOfWork.Genres.GetByIdAsync(dto.GenreId);
-        if (genre == null)
-        {
-            throw new NotFoundException("Genre not found");       
-        }
-
+        var owner = await unitOfWork.Users.GetByIdAsync(ownerId)
+            ?? throw new NotFoundException("User not found");
+        var genre = await unitOfWork.Genres.GetByIdAsync(dto.GenreId)
+            ?? throw new NotFoundException("Genre not found");
         var lobby = new Lobby
         {
             Name = dto.Name,
@@ -74,17 +67,12 @@ public class LobbyService(IUnitOfWork unitOfWork,
 
     public async Task StartLobbyAsync(Guid lobbyId, Guid userId)
     {
-        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId);
-        if (lobby == null)
-        {
-            throw new NotFoundException("Lobby not found");
-        }
-
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
         if (lobby.OwnerId != userId)
         {
             throw new BadRequestException("You are not the owner of this lobby");       
         }
-
         if (lobby.Participants.Count < 2)
         {
             throw new BadRequestException("Lobby must have at least 2 participants");      
@@ -93,18 +81,18 @@ public class LobbyService(IUnitOfWork unitOfWork,
         lobby.Phase = LobbyPhase.Submission;
         await unitOfWork.SaveChangesAsync();
 
-        var kit = await unitOfWork.Kits.GetRandomAsync();
-        if (kit == null)
+        var kit = await kitService.GetRandomAsync();
+        var categories = kit.Categories.Select(c => new RandomCategoryDto
         {
-            throw new NotFoundException("Kit not found");      
-        }
-        var sounds = kit.Categories
-            .SelectMany(c => c.Sounds)
-            .Select(s => 
-                soundStorage.GeneratePresignedSoundUrl(s.Value, TimeSpan.FromHours(1)))
-            .ToList();
-        
-        lobbyNotifier.Started(lobby.Id, sounds);
+           Id= c.Id,
+           Name= c.Name,
+           Sounds = [.. c.Sounds.Select(s => new SoundDto
+           {
+               Id = s.Id,
+               Value = soundStorage.GeneratePresignedSoundUrl(s.Value, TimeSpan.FromHours(1))
+           })]
+        }).ToList();
+        lobbyNotifier.Started(lobby.Id, categories);
 
         backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),

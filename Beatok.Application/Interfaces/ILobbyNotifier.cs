@@ -1,3 +1,5 @@
+using Beatok.Application.DTOs.Category;
+
 namespace Beatok.Application.Interfaces;
 
 public interface ILobbyNotifier
@@ -7,9 +9,9 @@ public interface ILobbyNotifier
     // Task OwnerChangedAsync(Guid ownerId);
     // Task MMRWithheldAsync();
     // Task MessageReceivedAsync(string content, GetUserDto sender);
-    void Started(Guid lobbyId, List<string> sounds);
+    void Started(Guid lobbyId, ICollection<RandomCategoryDto> categories);
     // Task SubmissionRegisteredAsync(string userSubmission);
-    void VotingStarted(Guid lobbyId, List<string> submissions);
+    void VotingStarted(Guid lobbyId, ICollection<string> submissions);
     // Task VoteRegisteredAsync(string userVote);
     // Task EndedAsync(GetUserDto winner, string submission);
 }

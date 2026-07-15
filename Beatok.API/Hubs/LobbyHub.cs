@@ -1,4 +1,6 @@
 ﻿using Beatok.API.Attributes;
+using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Kit;
 using Beatok.Application.DTOs.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -13,9 +15,9 @@ namespace Beatok.API.Hubs
         Task OwnerChanged(Guid ownerId);
         Task MMRWithheld(); 
         Task MessageReceived(string content, UserDto sender);
-        Task Started(List<string> sounds);
+        Task Started(ICollection<RandomCategoryDto> categories);
         Task SubmissionRegistered(string userSubmission);
-        Task VotingStarted(List<string> submissions);
+        Task VotingStarted(ICollection<string> submissions);
         Task VoteRegistered(string userVote);
         Task Ended(UserDto winner, string submission);
     }

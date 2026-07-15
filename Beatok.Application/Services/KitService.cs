@@ -1,6 +1,4 @@
-﻿using Beatok.Application.DTOs.Category;
-using Beatok.Application.DTOs.Kit;
-using Beatok.Application.DTOs.Sound;
+﻿using Beatok.Application.DTOs.Kit;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -44,43 +42,14 @@ public class KitService(IUnitOfWork unitOfWork,
         return kits.Select(k => new KitDto
         {
             Id = k.Id,
-            Name = k.Name,
-            Categories = [.. k.Categories.Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Sounds = [.. c.Sounds.Select(s => new SoundDto
-                {
-                    Id = s.Id,
-                    Value = s.Value
-                })]
-            })]
+            Name = k.Name
         });
     }
 
-    public async Task<KitDto> GetRandomAsync()
+    public async Task<Kit> GetRandomAsync()
     {
         var kit = await unitOfWork.Kits.GetRandomAsync();
-        if (kit == null)
-        {
-            throw new NotFoundException("Kit not found");
-        }
-
-        return new KitDto
-        {
-            Id = kit.Id,
-            Name = kit.Name,
-             Categories = [.. kit.Categories.Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Sounds = [.. c.Sounds.Select(s => new SoundDto
-                {
-                    Id = s.Id,
-                    Value = s.Value
-                })]
-            })]
-        };
+        return kit == null ? throw new NotFoundException("Kit not found") : kit;
     }
 
     public async Task UpdateAsync(Guid id, UpdateKitDto dto)

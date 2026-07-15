@@ -35,7 +35,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddScoped<ILobbyNotifier, SignalRLobbyNotifier>();
+builder.Services.AddScoped<ILobbyNotifier, LobbyNotifier>();
 
 builder.Services.AddMemoryCache();
 
