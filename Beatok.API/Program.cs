@@ -8,6 +8,7 @@ using Beatok.Application.Interfaces;
 using Beatok.Infrastructure;
 using Beatok.Infrastructure.Authentication;
 using Hangfire;
+using Beatok.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,6 +51,12 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await DatabaseInitializer.SeedAsync(services);
 }
 
 app.UseExceptionHandler();

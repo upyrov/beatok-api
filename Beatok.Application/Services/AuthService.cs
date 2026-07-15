@@ -34,7 +34,8 @@ public class AuthService(IPasswordHasher passwordHasher,
             Name = dto.Name,
             Email = dto.Email,
             PasswordHash = passwordHash,
-            LastActiveAt = null
+            LastActiveAt = null,
+            Role = UserRole.Player
         };
         
         await unitOfWork.Users.AddAsync(user);

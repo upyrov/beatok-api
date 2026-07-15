@@ -17,7 +17,8 @@ public class JwtProvider(IOptions<JwtOptions> options): IJwtProvider
     {
         Claim[] claims = [
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new("is_anonymous", isAnonymous.ToString().ToLower())];
+            new("is_anonymous", isAnonymous.ToString().ToLower()),
+            new(ClaimTypes.Role, user.Role.ToString())];
         
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)), 
