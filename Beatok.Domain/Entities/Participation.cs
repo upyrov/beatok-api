@@ -9,4 +9,5 @@ public class Participation
     public Guid LobbyId { get; set; }
     public User? User { get; set; }
     public Lobby? Lobby { get; set; }
+    public ICollection<Submission> Submissions { get; set; } = [];
 }

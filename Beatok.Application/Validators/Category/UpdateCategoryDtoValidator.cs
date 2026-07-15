@@ -1,7 +1,7 @@
 ﻿using Beatok.Application.DTOs.Category;
 using FluentValidation;
 
-namespace Beatok.Application.Validators;
+namespace Beatok.Application.Validators.Category;
 
 public class UpdateCategoryDtoValidator : AbstractValidator<UpdateCategoryDto>
 {

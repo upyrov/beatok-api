@@ -6,7 +6,8 @@ namespace Beatok.Infrastructure.Persistence;
 public class UnitOfWork(ApplicationDbContext context, IUserRepository users,
     IGenreRepository genres, IRefreshTokenRepository refreshTokens,
     IKitRepository kits, ICategoryRepository categories, ISoundRepository sounds,
-    ILobbyRepository lobbies, IParticipationRepository participations): IUnitOfWork
+    ILobbyRepository lobbies, IParticipationRepository participations, ISubmissionRepository submissions)
+    : IUnitOfWork
 {
     public IUserRepository Users { get; } = users;
     public IGenreRepository Genres { get; } = genres;
@@ -18,6 +19,7 @@ public class UnitOfWork(ApplicationDbContext context, IUserRepository users,
     
     public ILobbyRepository Lobbies { get; } = lobbies;
     public IParticipationRepository Participations { get; } = participations;
+    public ISubmissionRepository Submissions { get; } = submissions;
 
     public async Task SaveChangesAsync()
     {
