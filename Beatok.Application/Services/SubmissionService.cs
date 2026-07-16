@@ -1,4 +1,5 @@
 ﻿using Beatok.Application.DTOs.Submission;
+using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -10,8 +11,26 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissionDto> createValidator,
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage soundStorage) : ISubmissionService
+    ILobbyNotifier lobbyNotifier, IStorage storage) : ISubmissionService
 {
+    public SubmissionUploadDto GenerateUploadUrl(string fileExtension)
+    {
+        // Standardize the extension format (e.g., "mp3" -> ".mp3")
+        if (!fileExtension.StartsWith('.'))
+        {
+            fileExtension = $".{fileExtension}";
+        }
+
+        var fileKey = $"submissions/{Guid.NewGuid()}{fileExtension}";
+        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15));
+
+        return new SubmissionUploadDto
+        {
+            UploadUrl = uploadUrl,
+            FileKey = fileKey
+        };
+    }
+
     public async Task CreateAsync(CreateSubmissionDto dto, Guid userId)
     {
         var fluentValidationResult = await createValidator.ValidateAsync(dto);
@@ -50,22 +69,26 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         participation.Submissions.Add(submission);
 
         // Check if all connected participants have a submission
-        if (lobby.Participants.All(p => p.IsConnected && p.Submissions != null && p.Submissions.Count != 0))
+        if (lobby.Participants.All(p => p.IsConnected && p.Submissions.Count != 0))
         {
             lobby.Phase = LobbyPhase.Voting;
             backgroundJobClient.Delete(lobby.JobId);
             lobbyNotifier.VotingStarted(lobby.Id, [.. lobby.Participants.SelectMany(p => p.Submissions)
                 .Select(s => new SubmissionDto {
                     Id = s.Id,
-                    Value = s.Value
+                    Value = s.Value,
+                    User = new UserDto {
+                        Id = s.Participant!.UserId,
+                        Name = s.Participant!.User!.Name
+                    }
                 })]);
+            // TODO: Replace lobby job and add a background job to transition to the end phase after the voting time limit
         }
 
-        // TODO: Replace lobby job with a new job for the voting phase
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task UpdateValueAsync(Guid id, UpdateSubmissionDto dto)
+    public async Task UpdateValueAsync(Guid id, UpdateSubmissionDto dto, Guid userId)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)
@@ -75,6 +98,11 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
 
         var submission = await unitOfWork.Submissions.GetByIdAsync(id)
             ?? throw new NotFoundException("Submission not found");
+
+        if (submission.Participant?.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("User is not the owner of this submission");
+        }
 
         if (submission.Participant?.Lobby?.Phase != LobbyPhase.Submission)
         {

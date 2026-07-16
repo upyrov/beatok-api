@@ -9,7 +9,6 @@ namespace Beatok.API.Hubs
 {
     public interface ILobbyClient
     {
-        // TODO: Replace sounds and submissions with corresponding DTOs
         Task ParticipantJoined(UserDto user);
         Task ParticipantLeft(UserDto user);
         Task OwnerChanged(Guid ownerId);
