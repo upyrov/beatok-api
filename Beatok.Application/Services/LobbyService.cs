@@ -113,6 +113,11 @@ public class LobbyService(IUnitOfWork unitOfWork,
         {
             await HandleStartedLeaveAsync(participant);
         }
+        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, new UserDto
+        {
+            Id = user.Id,
+            Name = user.Name
+        });
     }
 
     private async Task HandleNotStartedLeaveAsync(Lobby lobby, Participation participant)
@@ -145,7 +150,44 @@ public class LobbyService(IUnitOfWork unitOfWork,
     private async Task HandleStartedLeaveAsync(Participation participant)
     {
         participant.IsConnected = false;
+        participant.ConnectionId = null;
         await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+        var participant = lobby.Participants
+            .FirstOrDefault(p => p.UserId == userId) ??
+                          throw new NotFoundException("User not found in lobby");
+        
+        participant.ConnectionId = connectionId;
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task DisconnectAsync(string connectionId)
+    {
+        var participations = await unitOfWork.Participations
+            .GetByConnectionIdAsync(connectionId);
+        
+        foreach (var participation in participations)
+        {
+            if (participation.Lobby!.Phase == LobbyPhase.NotStarted)
+            {
+                await HandleNotStartedLeaveAsync(participation.Lobby, participation);
+            }
+            else
+            {
+                await HandleStartedLeaveAsync(participation);
+            }
+
+            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, new UserDto
+            {
+                Name = participation.User!.Name,
+                Id = participation.User.Id
+            });
+        }
     }
     
     public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter)

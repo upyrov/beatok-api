@@ -1,6 +1,8 @@
-﻿using Beatok.API.Attributes;
+﻿using System.Security.Claims;
+using Beatok.API.Attributes;
 using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.User;
+using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -24,10 +26,16 @@ namespace Beatok.API.Hubs
 
     [Authorize]
     [ImplicitAnonymous]
-    public class LobbyHub : Hub<ILobbyClient>
+    public class LobbyHub(ILobbyService lobbyService) : Hub<ILobbyClient>
     {
         public async Task Join(string roomName)
         {
+            var userId = Guid.Parse(
+                Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            
+            await lobbyService
+                .SetConnectionIdAsync(Guid.Parse(roomName), userId, Context.ConnectionId);
+            
             await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
         }
 
@@ -36,9 +44,10 @@ namespace Beatok.API.Hubs
             return Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
         }
 
-        //public override Task OnDisconnectedAsync(Exception? exception)
-        //{
-            // TODO: Set IsConnected to false for all user participations
-        //}
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            await lobbyService.DisconnectAsync(Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
+        }
     }
 }
