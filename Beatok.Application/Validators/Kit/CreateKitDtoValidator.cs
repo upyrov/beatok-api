@@ -1,11 +1,11 @@
 ﻿using Beatok.Application.DTOs.Kit;
 using FluentValidation;
 
-namespace Beatok.Application.Validators;
+namespace Beatok.Application.Validators.Kit;
 
-public class UpdateKitDtoValidator : AbstractValidator<UpdateKitDto>
+public class CreateKitDtoValidator : AbstractValidator<CreateKitDto>
 {
-    public UpdateKitDtoValidator()
+    public CreateKitDtoValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required")

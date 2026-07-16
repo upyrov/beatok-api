@@ -24,6 +24,7 @@ public class UserService(IUnitOfWork unitOfWork): IUserService
 
         return new UserDto
         {
+            Id = user.Id,
             Name = user.Name
         };
     }

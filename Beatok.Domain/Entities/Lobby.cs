@@ -16,6 +16,7 @@ public class Lobby
     public Genre? Genre { get; set; }
     public short ParticipantLimit { get; set; }
     public LobbyPhase Phase { get; set; } = LobbyPhase.NotStarted;
+    public string JobId { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public TimeSpan SubmissionTimeLimit { get; set; }
     public TimeSpan VotingTimeLimit { get; set; }

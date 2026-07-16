@@ -46,7 +46,6 @@ public class SoundService(IUnitOfWork unitOfWork,
         await unitOfWork.Sounds.UpdateValueAsync(sound.Id, dto.Value); 
     }
 
-
     public async Task DeleteAsync(Guid id)
     {
         var sound = await unitOfWork.Sounds.GetByIdAsync(id) 

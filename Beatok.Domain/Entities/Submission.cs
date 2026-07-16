@@ -1,9 +1,9 @@
 ﻿namespace Beatok.Domain.Entities;
 
-public class Sound
+public class Submission
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public required string Value { get; set; }
-    public Guid CategoryId { get; set; }
-    public Category? Category { get; set; }
+    public Guid ParticipantId { get; set; } 
+    public Participation? Participant { get; set; }
 }
