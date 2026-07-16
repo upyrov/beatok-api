@@ -13,7 +13,10 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
 
     public async Task<Submission?> GetByIdAsync(Guid submissionId)
     {
-        return await context.Submissions.FindAsync(submissionId);
+        return await context.Submissions
+            .Include(s => s.Participant)
+                .ThenInclude(p => p!.Lobby)
+            .FirstOrDefaultAsync(s => s.Id == submissionId);
     }
 
     public async Task UpdateValueAsync(Guid submissionId, string value)

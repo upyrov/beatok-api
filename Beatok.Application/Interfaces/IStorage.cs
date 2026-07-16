@@ -1,6 +1,6 @@
 namespace Beatok.Application.Interfaces;
 
-public interface ISoundStorage
+public interface IStorage
 {
     string GeneratePresignedSoundUrl(string key, TimeSpan expires);
 }

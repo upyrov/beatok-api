@@ -4,7 +4,7 @@ using Beatok.Application.Interfaces;
 
 namespace Beatok.Infrastructure;
 
-public class R2StorageSound(IAmazonS3 s3Client): ISoundStorage
+public class R2Storage(IAmazonS3 s3Client): IStorage
 {
     public string GeneratePresignedSoundUrl(string key, TimeSpan expires)
     {

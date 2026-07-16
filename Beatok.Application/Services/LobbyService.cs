@@ -2,6 +2,7 @@ using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
+using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -13,7 +14,7 @@ namespace Beatok.Application.Services;
 
 public class LobbyService(IUnitOfWork unitOfWork,
     IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, ISoundStorage soundStorage, IKitService kitService) : ILobbyService
+    ILobbyNotifier lobbyNotifier, IStorage soundStorage, IKitService kitService) : ILobbyService
 {
     public async Task CreateAsync(CreateLobbyDto dto, Guid ownerId)
     {
@@ -78,9 +79,6 @@ public class LobbyService(IUnitOfWork unitOfWork,
             throw new BadRequestException("Lobby must have at least 2 participants");
         }
 
-        lobby.Phase = LobbyPhase.Submission;
-        await unitOfWork.SaveChangesAsync();
-
         var kit = await kitService.GetRandomAsync();
         var categories = kit.Categories.Select(c => new RandomCategoryDto
         {
@@ -94,9 +92,12 @@ public class LobbyService(IUnitOfWork unitOfWork,
         }).ToList();
         lobbyNotifier.Started(lobby.Id, categories);
 
-        backgroundJobClient.Schedule<ILobbyService>(
+        var jobId = backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
             lobby.SubmissionTimeLimit);
+        lobby.Phase = LobbyPhase.Submission;
+        lobby.JobId = jobId;
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task TransitionToVotingAsync(Guid lobbyId)
@@ -112,7 +113,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
 
         // TODO: [Stub] Currently returning an empty list.
         // Needs to be integrated with a FileStorageService to fetch submission URLs from the bucket.
-        var submissions = new List<string>();
+        var submissions = lobby.Participants.SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> { new() { Id = s.Id, Value = generateTODO( s.Value) } })).ToList();
 
         lobbyNotifier.VotingStarted(lobby.Id, submissions);
     }
