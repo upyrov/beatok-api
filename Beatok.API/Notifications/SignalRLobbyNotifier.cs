@@ -9,16 +9,23 @@ namespace Beatok.API.Notifications;
 public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext)
     : ILobbyNotifier
 {
-    public void Started(Guid lobbyId, ICollection<RandomCategoryDto> categories)
+    public async Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories)
     {
-        hubContext.Clients
+        await hubContext.Clients
             .Group(lobbyId.ToString())
             .Started(categories);
     }
 
-    public void VotingStarted(Guid lobbyId, ICollection<SubmissionDto> submissions)
+    public async Task SubmissionRegisteredAsync(SubmissionDto userSubmission)
     {
-        hubContext.Clients
+        await hubContext.Clients
+            .Group(userSubmission.LobbyId.ToString())
+            .SubmissionRegistered(userSubmission);
+    }
+
+    public async Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions)
+    {
+        await hubContext.Clients
             .Group(lobbyId.ToString())
             .VotingStarted(submissions);
     }

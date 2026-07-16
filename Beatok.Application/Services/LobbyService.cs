@@ -91,7 +91,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 Value = storage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1))
             })]
         }).ToList();
-        lobbyNotifier.Started(lobby.Id, categories);
+        await lobbyNotifier.StartedAsync(lobby.Id, categories);
 
         var jobId = backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
@@ -124,6 +124,6 @@ public class LobbyService(IUnitOfWork unitOfWork,
         })).ToList();
 
         // TODO: Replace lobby job and add a background job to transition to the end phase after the voting time limit
-        lobbyNotifier.VotingStarted(lobby.Id, submissions);
+        await lobbyNotifier.VotingStartedAsync(lobby.Id, submissions);
     }
 }

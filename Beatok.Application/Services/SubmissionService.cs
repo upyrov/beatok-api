@@ -69,14 +69,17 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         participation.Submissions.Add(submission);
 
         // Check if all connected participants have a submission
-        if (lobby.Participants.All(p => p.IsConnected && p.Submissions.Count != 0))
+        if (lobby.Participants.Where(p => p.IsConnected).All(p => p.Submissions.Count != 0))
         {
             lobby.Phase = LobbyPhase.Voting;
+            await unitOfWork.SaveChangesAsync();
+
             backgroundJobClient.Delete(lobby.JobId);
-            lobbyNotifier.VotingStarted(lobby.Id, [.. lobby.Participants.SelectMany(p => p.Submissions)
+            await lobbyNotifier.VotingStartedAsync(lobby.Id, [.. lobby.Participants.SelectMany(p => p.Submissions)
                 .Select(s => new SubmissionDto {
                     Id = s.Id,
                     Value = s.Value,
+                    LobbyId = lobby.Id,
                     User = new UserDto {
                         Id = s.Participant!.UserId,
                         Name = s.Participant!.User!.Name
@@ -84,8 +87,21 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
                 })]);
             // TODO: Replace lobby job and add a background job to transition to the end phase after the voting time limit
         }
-
-        await unitOfWork.SaveChangesAsync();
+        else
+        {
+            await unitOfWork.SaveChangesAsync();
+            await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
+            {
+                Id = submission.Id,
+                Value = submission.Value,
+                LobbyId = lobby.Id,
+                User = new UserDto
+                {
+                    Id = userId,
+                    Name = participation.User!.Name
+                }
+            });
+        }
     }
 
     public async Task UpdateValueAsync(Guid id, UpdateSubmissionDto dto, Guid userId)
@@ -110,5 +126,16 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         }
 
         await unitOfWork.Submissions.UpdateValueAsync(submission.Id, dto.Value);
+        await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
+        {
+            Id = submission.Id,
+            Value = submission.Value,
+            LobbyId = submission.Participant.LobbyId,
+            User = new UserDto
+            {
+                Id = submission.Participant.UserId,
+                Name = submission.Participant.User!.Name
+            }
+        });
     }
 }

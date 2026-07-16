@@ -15,10 +15,10 @@ namespace Beatok.API.Hubs
         Task MMRWithheld(); 
         Task MessageReceived(string content, UserDto sender);
         Task Started(ICollection<RandomCategoryDto> categories);
-        Task SubmissionRegistered(string userSubmission);
+        Task SubmissionRegistered(SubmissionDto userSubmission);
         Task VotingStarted(ICollection<SubmissionDto> submissions);
         Task VoteRegistered(string userVote);
-        Task Ended(UserDto winner, string submission);
+        Task Ended(UserDto winner, SubmissionDto submission);
     }
 
     [Authorize]

@@ -10,9 +10,9 @@ public interface ILobbyNotifier
     // Task OwnerChangedAsync(Guid ownerId);
     // Task MMRWithheldAsync();
     // Task MessageReceivedAsync(string content, GetUserDto sender);
-    void Started(Guid lobbyId, ICollection<RandomCategoryDto> categories);
-    // Task SubmissionRegisteredAsync(string userSubmission);
-    void VotingStarted(Guid lobbyId, ICollection<SubmissionDto> submissions);
+    Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories);
+    Task SubmissionRegisteredAsync(SubmissionDto userSubmission);
+    Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions);
     // Task VoteRegisteredAsync(string userVote);
     // Task EndedAsync(GetUserDto winner, string submission);
 }
