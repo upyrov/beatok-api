@@ -9,4 +9,8 @@ public interface ILobbyService
     Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter);
     Task StartAsync(Guid lobbyId, Guid userId);
     Task TransitionToVotingAsync(Guid lobbyId);
+    Task JoinAsync(Guid lobbyId, Guid userId);
+    Task LeaveAsync(Guid lobbyId, Guid userId);
+    Task SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId);
+    Task DisconnectAsync(string connectionId);
 }

@@ -49,6 +49,151 @@ public class LobbyService(IUnitOfWork unitOfWork,
         await unitOfWork.SaveChangesAsync();
     }
 
+    public async Task JoinAsync(Guid lobbyId, Guid userId)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+        var user = await unitOfWork.Users.GetByIdAsync(userId)
+            ??throw new NotFoundException("User not found");
+
+        var participant = lobby.Participants.FirstOrDefault(p =>
+            p.UserId == user.Id && p.LobbyId == lobby.Id);
+        if (participant != null)
+        {
+            await RejoinAsync(user, lobby, participant);
+        }
+        else
+        {
+            var activeLobbyCount = await unitOfWork.Participations.CountActiveByUserIdAsync(userId);
+            if (activeLobbyCount >= 2)
+                throw new BadRequestException("User cannot join more than 2 active lobbies");
+            if (lobby.Phase != LobbyPhase.NotStarted)
+                throw new BadRequestException("Lobby is already started");
+            if (lobby.Participants.Count >= lobby.ParticipantLimit)
+                throw new BadRequestException("Lobby is full");
+
+            var newParticipant = new Participation
+            {
+                LobbyId = lobby.Id,
+                UserId = user.Id
+            };
+            await unitOfWork.Participations.AddAsync(newParticipant);
+            await unitOfWork.SaveChangesAsync();
+
+            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, new UserDto
+            {
+                Id = user.Id,
+                Name = user.Name
+            });
+        }
+    }
+
+    private async Task RejoinAsync(User user, Lobby lobby, Participation participant)
+    {
+        participant.IsConnected = true;
+        await unitOfWork.SaveChangesAsync();
+        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, new UserDto
+        {
+            Id = user.Id,
+            Name = user.Name
+        });
+    }
+
+    public async Task LeaveAsync(Guid lobbyId, Guid userId)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+        var user = await unitOfWork.Users.GetByIdAsync(userId)
+            ?? throw new NotFoundException("User not found");
+        var participant = lobby.Participants
+            .FirstOrDefault(p => p.UserId == user.Id) ??
+                          throw new NotFoundException("User not found in lobby");
+
+        if (lobby.Phase == LobbyPhase.NotStarted)
+        {
+            await HandleNotStartedLeaveAsync(lobby, participant);
+        }
+        else
+        {
+            await HandleStartedLeaveAsync(participant);
+        }
+        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, new UserDto
+        {
+            Id = user.Id,
+            Name = user.Name
+        });
+    }
+
+    private async Task HandleNotStartedLeaveAsync(Lobby lobby, Participation participant)
+    {
+        var wasOwner = lobby.OwnerId == participant.UserId;
+        
+        lobby.Participants.Remove(participant);
+        unitOfWork.Participations.Delete(participant);
+        
+        if (lobby.Participants.Count == 0)
+        {
+            unitOfWork.Lobbies.Delete(lobby);
+            await unitOfWork.SaveChangesAsync();
+            return;
+        }
+
+        if (wasOwner)
+        {
+            var newOwner = lobby.Participants
+                .OrderBy(p => p.JoinedAt)
+                .First();
+            lobby.OwnerId = newOwner.UserId;
+            await unitOfWork.SaveChangesAsync();
+            await lobbyNotifier.OwnerChangedAsync(lobby.Id, newOwner.UserId);
+            return;
+        }
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task HandleStartedLeaveAsync(Participation participant)
+    {
+        participant.IsConnected = false;
+        participant.ConnectionId = null;
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+        var participant = lobby.Participants
+            .FirstOrDefault(p => p.UserId == userId) ??
+                          throw new NotFoundException("User not found in lobby");
+        
+        participant.ConnectionId = connectionId;
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task DisconnectAsync(string connectionId)
+    {
+        var participations = await unitOfWork.Participations
+            .GetByConnectionIdAsync(connectionId);
+        
+        foreach (var participation in participations)
+        {
+            if (participation.Lobby!.Phase == LobbyPhase.NotStarted)
+            {
+                await HandleNotStartedLeaveAsync(participation.Lobby, participation);
+            }
+            else
+            {
+                await HandleStartedLeaveAsync(participation);
+            }
+
+            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, new UserDto
+            {
+                Name = participation.User!.Name,
+                Id = participation.User.Id
+            });
+        }
+    }
+    
     public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter)
     {
         var lobbies = await unitOfWork.Lobbies.GetFilteredAsync(filter);

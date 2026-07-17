@@ -3,6 +3,7 @@ using System;
 using Beatok.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Beatok.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716145636_AddConnectionId")]
+    partial class AddConnectionId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,10 +106,6 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<Guid>("GenreId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("JobId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -163,7 +162,8 @@ namespace Beatok.Infrastructure.Migrations
 
                     b.HasIndex("LobbyId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "LobbyId")
+                        .IsUnique();
 
                     b.ToTable("Participation");
                 });
@@ -215,26 +215,6 @@ namespace Beatok.Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Sounds");
-                });
-
-            modelBuilder.Entity("Beatok.Domain.Entities.Submission", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ParticipantId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParticipantId");
-
-                    b.ToTable("Submissions");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.User", b =>
@@ -362,17 +342,6 @@ namespace Beatok.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Beatok.Domain.Entities.Submission", b =>
-                {
-                    b.HasOne("Beatok.Domain.Entities.Participation", "Participant")
-                        .WithMany("Submissions")
-                        .HasForeignKey("ParticipantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Participant");
-                });
-
             modelBuilder.Entity("Beatok.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Sounds");
@@ -386,11 +355,6 @@ namespace Beatok.Infrastructure.Migrations
             modelBuilder.Entity("Beatok.Domain.Entities.Lobby", b =>
                 {
                     b.Navigation("Participants");
-                });
-
-            modelBuilder.Entity("Beatok.Domain.Entities.Participation", b =>
-                {
-                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.User", b =>

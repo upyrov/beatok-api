@@ -15,5 +15,7 @@ public class ParticipationEntityTypeConfiguration : IEntityTypeConfiguration<Par
 
         builder.Property(x => x.JoinedAt)
            .IsRequired();
+
+        builder.HasIndex(x => x.ConnectionId);
     }
 }

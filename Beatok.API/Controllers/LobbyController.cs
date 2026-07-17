@@ -31,10 +31,28 @@ namespace Beatok.API.Controllers
 
         [Authorize]
         [HttpPatch("{id}/start")]
-        public async Task<IActionResult> StartLobby([FromRoute] Guid id)
+        public async Task<IActionResult> Start([FromRoute] Guid id)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             await lobbyService.StartAsync(id, Guid.Parse(userId!));
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPost("{id}/participants")]
+        public async Task<IActionResult> Join([FromRoute] Guid id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await lobbyService.JoinAsync(id, Guid.Parse(userId!));
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpDelete("{id}/participants/me")]
+        public async Task<IActionResult> Leave([FromRoute] Guid id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await lobbyService.LeaveAsync(id, Guid.Parse(userId!));
             return Ok();
         }
     }

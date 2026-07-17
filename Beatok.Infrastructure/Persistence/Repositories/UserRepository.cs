@@ -33,8 +33,7 @@ public class UserRepository(ApplicationDbContext context): IUserRepository
 
     public async Task<User?> GetByIdAsync(Guid id)
     {
-        return await context.Users.
-            AsNoTracking()
+        return await context.Users
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
