@@ -25,4 +25,11 @@ public class ParticipationRepository(ApplicationDbContext context): IParticipati
             .Include(p => p.User)
             .ToListAsync();
     }
+
+    public async Task<int> CountActiveByUserIdAsync(Guid userId)
+    {
+        return await context.Participation
+            .Where(p => p.UserId == userId && p.Lobby!.Phase != LobbyPhase.End)
+            .CountAsync();
+    }
 }

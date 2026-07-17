@@ -7,4 +7,5 @@ public interface IParticipationRepository
     Task AddAsync(Participation participation);
     void Delete(Participation participation);
     Task<List<Participation>> GetByConnectionIdAsync(string connectionId);
+    Task<int> CountActiveByUserIdAsync(Guid userId);
 }

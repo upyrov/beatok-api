@@ -63,6 +63,9 @@ public class LobbyService(IUnitOfWork unitOfWork,
         }
         else
         {
+            var activeLobbyCount = await unitOfWork.Participations.CountActiveByUserIdAsync(userId);
+            if (activeLobbyCount >= 2)
+                throw new BadRequestException("User cannot join more than 2 active lobbies");
             if (lobby.Phase != LobbyPhase.NotStarted)
                 throw new BadRequestException("Lobby is already started");
             if (lobby.Participants.Count >= lobby.ParticipantLimit)
