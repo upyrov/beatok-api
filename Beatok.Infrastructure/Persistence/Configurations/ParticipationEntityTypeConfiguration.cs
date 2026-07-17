@@ -16,10 +16,6 @@ public class ParticipationEntityTypeConfiguration : IEntityTypeConfiguration<Par
         builder.Property(x => x.JoinedAt)
            .IsRequired();
 
-        // Ensure a user can only be in a specific lobby once
-        builder.HasIndex(x => new { x.UserId, x.LobbyId })
-            .IsUnique();
-
         builder.HasIndex(x => x.ConnectionId);
     }
 }
