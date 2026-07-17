@@ -18,6 +18,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Lobby> Lobbies { get; set; }
     public DbSet<Participation> Participation { get; set; }
     public DbSet<Submission> Submissions { get; set; }
+    public DbSet<Score> Scores { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

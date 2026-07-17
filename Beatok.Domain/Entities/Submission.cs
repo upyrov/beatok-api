@@ -6,4 +6,5 @@ public class Submission
     public required string Value { get; set; }
     public Guid ParticipantId { get; set; } 
     public Participation? Participant { get; set; }
+    public ICollection<Score> Scores { get; set; } = [];
 }
