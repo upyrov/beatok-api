@@ -2,6 +2,7 @@ using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
+using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
@@ -14,7 +15,7 @@ namespace Beatok.Application.Services;
 
 public class LobbyService(IUnitOfWork unitOfWork,
     IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, ISoundStorage soundStorage, IKitService kitService) : ILobbyService
+    ILobbyNotifier lobbyNotifier, IStorage storage, IKitService kitService) : ILobbyService
 {
     public async Task CreateAsync(CreateLobbyDto dto, Guid ownerId)
     {
@@ -211,7 +212,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         );
     }
 
-    public async Task StartLobbyAsync(Guid lobbyId, Guid userId)
+    public async Task StartAsync(Guid lobbyId, Guid userId)
     {
         var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
             ?? throw new NotFoundException("Lobby not found");
@@ -224,9 +225,6 @@ public class LobbyService(IUnitOfWork unitOfWork,
             throw new BadRequestException("Lobby must have at least 2 participants");
         }
 
-        lobby.Phase = LobbyPhase.Submission;
-        await unitOfWork.SaveChangesAsync();
-
         var kit = await kitService.GetRandomAsync();
         var categories = kit.Categories.Select(c => new RandomCategoryDto
         {
@@ -235,14 +233,17 @@ public class LobbyService(IUnitOfWork unitOfWork,
             Sounds = [.. c.Sounds.Select(s => new SoundDto
             {
                 Id = s.Id,
-                Value = soundStorage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1))
+                Value = storage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1))
             })]
         }).ToList();
         await lobbyNotifier.StartedAsync(lobby.Id, categories);
 
-        backgroundJobClient.Schedule<ILobbyService>(
+        var jobId = backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
             lobby.SubmissionTimeLimit);
+        lobby.Phase = LobbyPhase.Submission;
+        lobby.JobId = jobId;
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task TransitionToVotingAsync(Guid lobbyId)
@@ -256,10 +257,18 @@ public class LobbyService(IUnitOfWork unitOfWork,
         lobby.Phase = LobbyPhase.Voting;
         await unitOfWork.SaveChangesAsync();
 
-        // TODO: [Stub] Currently returning an empty list.
-        // Needs to be integrated with a FileStorageService to fetch submission URLs from the bucket.
-        var submissions = new List<string>();
+        var submissions = lobby.Participants.SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> {
+            new() {
+                Id = s.Id,
+                Value = storage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1)),
+                User = new UserDto {
+                    Id = s.Participant!.UserId,
+                    Name = s.Participant!.User!.Name
+                }
+            }
+        })).ToList();
 
+        // TODO: Replace lobby job and add a background job to transition to the end phase after the voting time limit
         await lobbyNotifier.VotingStartedAsync(lobby.Id, submissions);
     }
 }

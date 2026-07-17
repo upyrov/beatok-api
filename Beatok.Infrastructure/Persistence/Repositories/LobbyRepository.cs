@@ -20,8 +20,7 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
         
         if (!string.IsNullOrEmpty(filter.Name))
         {
-            query = query.Where(l => l.Name.ToLower()
-                .Contains(filter.Name.Trim().ToLower()));
+            query = query.Where(l => l.Name.Contains(filter.Name.Trim(), StringComparison.CurrentCultureIgnoreCase));
         }
 
         if (filter.GenreId.HasValue)
@@ -36,6 +35,9 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
     {
         return await context.Lobbies
             .Include(l => l.Participants)
+                .ThenInclude(p => p.User)
+            .Include(l => l.Participants)
+                .ThenInclude(p => p.Submissions)
             .FirstOrDefaultAsync(l => l.Id == id);
     }
 

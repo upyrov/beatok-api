@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,6 @@ namespace Beatok.API.Hubs
 {
     public interface ILobbyClient
     {
-        // TODO: Replace sounds and submissions with corresponding DTOs
         Task ParticipantJoined(UserDto user);
         Task ParticipantRejoined(UserDto user);
         Task ParticipantLeft(UserDto user);
@@ -18,10 +18,10 @@ namespace Beatok.API.Hubs
         Task MMRWithheld(); 
         Task MessageReceived(string content, UserDto sender);
         Task Started(ICollection<RandomCategoryDto> categories);
-        Task SubmissionRegistered(string userSubmission);
-        Task VotingStarted(ICollection<string> submissions);
+        Task SubmissionRegistered(SubmissionDto userSubmission);
+        Task VotingStarted(ICollection<SubmissionDto> submissions);
         Task VoteRegistered(string userVote);
-        Task Ended(UserDto winner, string submission);
+        Task Ended(UserDto winner, SubmissionDto submission);
     }
 
     [Authorize]

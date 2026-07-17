@@ -39,9 +39,9 @@ public static class DependencyInjection
       
         services.AddScoped<ILobbyRepository, LobbyRepository>();
         services.AddScoped<IParticipationRepository, ParticipationRepository>();
+        services.AddScoped<ISubmissionRepository, SubmissionRepository>();
 
-        services.Configure<R2Options>(
-            configuration.GetSection(nameof(R2Options)));
+        services.Configure<R2Options>(configuration.GetSection(nameof(R2Options)));
         
         services.AddSingleton<IAmazonS3>(_ =>
         {
@@ -53,13 +53,10 @@ public static class DependencyInjection
                 ForcePathStyle = true
             };
 
-            return new AmazonS3Client(
-                r2Options.AccessKey,
-                r2Options.SecretKey,
-                config);
+            return new AmazonS3Client(r2Options.AccessKey, r2Options.SecretKey, config);
         });
         
-        services.AddSingleton<ISoundStorage, R2StorageSound>();
+        services.AddSingleton<IStorage, R2Storage>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

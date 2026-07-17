@@ -34,8 +34,7 @@ namespace Beatok.API.Controllers
         public async Task<IActionResult> Start([FromRoute] Guid id)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await lobbyService.StartLobbyAsync(id, Guid.Parse(userId!));
-            
+            await lobbyService.StartAsync(id, Guid.Parse(userId!));
             return Ok();
         }
 

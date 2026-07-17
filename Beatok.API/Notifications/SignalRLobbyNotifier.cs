@@ -1,6 +1,7 @@
 using Beatok.API.Hubs;
 using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.User;
+using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 
@@ -23,7 +24,14 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .Started(categories);
     }
 
-    public async Task VotingStartedAsync(Guid lobbyId, ICollection<string> submissions)
+    public async Task SubmissionRegisteredAsync(SubmissionDto userSubmission)
+    {
+        await hubContext.Clients
+            .Group(userSubmission.LobbyId.ToString())
+            .SubmissionRegistered(userSubmission);
+    }
+
+    public async Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
