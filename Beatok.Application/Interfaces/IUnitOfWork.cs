@@ -15,6 +15,7 @@ public interface IUnitOfWork
     public ILobbyRepository Lobbies { get; }
     public IParticipationRepository Participations { get; }
     public ISubmissionRepository Submissions { get; }
+    public IScoreRepository Scores { get; }
 
     public Task SaveChangesAsync();
 }

@@ -1,5 +1,6 @@
 using Beatok.API.Hubs;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Score;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Interfaces;
@@ -57,5 +58,19 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
         await hubContext.Clients
             .Group(lobbyId.ToString())
             .OwnerChanged(newOwnerId);
+    }
+
+    public async Task VoteRegisteredAsync(ScoreDto score)
+    {
+        await hubContext.Clients
+            .Group(score.LobbyId.ToString())
+            .VoteRegistered(score);
+    }
+
+    public async Task EndedAsync(UserDto? winner, SubmissionDto? submission, Guid lobbyId)
+    {
+        await hubContext.Clients
+            .Group(lobbyId.ToString())
+            .Ended(winner, submission);
     }
 }

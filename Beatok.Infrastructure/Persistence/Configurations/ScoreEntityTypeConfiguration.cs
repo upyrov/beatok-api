@@ -19,7 +19,7 @@ public class ScoreEntityTypeConfiguration: IEntityTypeConfiguration<Score>
             .HasForeignKey(x => x.LobbyId);
         
         builder.HasOne(x => x.Submission)
-            .WithMany()
+            .WithMany(s => s.Scores)
             .HasForeignKey(x => x.SubmissionId);
 
         builder.HasIndex(x => new { x.SubmissionId, x.UserId })

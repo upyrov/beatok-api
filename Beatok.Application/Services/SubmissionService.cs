@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissionDto> createValidator,
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage) : ISubmissionService
+    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService) : ISubmissionService
 {
     public SubmissionUploadDto GenerateUploadUrl(string fileExtension)
     {
@@ -71,21 +71,8 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         // Check if all connected participants have a submission
         if (lobby.Participants.Where(p => p.IsConnected).All(p => p.Submissions.Count != 0))
         {
-            lobby.Phase = LobbyPhase.Voting;
-            await unitOfWork.SaveChangesAsync();
-
             backgroundJobClient.Delete(lobby.JobId);
-            await lobbyNotifier.VotingStartedAsync(lobby.Id, [.. lobby.Participants.SelectMany(p => p.Submissions)
-                .Select(s => new SubmissionDto {
-                    Id = s.Id,
-                    Value = s.Value,
-                    LobbyId = lobby.Id,
-                    User = new UserDto {
-                        Id = s.Participant!.UserId,
-                        Name = s.Participant!.User!.Name
-                    }
-                })]);
-            // TODO: Replace lobby job and add a background job to transition to the end phase after the voting time limit
+            await lobbyService.TransitionToVotingAsync(lobby.Id);
         }
         else
         {

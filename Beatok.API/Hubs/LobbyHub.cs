@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Score;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
@@ -20,8 +21,8 @@ namespace Beatok.API.Hubs
         Task Started(ICollection<RandomCategoryDto> categories);
         Task SubmissionRegistered(SubmissionDto userSubmission);
         Task VotingStarted(ICollection<SubmissionDto> submissions);
-        Task VoteRegistered(string userVote);
-        Task Ended(UserDto winner, SubmissionDto submission);
+        Task VoteRegistered(ScoreDto score);
+        Task Ended(UserDto? winner, SubmissionDto? submission);
     }
 
     [Authorize]

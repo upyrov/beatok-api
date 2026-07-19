@@ -40,6 +40,8 @@ public static class DependencyInjection
         services.AddScoped<ILobbyRepository, LobbyRepository>();
         services.AddScoped<IParticipationRepository, ParticipationRepository>();
         services.AddScoped<ISubmissionRepository, SubmissionRepository>();
+        
+        services.AddScoped<IScoreRepository, ScoreRepository>();
 
         services.Configure<R2Options>(configuration.GetSection(nameof(R2Options)));
         

@@ -38,6 +38,7 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
                 .ThenInclude(p => p.User)
             .Include(l => l.Participants)
                 .ThenInclude(p => p.Submissions)
+                    .ThenInclude(s => s.Scores)
             .FirstOrDefaultAsync(l => l.Id == id);
     }
 
