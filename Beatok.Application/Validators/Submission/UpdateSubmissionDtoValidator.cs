@@ -8,5 +8,8 @@ public class UpdateSubmissionDtoValidator : AbstractValidator<UpdateSubmissionDt
     public UpdateSubmissionDtoValidator()
     {
         RuleFor(x => x.Value).NotEmpty().WithMessage("Value is required");
+        
+        RuleFor(x => x.DurationSeconds)
+            .NotEmpty().WithMessage("DurationSeconds is required");
     }
 }

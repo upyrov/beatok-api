@@ -59,7 +59,8 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         var submission = new Submission
         {
             Value = dto.Value,
-            ParticipantId = participation.Id
+            ParticipantId = participation.Id,
+            DurationSeconds = dto.DurationSeconds
         };
 
         await unitOfWork.Submissions.CreateAsync(submission);
@@ -82,6 +83,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
                 Id = submission.Id,
                 Value = submission.Value,
                 LobbyId = lobby.Id,
+                DurationSeconds = submission.DurationSeconds,
                 User = new UserDto
                 {
                     Id = userId,
@@ -118,6 +120,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
             Id = submission.Id,
             Value = submission.Value,
             LobbyId = submission.Participant.LobbyId,
+            DurationSeconds = submission.DurationSeconds,
             User = new UserDto
             {
                 Id = submission.Participant.UserId,

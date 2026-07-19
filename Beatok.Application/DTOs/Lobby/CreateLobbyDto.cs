@@ -8,5 +8,4 @@ public class CreateLobbyDto
     public Guid GenreId { get; set; }
     public short ParticipantLimit { get; set; }
     public TimeSpan SubmissionTimeLimit { get; set; }
-    public TimeSpan VotingTimeLimit { get; set; }
 }

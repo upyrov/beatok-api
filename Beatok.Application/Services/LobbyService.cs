@@ -35,8 +35,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
             OwnerId = owner.Id,
             GenreId = genre.Id,
             ParticipantLimit = dto.ParticipantLimit,
-            SubmissionTimeLimit = dto.SubmissionTimeLimit,
-            VotingTimeLimit = dto.VotingTimeLimit
+            SubmissionTimeLimit = dto.SubmissionTimeLimit
         };
 
         await unitOfWork.Lobbies.AddAsync(lobby);
@@ -205,7 +204,6 @@ public class LobbyService(IUnitOfWork unitOfWork,
             GenreId = l.GenreId,
             ParticipantLimit = l.ParticipantLimit,
             SubmissionTimeLimit = l.SubmissionTimeLimit,
-            VotingTimeLimit = l.VotingTimeLimit,
             Phase = l.Phase,
             OwnerId = l.OwnerId
         }
@@ -262,8 +260,12 @@ public class LobbyService(IUnitOfWork unitOfWork,
             }
         })).ToList();
         
+        var votingTime = TimeSpan.FromSeconds(lobby.Participants
+            .SelectMany(s => s.Submissions)
+            .Sum(s => s.DurationSeconds)) + TimeSpan.FromMinutes(1);
         var jobId = backgroundJobClient.Schedule<LobbyService>(
-            s => s.TransitionToEndAsync(lobby.Id), lobby.VotingTimeLimit);
+            s => s.TransitionToEndAsync(lobby.Id), votingTime);
+        
         lobby.Phase = LobbyPhase.Voting;
         lobby.JobId = jobId;
         await unitOfWork.SaveChangesAsync();
