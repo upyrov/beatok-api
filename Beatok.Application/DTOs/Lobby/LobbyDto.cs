@@ -11,6 +11,5 @@ public class LobbyDto
     public LobbyPhase Phase { get; set; } = LobbyPhase.NotStarted;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public TimeSpan SubmissionTimeLimit { get; set; }
-    public TimeSpan VotingTimeLimit { get; set; }
     public Guid OwnerId { get; set; }
 }

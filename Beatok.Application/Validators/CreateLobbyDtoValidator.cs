@@ -20,10 +20,5 @@ public class CreateLobbyDtoValidator: AbstractValidator<CreateLobbyDto>
             .NotEmpty().WithMessage("Submission time limit is required")
             .Must(t => t.TotalSeconds >= 10 && t.TotalMinutes <= 30)
             .WithMessage("Submission time limit must be between 10 and 20 minutes");
-        
-        RuleFor(x => x.VotingTimeLimit)
-            .NotEmpty().WithMessage("Voting time limit is required")
-            .Must(t => t.TotalSeconds >= 10 && t.TotalMinutes <= 20)
-            .WithMessage("Voting time limit must be between 10 and 20 minutes");
     }
 }

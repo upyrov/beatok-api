@@ -35,8 +35,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
             OwnerId = owner.Id,
             GenreId = genre.Id,
             ParticipantLimit = dto.ParticipantLimit,
-            SubmissionTimeLimit = dto.SubmissionTimeLimit,
-            VotingTimeLimit = dto.VotingTimeLimit
+            SubmissionTimeLimit = dto.SubmissionTimeLimit
         };
 
         await unitOfWork.Lobbies.AddAsync(lobby);
@@ -205,7 +204,6 @@ public class LobbyService(IUnitOfWork unitOfWork,
             GenreId = l.GenreId,
             ParticipantLimit = l.ParticipantLimit,
             SubmissionTimeLimit = l.SubmissionTimeLimit,
-            VotingTimeLimit = l.VotingTimeLimit,
             Phase = l.Phase,
             OwnerId = l.OwnerId
         }
@@ -217,13 +215,9 @@ public class LobbyService(IUnitOfWork unitOfWork,
         var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
             ?? throw new NotFoundException("Lobby not found");
         if (lobby.OwnerId != userId)
-        {
             throw new BadRequestException("You are not the owner of this lobby");
-        }
         if (lobby.Participants.Count < 2)
-        {
             throw new BadRequestException("Lobby must have at least 2 participants");
-        }
 
         var kit = await kitService.GetRandomAsync();
         var categories = kit.Categories.Select(c => new RandomCategoryDto
@@ -254,21 +248,96 @@ public class LobbyService(IUnitOfWork unitOfWork,
             return;
         }
 
-        lobby.Phase = LobbyPhase.Voting;
-        await unitOfWork.SaveChangesAsync();
-
         var submissions = lobby.Participants.SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> {
             new() {
                 Id = s.Id,
-                Value = storage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1)),
+                Value = s.Value,
+                LobbyId = lobby.Id,
                 User = new UserDto {
                     Id = s.Participant!.UserId,
                     Name = s.Participant!.User!.Name
                 }
             }
         })).ToList();
-
-        // TODO: Replace lobby job and add a background job to transition to the end phase after the voting time limit
+        
+        var votingTime = TimeSpan.FromSeconds(lobby.Participants
+            .SelectMany(s => s.Submissions)
+            .Sum(s => s.DurationSeconds)) + TimeSpan.FromMinutes(1);
+        var jobId = backgroundJobClient.Schedule<LobbyService>(
+            s => s.TransitionToEndAsync(lobby.Id), votingTime);
+        
+        lobby.Phase = LobbyPhase.Voting;
+        lobby.JobId = jobId;
+        await unitOfWork.SaveChangesAsync();
+        
         await lobbyNotifier.VotingStartedAsync(lobby.Id, submissions);
+    }
+
+    public async Task TryFinishVoting(Lobby lobby)
+    {
+        var submissions = lobby.Participants.SelectMany(p => p.Submissions).ToList();
+        
+        var scores = submissions.SelectMany(s => s.Scores).ToList();
+        
+        var expectedVotes = lobby.Participants.Sum(participant =>
+            submissions.Count(s => s.Participant!.UserId != participant.UserId));
+        if (scores.Count != expectedVotes)
+            return;
+
+        backgroundJobClient.Delete(lobby.JobId);
+        await TransitionToEndAsync(lobby.Id);
+    }
+
+    public async Task TransitionToEndAsync(Guid lobbyId)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId);
+        if (lobby == null)
+            return;
+
+        lobby.Phase = LobbyPhase.End;
+        await unitOfWork.SaveChangesAsync();
+        
+        var winnerSubmission = GetWinnerSubmission(lobby);
+
+        if (winnerSubmission == null)
+        {
+            await lobbyNotifier.EndedAsync(null, null, lobby.Id);
+            return;   
+        }
+        
+        var winnerUserDto = new UserDto
+        {
+            Id = winnerSubmission.Participant!.UserId,
+            Name = winnerSubmission.Participant!.User!.Name
+        };
+
+        var winnerSubmissionDto = new SubmissionDto
+        {
+            Id = winnerSubmission.Id,
+            Value = storage.GeneratePresignedSoundUrl($"submissions/{winnerSubmission.Value}", TimeSpan.FromHours(1)),
+            User = winnerUserDto
+        };
+        await lobbyNotifier.EndedAsync(winnerUserDto, winnerSubmissionDto, lobby.Id); 
+    }
+
+    private Submission? GetWinnerSubmission(Lobby lobby)
+    {
+        var submissions = lobby.Participants.SelectMany(p => p.Submissions).ToList();
+        if (!submissions.Any(s => s.Scores.Any()))
+            return null;
+
+        var totalScore = submissions.Select(s => new
+        {
+            Submission = s,
+            TotalScore = s.Scores.Sum(x => x.Value),
+            LastVote = s.Scores.Max(x => x.CreatedAt)
+        });
+        
+        var winner = totalScore
+            .OrderByDescending(s => s.TotalScore)
+            .ThenBy(s => s.LastVote)
+            .First();
+        
+        return winner.Submission;
     }
 }

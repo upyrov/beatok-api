@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissionDto> createValidator,
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage) : ISubmissionService
+    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService) : ISubmissionService
 {
     public SubmissionUploadDto GenerateUploadUrl(string fileExtension)
     {
@@ -56,10 +56,16 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
             throw new InvalidOperationException("User has already submitted a track");
         }
 
+        if (dto.DurationSeconds <= 0 || dto.DurationSeconds > lobby.SubmissionTimeLimit.TotalSeconds / 2)
+        {
+            throw new ValidationException("Duration seconds must be a positive value and not exceed half the submission time limit");
+        }
+
         var submission = new Submission
         {
             Value = dto.Value,
-            ParticipantId = participation.Id
+            ParticipantId = participation.Id,
+            DurationSeconds = dto.DurationSeconds
         };
 
         await unitOfWork.Submissions.CreateAsync(submission);
@@ -71,21 +77,8 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         // Check if all connected participants have a submission
         if (lobby.Participants.Where(p => p.IsConnected).All(p => p.Submissions.Count != 0))
         {
-            lobby.Phase = LobbyPhase.Voting;
-            await unitOfWork.SaveChangesAsync();
-
             backgroundJobClient.Delete(lobby.JobId);
-            await lobbyNotifier.VotingStartedAsync(lobby.Id, [.. lobby.Participants.SelectMany(p => p.Submissions)
-                .Select(s => new SubmissionDto {
-                    Id = s.Id,
-                    Value = s.Value,
-                    LobbyId = lobby.Id,
-                    User = new UserDto {
-                        Id = s.Participant!.UserId,
-                        Name = s.Participant!.User!.Name
-                    }
-                })]);
-            // TODO: Replace lobby job and add a background job to transition to the end phase after the voting time limit
+            await lobbyService.TransitionToVotingAsync(lobby.Id);
         }
         else
         {
@@ -95,6 +88,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
                 Id = submission.Id,
                 Value = submission.Value,
                 LobbyId = lobby.Id,
+                DurationSeconds = submission.DurationSeconds,
                 User = new UserDto
                 {
                     Id = userId,
@@ -131,6 +125,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
             Id = submission.Id,
             Value = submission.Value,
             LobbyId = submission.Participant.LobbyId,
+            DurationSeconds = submission.DurationSeconds,
             User = new UserDto
             {
                 Id = submission.Participant.UserId,

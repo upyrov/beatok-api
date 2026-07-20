@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Lobby;
+using Beatok.Application.DTOs.Score;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,8 @@ namespace Beatok.API.Controllers
 {
     [Route("lobbies")]
     [ApiController]
-    public class LobbyController(ILobbyService lobbyService) : ControllerBase
+    public class LobbyController(ILobbyService lobbyService, 
+        IScoreService scoreService) : ControllerBase
     {
         [HttpPost]
         [Authorize]
@@ -53,6 +55,15 @@ namespace Beatok.API.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             await lobbyService.LeaveAsync(id, Guid.Parse(userId!));
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPost("{id}/scores")]
+        public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await scoreService.CreateAsync(Guid.Parse(userId!), id, dto);
             return Ok();
         }
     }

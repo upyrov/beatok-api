@@ -124,9 +124,6 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<TimeSpan>("SubmissionTimeLimit")
                         .HasColumnType("interval");
 
-                    b.Property<TimeSpan>("VotingTimeLimit")
-                        .HasColumnType("interval");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GenreId");
@@ -197,6 +194,39 @@ namespace Beatok.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Beatok.Domain.Entities.Score", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("LobbyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubmissionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<short>("Value")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LobbyId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("SubmissionId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("Scores");
+                });
+
             modelBuilder.Entity("Beatok.Domain.Entities.Sound", b =>
                 {
                     b.Property<Guid>("Id")
@@ -222,6 +252,9 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("ParticipantId")
                         .HasColumnType("uuid");
@@ -351,6 +384,33 @@ namespace Beatok.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Beatok.Domain.Entities.Score", b =>
+                {
+                    b.HasOne("Beatok.Domain.Entities.Lobby", "Lobby")
+                        .WithMany()
+                        .HasForeignKey("LobbyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Beatok.Domain.Entities.Submission", "Submission")
+                        .WithMany("Scores")
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Beatok.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lobby");
+
+                    b.Navigation("Submission");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Beatok.Domain.Entities.Sound", b =>
                 {
                     b.HasOne("Beatok.Domain.Entities.Category", "Category")
@@ -391,6 +451,11 @@ namespace Beatok.Infrastructure.Migrations
             modelBuilder.Entity("Beatok.Domain.Entities.Participation", b =>
                 {
                     b.Navigation("Submissions");
+                });
+
+            modelBuilder.Entity("Beatok.Domain.Entities.Submission", b =>
+                {
+                    b.Navigation("Scores");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.User", b =>

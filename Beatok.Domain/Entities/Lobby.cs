@@ -19,7 +19,6 @@ public class Lobby
     public string JobId { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public TimeSpan SubmissionTimeLimit { get; set; }
-    public TimeSpan VotingTimeLimit { get; set; }
     public Guid OwnerId { get; set; }
     public User? Owner { get; set; }
     public ICollection<Participation> Participants { get; set; } = [];

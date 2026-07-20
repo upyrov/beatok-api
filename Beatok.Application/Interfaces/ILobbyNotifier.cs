@@ -1,4 +1,5 @@
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Score;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.DTOs.Submission;
 
@@ -15,6 +16,6 @@ public interface ILobbyNotifier
     Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories);
     Task SubmissionRegisteredAsync(SubmissionDto userSubmission);
     Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions);
-    // Task VoteRegisteredAsync(string userVote);
-    // Task EndedAsync(GetUserDto winner, string submission);
+    Task VoteRegisteredAsync(ScoreDto score);
+    Task EndedAsync(UserDto? winner, SubmissionDto? submission, Guid lobbyId);
 }
