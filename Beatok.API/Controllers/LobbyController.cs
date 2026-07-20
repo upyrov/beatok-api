@@ -59,7 +59,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("{id}/votes")]
+        [HttpPost("{id}/scores")]
         public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

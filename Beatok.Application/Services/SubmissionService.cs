@@ -56,6 +56,11 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
             throw new InvalidOperationException("User has already submitted a track");
         }
 
+        if (dto.DurationSeconds <= 0 || dto.DurationSeconds > lobby.SubmissionTimeLimit.TotalSeconds / 2)
+        {
+            throw new ValidationException("Duration seconds must be a positive value and not exceed half the submission time limit");
+        }
+
         var submission = new Submission
         {
             Value = dto.Value,
