@@ -1,4 +1,5 @@
-using Beatok.Domain.Entities;
+using Beatok.Application.DTOs.Genre;
+using Beatok.Application.DTOs.User;
 
 namespace Beatok.Application.DTOs.Lobby;
 
@@ -6,10 +7,10 @@ public class LobbyDto
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
-    public Guid GenreId { get; set; }
-    public short ParticipantLimit { get; set; }
-    public LobbyPhase Phase { get; set; } = LobbyPhase.NotStarted;
+    public required GenreDto Genre { get; set; }
+    public required UserDto Owner { get; set; }
+    public int ParticipantLimit { get; set; }
+    public int ParticipantCount {  get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public TimeSpan SubmissionTimeLimit { get; set; }
-    public Guid OwnerId { get; set; }
 }

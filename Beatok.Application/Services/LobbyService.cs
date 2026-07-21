@@ -1,5 +1,6 @@
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Genre;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
@@ -197,16 +198,24 @@ public class LobbyService(IUnitOfWork unitOfWork,
     {
         var lobbies = await unitOfWork.Lobbies.GetFilteredAsync(filter);
         return lobbies.Select(l => new LobbyDto
-        {
-            Id = l.Id,
-            Name = l.Name,
-            CreatedAt = l.CreatedAt,
-            GenreId = l.GenreId,
-            ParticipantLimit = l.ParticipantLimit,
-            SubmissionTimeLimit = l.SubmissionTimeLimit,
-            Phase = l.Phase,
-            OwnerId = l.OwnerId
-        }
+            {
+                Id = l.Id,
+                Name = l.Name,
+                CreatedAt = l.CreatedAt,
+                Genre = new GenreDto
+                {
+                    Id = l.Genre!.Id,
+                    Name = l.Genre.Name
+                },
+                Owner = new UserDto
+                {
+                    Id = l.Owner!.Id,
+                    Name = l.Owner.Name
+                },
+                ParticipantLimit = l.ParticipantLimit,
+                ParticipantCount = l.Participants.Count,
+                SubmissionTimeLimit = l.SubmissionTimeLimit
+            }
         );
     }
 
