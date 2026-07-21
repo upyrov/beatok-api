@@ -26,7 +26,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] LobbyFilterDto filter)
+        public async Task<ActionResult<List<LobbyDto>>> GetAll([FromQuery] LobbyFilterDto filter)
         {
             return Ok(await lobbyService.GetAllAsync(filter));
         }

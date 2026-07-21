@@ -15,7 +15,10 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
     public async Task<IEnumerable<Lobby>> GetFilteredAsync(LobbyFilterDto filter)
     {
         var query = context.Lobbies.AsQueryable();
-        query = query.Where(l => l.Phase == LobbyPhase.NotStarted 
+        query = query
+            .Include(l => l.Genre)
+            .Include(l => l.Owner)
+            .Where(l => l.Phase == LobbyPhase.NotStarted 
                                  && l.Participants.Count < l.ParticipantLimit);
         
         if (!string.IsNullOrEmpty(filter.Name))

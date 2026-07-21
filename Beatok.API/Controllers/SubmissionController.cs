@@ -14,7 +14,7 @@ namespace Beatok.API.Controllers
         private static readonly string[] AllowedExtensions = [".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac"];
 
         [HttpGet("upload")]
-        public IActionResult GetUploadUrl([FromQuery] string extension)
+        public ActionResult<SubmissionUploadDto> GetUploadUrl([FromQuery] string extension)
         {
             if (string.IsNullOrWhiteSpace(extension))
             {
