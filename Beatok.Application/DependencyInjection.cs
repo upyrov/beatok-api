@@ -19,6 +19,9 @@ public static class DependencyInjection
         services.AddScoped<IKitService, KitService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ISoundService, SoundService>();
+        services.AddScoped<ISubmissionService, SubmissionService>();
+        services.AddScoped<IScoreService, ScoreService>();
+        services.AddScoped<ICommentService, CommentService>();
         
         return services;
     }

@@ -16,6 +16,7 @@ public interface IUnitOfWork
     public IParticipationRepository Participations { get; }
     public ISubmissionRepository Submissions { get; }
     public IScoreRepository Scores { get; }
+    public ICommentRepository Comments { get; }
 
     public Task SaveChangesAsync();
 }

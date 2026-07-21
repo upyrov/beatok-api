@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<ISubmissionRepository, SubmissionRepository>();
         
         services.AddScoped<IScoreRepository, ScoreRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
 
         services.Configure<R2Options>(configuration.GetSection(nameof(R2Options)));
         

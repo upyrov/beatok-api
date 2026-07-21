@@ -8,5 +8,5 @@ public class Comment
     public Guid TargetUserId { get; set; }
     public User? TargetUser { get; set; }
     public required string Content { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
