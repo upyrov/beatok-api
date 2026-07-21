@@ -164,7 +164,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<LobbyDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
+    public async Task<LobbyWithParticipantsDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
     {
         var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
             ?? throw new NotFoundException("Lobby not found");
@@ -175,7 +175,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         participant.ConnectionId = connectionId;
         await unitOfWork.SaveChangesAsync();
 
-        return new LobbyDto
+        return new LobbyWithParticipantsDto
         {
             Id = lobby.Id,
             Name = lobby.Name,
@@ -191,7 +191,11 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 Name = lobby.Owner.Name
             },
             ParticipantLimit = lobby.ParticipantLimit,
-            ParticipantCount = lobby.Participants.Count,
+            Participants = [.. lobby.Participants.Select(p => new UserDto
+            {
+                Id = p.UserId,
+                Name = p.User!.Name
+            })],
             SubmissionTimeLimit = lobby.SubmissionTimeLimit
         };
     }

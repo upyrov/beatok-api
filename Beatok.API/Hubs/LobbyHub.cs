@@ -30,7 +30,7 @@ namespace Beatok.API.Hubs
     [ImplicitAnonymous]
     public class LobbyHub(ILobbyService lobbyService) : Hub<ILobbyClient>
     {
-        public async Task<LobbyDto> Join(string lobbyId)
+        public async Task<LobbyWithParticipantsDto> Join(string lobbyId)
         {
             var userId = Guid.Parse(
                 Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);

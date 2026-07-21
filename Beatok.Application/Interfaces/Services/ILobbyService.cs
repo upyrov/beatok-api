@@ -13,7 +13,7 @@ public interface ILobbyService
     Task TransitionToEndAsync(Guid lobbyId);
     Task JoinAsync(Guid lobbyId, Guid userId);
     Task LeaveAsync(Guid lobbyId, Guid userId);
-    Task<LobbyDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId);
+    Task<LobbyWithParticipantsDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId);
     Task DisconnectAsync(string connectionId);
     Task TryFinishVoting(Lobby lobby);
 }
