@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Beatok.API.Attributes;
+using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -29,6 +30,15 @@ namespace Beatok.API.Controllers
             var authorId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
             await commentService.CreateAsync(Guid.Parse(authorId), id, dto);
             return Ok();
+        }
+
+        [HttpGet("{id}/comments")]
+        public async Task<ActionResult<PageResult<CommentDto>>> GetComments(
+            [FromRoute] Guid id, [FromQuery] PaginationParams paginationParams)
+        {
+            var pageResult = await commentService
+                .GetCommentsAsync(id, paginationParams.Page, paginationParams.PageSize);
+            return Ok(pageResult);
         }
     }
 }
