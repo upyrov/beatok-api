@@ -87,7 +87,8 @@ public class AuthService(IPasswordHasher passwordHasher,
         {
             Name = userName,
             IsAnonymous = true,
-            LastActiveAt = DateTime.UtcNow
+            LastActiveAt = DateTime.UtcNow,
+            Role = UserRole.Player
         };
         
         await unitOfWork.Users.AddAsync(user);
