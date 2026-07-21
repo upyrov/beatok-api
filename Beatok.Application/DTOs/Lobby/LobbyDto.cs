@@ -3,7 +3,7 @@ using Beatok.Application.DTOs.User;
 
 namespace Beatok.Application.DTOs.Lobby;
 
-public class LobbyDto
+public record LobbyDto
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;

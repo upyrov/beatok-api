@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Score;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
@@ -29,20 +30,19 @@ namespace Beatok.API.Hubs
     [ImplicitAnonymous]
     public class LobbyHub(ILobbyService lobbyService) : Hub<ILobbyClient>
     {
-        public async Task Join(string roomName)
+        public async Task<LobbyDto> Join(string lobbyId)
         {
             var userId = Guid.Parse(
                 Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            
-            await lobbyService
-                .SetConnectionIdAsync(Guid.Parse(roomName), userId, Context.ConnectionId);
-            
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomName);
+            var lobby = await lobbyService
+                .SetConnectionIdAsync(Guid.Parse(lobbyId), userId, Context.ConnectionId);
+            await Groups.AddToGroupAsync(Context.ConnectionId, lobbyId);
+            return lobby;
         }
 
-        public Task Leave(string roomName)
+        public Task Leave(string lobbyId)
         {
-            return Groups.RemoveFromGroupAsync(Context.ConnectionId, roomName);
+            return Groups.RemoveFromGroupAsync(Context.ConnectionId, lobbyId);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
