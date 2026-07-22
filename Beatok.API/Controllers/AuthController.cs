@@ -43,6 +43,7 @@ namespace Beatok.API.Controllers
         public IActionResult Logout()
         {
             Response.Cookies.Delete("jwt");
+            Response.Cookies.Delete("refresh_token");
             return Ok();
         }
         
