@@ -13,14 +13,15 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(UserSignupDtoValidator).Assembly);
         
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IGenreService, GenreService>();
-        services.AddScoped<ILobbyService, LobbyService>(); 
-        services.AddScoped<IKitService, KitService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IGenreService, GenreService>();
+        services.AddScoped<IKitService, KitService>();
+        services.AddScoped<ILobbyService, LobbyService>();
+        services.AddScoped<IScoreService, ScoreService>();
         services.AddScoped<ISoundService, SoundService>();
         services.AddScoped<ISubmissionService, SubmissionService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IUserService, UserService>();
         
         return services;
     }

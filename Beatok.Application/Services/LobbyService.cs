@@ -1,5 +1,6 @@
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Genre;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
@@ -17,7 +18,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
     IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
     ILobbyNotifier lobbyNotifier, IStorage storage, IKitService kitService) : ILobbyService
 {
-    public async Task CreateAsync(CreateLobbyDto dto, Guid ownerId)
+    public async Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId)
     {
         var fluentValidation = await validator.ValidateAsync(dto);
         if (!fluentValidation.IsValid)
@@ -29,6 +30,10 @@ public class LobbyService(IUnitOfWork unitOfWork,
             ?? throw new NotFoundException("User not found");
         var genre = await unitOfWork.Genres.GetByIdAsync(dto.GenreId)
             ?? throw new NotFoundException("Genre not found");
+        var activeLobbyCount = await unitOfWork.Participations.CountActiveByUserIdAsync(ownerId);
+        if (activeLobbyCount >= 2)
+            throw new BadRequestException("User cannot join more than 2 active lobbies");
+
         var lobby = new Lobby
         {
             Name = dto.Name,
@@ -46,6 +51,8 @@ public class LobbyService(IUnitOfWork unitOfWork,
             UserId = owner.Id
         });
         await unitOfWork.SaveChangesAsync();
+
+        return lobby.Id;
     }
 
     public async Task JoinAsync(Guid lobbyId, Guid userId)
@@ -157,7 +164,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
+    public async Task<LobbyWithParticipantsDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
     {
         var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
             ?? throw new NotFoundException("Lobby not found");
@@ -167,6 +174,30 @@ public class LobbyService(IUnitOfWork unitOfWork,
         
         participant.ConnectionId = connectionId;
         await unitOfWork.SaveChangesAsync();
+
+        return new LobbyWithParticipantsDto
+        {
+            Id = lobby.Id,
+            Name = lobby.Name,
+            CreatedAt = lobby.CreatedAt,
+            Genre = new GenreDto
+            {
+                Id = lobby.Genre!.Id,
+                Name = lobby.Genre.Name
+            },
+            Owner = new UserDto
+            {
+                Id = lobby.Owner!.Id,
+                Name = lobby.Owner.Name
+            },
+            ParticipantLimit = lobby.ParticipantLimit,
+            Participants = [.. lobby.Participants.Select(p => new UserDto
+            {
+                Id = p.UserId,
+                Name = p.User!.Name
+            })],
+            SubmissionTimeLimit = lobby.SubmissionTimeLimit
+        };
     }
 
     public async Task DisconnectAsync(string connectionId)
@@ -197,16 +228,24 @@ public class LobbyService(IUnitOfWork unitOfWork,
     {
         var lobbies = await unitOfWork.Lobbies.GetFilteredAsync(filter);
         return lobbies.Select(l => new LobbyDto
-        {
-            Id = l.Id,
-            Name = l.Name,
-            CreatedAt = l.CreatedAt,
-            GenreId = l.GenreId,
-            ParticipantLimit = l.ParticipantLimit,
-            SubmissionTimeLimit = l.SubmissionTimeLimit,
-            Phase = l.Phase,
-            OwnerId = l.OwnerId
-        }
+            {
+                Id = l.Id,
+                Name = l.Name,
+                CreatedAt = l.CreatedAt,
+                Genre = new GenreDto
+                {
+                    Id = l.Genre!.Id,
+                    Name = l.Genre.Name
+                },
+                Owner = new UserDto
+                {
+                    Id = l.Owner!.Id,
+                    Name = l.Owner.Name
+                },
+                ParticipantLimit = l.ParticipantLimit,
+                ParticipantCount = l.Participants.Count,
+                SubmissionTimeLimit = l.SubmissionTimeLimit
+            }
         );
     }
 

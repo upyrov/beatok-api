@@ -18,9 +18,8 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<List<GenreDto>>> GetAll()
         {
             return Ok(await genreService.GetAllAsync());
         }

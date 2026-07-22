@@ -2,7 +2,7 @@ using Beatok.Domain.Entities;
 
 namespace Beatok.Application.DTOs.Lobby;
 
-public class CreateLobbyDto
+public record CreateLobbyDto
 {
     public string Name { get; set; } = string.Empty;
     public Guid GenreId { get; set; }

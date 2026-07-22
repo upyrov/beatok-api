@@ -17,16 +17,15 @@ namespace Beatok.API.Controllers
         [HttpPost]
         [Authorize]
         [ImplicitAnonymous]
-        public async Task<IActionResult> Create([FromBody] CreateLobbyDto dto)
+        public async Task<ActionResult<Guid>> Create([FromBody] CreateLobbyDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            await lobbyService.CreateAsync(dto, Guid.Parse(userId!));
-            return Ok();
+            var lobbyId = await lobbyService.CreateAsync(dto, Guid.Parse(userId!));
+            return Ok(lobbyId);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] LobbyFilterDto filter)
+        public async Task<ActionResult<List<LobbyDto>>> GetAll([FromQuery] LobbyFilterDto filter)
         {
             return Ok(await lobbyService.GetAllAsync(filter));
         }
