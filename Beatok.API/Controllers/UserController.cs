@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
+using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,12 @@ namespace Beatok.API.Controllers
             return Ok(await userService.GetUserByIdAsync(Guid.Parse(userId)));
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<UserDto>> GetById([FromRoute] Guid id)
+        {
+            return Ok(await userService.GetUserByIdAsync(id));
+        }
+        
         [HttpPost("{id}/comments")]
         [Authorize]
         [ImplicitAnonymous]
