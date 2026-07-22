@@ -3,11 +3,18 @@ using Beatok.Application.Interfaces.Repositories;
 
 namespace Beatok.Infrastructure.Persistence;
 
-public class UnitOfWork(ApplicationDbContext context, IUserRepository users,
-    IGenreRepository genres, IRefreshTokenRepository refreshTokens,
-    IKitRepository kits, ICategoryRepository categories, ISoundRepository sounds,
-    ILobbyRepository lobbies, IParticipationRepository participations, ISubmissionRepository submissions,
-    IScoreRepository scores)
+public class UnitOfWork(ApplicationDbContext context, 
+    IUserRepository users,
+    IGenreRepository genres, 
+    IRefreshTokenRepository refreshTokens,
+    IKitRepository kits, 
+    ICategoryRepository categories, 
+    ISoundRepository sounds,
+    ILobbyRepository lobbies, 
+    IParticipationRepository participations, 
+    ISubmissionRepository submissions,
+    IScoreRepository scores, 
+    ICommentRepository comments)
     : IUnitOfWork
 {
     public IUserRepository Users { get; } = users;
@@ -22,6 +29,7 @@ public class UnitOfWork(ApplicationDbContext context, IUserRepository users,
     public IParticipationRepository Participations { get; } = participations;
     public ISubmissionRepository Submissions { get; } = submissions;
     public IScoreRepository Scores { get; } = scores;
+    public ICommentRepository Comments { get; } = comments;
 
     public async Task SaveChangesAsync()
     {

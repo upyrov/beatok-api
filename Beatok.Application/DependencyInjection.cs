@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IScoreService, ScoreService>();
         services.AddScoped<ISoundService, SoundService>();
         services.AddScoped<ISubmissionService, SubmissionService>();
+        services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IUserService, UserService>();
         
         return services;

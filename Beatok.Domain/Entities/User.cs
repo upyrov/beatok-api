@@ -17,4 +17,6 @@ public class User
     public DateTime? LastActiveAt { get; set; }
     public ICollection<Lobby> OwnedLobbies { get; set; } = [];
     public ICollection<Participation> Participations { get; set; } = [];
+    public ICollection<Comment> CommentsAuthored { get; set; } = [];
+    public ICollection<Comment> ProfileComments { get; set; } = [];
 }
