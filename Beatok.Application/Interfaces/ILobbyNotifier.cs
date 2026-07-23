@@ -8,8 +8,8 @@ namespace Beatok.Application.Interfaces;
 public interface ILobbyNotifier
 {
     Task ParticipantJoinedAsync(Guid lobbyId, UserDto user);
-    Task ParticipantRejoinedAsync(Guid lobbyId, UserDto user);
-    Task ParticipantLeftAsync(Guid lobbyId, UserDto user);
+    Task ParticipantRejoinedAsync(Guid lobbyId, Guid userId);
+    Task ParticipantLeftAsync(Guid lobbyId, Guid userId);
     Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId);
     // Task MMRWithheldAsync();
     // Task MessageReceivedAsync(string content, GetUserDto sender);
@@ -17,5 +17,5 @@ public interface ILobbyNotifier
     Task SubmissionRegisteredAsync(SubmissionDto userSubmission);
     Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions);
     Task VoteRegisteredAsync(ScoreDto score);
-    Task EndedAsync(UserDto? winner, SubmissionDto? submission, Guid lobbyId);
+    Task EndedAsync(Guid? winnerId, SubmissionDto? submission, Guid lobbyId);
 }

@@ -95,7 +95,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
     {
         participant.IsConnected = true;
         await unitOfWork.SaveChangesAsync();
-        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, mapper.Map<UserDto>(user));
+        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, user.Id);
     }
 
     public async Task LeaveAsync(Guid lobbyId, Guid userId)
@@ -116,7 +116,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         {
             await HandleStartedLeaveAsync(participant);
         }
-        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, mapper.Map<UserDto>(user));
+        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
     }
 
     private async Task HandleNotStartedLeaveAsync(Lobby lobby, Participation participant)
@@ -183,8 +183,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 await HandleStartedLeaveAsync(participation);
             }
 
-            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, 
-                mapper.Map<UserDto>(participation.User));
+            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
         }
     }
     
@@ -294,7 +293,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
             Value = storage.GeneratePresignedSoundUrl($"submissions/{winnerSubmission.Value}", TimeSpan.FromHours(1)),
             User = winnerUserDto
         };
-        await lobbyNotifier.EndedAsync(winnerUserDto, winnerSubmissionDto, lobby.Id); 
+        await lobbyNotifier.EndedAsync(winnerUserDto.Id, winnerSubmissionDto, lobby.Id); 
     }
 
     private Submission? GetWinnerSubmission(Lobby lobby)
