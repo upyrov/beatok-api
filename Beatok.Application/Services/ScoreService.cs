@@ -1,3 +1,4 @@
+using AutoMapper;
 using Beatok.Application.DTOs.Score;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
@@ -8,7 +9,7 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class ScoreService(IUnitOfWork unitOfWork, IValidator<CreateScoreDto> validator, 
-    ILobbyService lobbyService, ILobbyNotifier lobbyNotifier)
+    ILobbyService lobbyService, ILobbyNotifier lobbyNotifier, IMapper mapper)
     : IScoreService
 {
     public async Task CreateAsync(Guid userId, Guid lobbyId, CreateScoreDto dto)
@@ -45,14 +46,7 @@ public class ScoreService(IUnitOfWork unitOfWork, IValidator<CreateScoreDto> val
         
         await unitOfWork.Scores.CreateAsync(score);
         await unitOfWork.SaveChangesAsync();
-        await lobbyNotifier.VoteRegisteredAsync(new ScoreDto
-        {
-            Id = score.Id,
-            Value = score.Value,
-            SubmissionId = score.SubmissionId,
-            LobbyId = score.LobbyId,
-            UserId = score.UserId
-        });
+        await lobbyNotifier.VoteRegisteredAsync(mapper.Map<ScoreDto>(score));
 
         await lobbyService.TryFinishVoting(lobby);
     }

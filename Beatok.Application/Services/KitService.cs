@@ -1,4 +1,5 @@
-﻿using Beatok.Application.DTOs.Kit;
+﻿using AutoMapper;
+using Beatok.Application.DTOs.Kit;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -8,7 +9,8 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class KitService(IUnitOfWork unitOfWork, 
-    IValidator<CreateKitDto> createValidator, IValidator<UpdateKitDto> updateValidator)
+    IValidator<CreateKitDto> createValidator, IValidator<UpdateKitDto> updateValidator,
+    IMapper mapper)
     : IKitService
 {
     public async Task CreateAsync(CreateKitDto dto)
@@ -27,11 +29,7 @@ public class KitService(IUnitOfWork unitOfWork,
             throw new NotFoundException("One or more genres not found");
         }
     
-        await unitOfWork.Kits.CreateAsync(new Kit
-        {
-            Name = dto.Name,
-            Genres = genres
-        });
+        await unitOfWork.Kits.CreateAsync(mapper.Map<Kit>(dto));
         await unitOfWork.SaveChangesAsync();
     }
 
@@ -39,11 +37,7 @@ public class KitService(IUnitOfWork unitOfWork,
     {
         var kits = await unitOfWork.Kits.GetAllAsync();
         
-        return kits.Select(k => new KitDto
-        {
-            Id = k.Id,
-            Name = k.Name
-        });
+        return mapper.Map<IEnumerable<KitDto>>(kits);
     }
 
     public async Task<Kit> GetRandomAsync()

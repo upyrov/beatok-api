@@ -1,3 +1,4 @@
+using AutoMapper;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
@@ -5,7 +6,7 @@ using Beatok.Application.Interfaces.Services;
 
 namespace Beatok.Application.Services;
 
-public class UserService(IUnitOfWork unitOfWork): IUserService
+public class UserService(IUnitOfWork unitOfWork, IMapper mapper): IUserService
 {
     public async Task UpdateLastActiveAtAsync(Guid userId)
     {
@@ -22,10 +23,6 @@ public class UserService(IUnitOfWork unitOfWork): IUserService
             throw new UserNotFoundException();
         }
 
-        return new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name
-        };
+        return mapper.Map<UserDto>(user);
     }
 }

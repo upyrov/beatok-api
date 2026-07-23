@@ -1,4 +1,5 @@
 using Beatok.Application.Interfaces.Services;
+using Beatok.Application.Mappings;
 using Beatok.Application.Services;
 using Beatok.Application.Validators;
 using FluentValidation;
@@ -11,6 +12,8 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddValidatorsFromAssembly(typeof(UserSignupDtoValidator).Assembly);
+        
+        services.AddAutoMapper(cfg => {}, typeof(UserProfile));
         
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryService, CategoryService>();
