@@ -1,4 +1,5 @@
-﻿using Beatok.Application.DTOs.Sound;
+﻿using AutoMapper;
+using Beatok.Application.DTOs.Sound;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -8,7 +9,8 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class SoundService(IUnitOfWork unitOfWork,
-    IValidator<CreateSoundDto> createValidator, IValidator<UpdateSoundDto> updateValidator)
+    IValidator<CreateSoundDto> createValidator, IValidator<UpdateSoundDto> updateValidator,
+    IMapper mapper)
     : ISoundService
 {
     public async Task CreateAsync(CreateSoundDto dto)
@@ -24,11 +26,7 @@ public class SoundService(IUnitOfWork unitOfWork,
         if (category == null)
             throw new BadRequestException("Category not found");
 
-        await unitOfWork.Sounds.CreateAsync(new Sound
-        {
-            Value = dto.Value,
-            CategoryId = dto.CategoryId
-        });
+        await unitOfWork.Sounds.CreateAsync(mapper.Map<Sound>(dto));
         await unitOfWork.SaveChangesAsync();
     }
 

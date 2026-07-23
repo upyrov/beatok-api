@@ -1,3 +1,4 @@
+using AutoMapper;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
 using Beatok.Application.DTOs.User;
@@ -9,7 +10,8 @@ using FluentValidation;
 
 namespace Beatok.Application.Services;
 
-public class CommentService(IUnitOfWork unitOfWork, IValidator<CreateCommentDto> validator): ICommentService
+public class CommentService(IUnitOfWork unitOfWork, IValidator<CreateCommentDto> validator,
+    IMapper mapper): ICommentService
 {
     public async Task CreateAsync(Guid authorId, Guid targetUserId, CreateCommentDto dto)
     {
@@ -47,17 +49,7 @@ public class CommentService(IUnitOfWork unitOfWork, IValidator<CreateCommentDto>
 
         return new PageResult<CommentDto>
         {
-            Items = comments.Select(c => new CommentDto
-            {
-                Id = c.Id,
-                Content = c.Content,
-                CreatedAt = c.CreatedAt,
-                Author = new UserDto
-                {
-                    Id = c.AuthorId,
-                    Name = c.Author!.Name
-                }
-            }).ToList(),
+            Items = mapper.Map<List<CommentDto>>(comments),
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize
