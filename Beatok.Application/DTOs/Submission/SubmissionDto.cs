@@ -1,12 +1,10 @@
-﻿using Beatok.Application.DTOs.User;
-
-namespace Beatok.Application.DTOs.Submission;
+﻿namespace Beatok.Application.DTOs.Submission;
 
 public record SubmissionDto
 {
     public Guid Id { get; set; }
     public required string Value { get; set; }
     public int DurationSeconds { get; set; }
-    public required UserDto User { get; set; }
+    public Guid UserId { get; set; }
     public Guid LobbyId { get; set; }
 }

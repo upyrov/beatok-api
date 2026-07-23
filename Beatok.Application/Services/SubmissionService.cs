@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Beatok.Application.DTOs.Submission;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -91,7 +90,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
                 Value = submission.Value,
                 LobbyId = lobby.Id,
                 DurationSeconds = submission.DurationSeconds,
-                User = mapper.Map<UserDto>(participation.User)
+                UserId = participation.UserId
             });
         }
     }
@@ -124,7 +123,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
             Value = submission.Value,
             LobbyId = submission.Participant.LobbyId,
             DurationSeconds = submission.DurationSeconds,
-            User = mapper.Map<UserDto>(submission.Participant.User)
+            UserId = submission.Participant!.User!.Id
         });
     }
 }
