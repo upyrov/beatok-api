@@ -118,6 +118,13 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         }
 
         await unitOfWork.Submissions.UpdateValueAsync(submission.Id, dto.Value);
-        await lobbyNotifier.SubmissionRegisteredAsync(mapper.Map<SubmissionDto>(submission));
+        await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
+        {
+            Id = submission.Id,
+            Value = submission.Value,
+            LobbyId = submission.Participant.LobbyId,
+            DurationSeconds = submission.DurationSeconds,
+            User = mapper.Map<UserDto>(submission.Participant.User)
+        });
     }
 }

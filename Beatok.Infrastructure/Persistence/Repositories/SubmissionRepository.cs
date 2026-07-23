@@ -16,6 +16,8 @@ public class SubmissionRepository(ApplicationDbContext context) : ISubmissionRep
         return await context.Submissions
             .Include(s => s.Participant)
                 .ThenInclude(p => p!.Lobby)
+            .Include(s => s.Participant)
+                .ThenInclude(p => p!.User)
             .Include(s => s.Scores)
             .FirstOrDefaultAsync(s => s.Id == submissionId);
     }
