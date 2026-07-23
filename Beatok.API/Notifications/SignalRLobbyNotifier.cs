@@ -73,4 +73,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .Group(lobbyId.ToString())
             .Ended(winner, submission);
     }
+
+    public async Task MessageReceivedAsync(string content, Guid userId, Guid lobbyId)
+    {
+        await hubContext.Clients
+            .Group(lobbyId.ToString())
+            .MessageReceived(content, userId);
+    }
 }

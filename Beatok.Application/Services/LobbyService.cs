@@ -317,4 +317,20 @@ public class LobbyService(IUnitOfWork unitOfWork,
         
         return winner.Submission;
     }
+
+    public async Task SendMessageAsync(Guid lobbyId, Guid userId, string content)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+        var participant = lobby.Participants
+            .FirstOrDefault(p => p.UserId == userId) ??
+                          throw new NotFoundException("User not found in lobby");
+        
+        if (string.IsNullOrWhiteSpace(content))
+            throw new BadRequestException("Message cannot be empty");
+        if (content.Length > 250)
+            throw new BadRequestException("Message cannot be longer than 250 characters");
+
+        await lobbyNotifier.MessageReceivedAsync(content, userId, lobbyId);
+    }
 }

@@ -18,7 +18,7 @@ namespace Beatok.API.Hubs
         Task ParticipantLeft(UserDto user);
         Task OwnerChanged(Guid ownerId);
         Task MMRWithheld(); 
-        Task MessageReceived(string content, UserDto sender);
+        Task MessageReceived(string content, Guid senderId);
         Task Started(ICollection<RandomCategoryDto> categories);
         Task SubmissionRegistered(SubmissionDto userSubmission);
         Task VotingStarted(ICollection<SubmissionDto> submissions);
@@ -49,6 +49,13 @@ namespace Beatok.API.Hubs
         {
             await lobbyService.DisconnectAsync(Context.ConnectionId);
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task SendMessage(string content, Guid lobbyId)
+        {
+            var userId = Guid.Parse(
+                Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            await lobbyService.SendMessageAsync(lobbyId, userId, content);
         }
     }
 }
