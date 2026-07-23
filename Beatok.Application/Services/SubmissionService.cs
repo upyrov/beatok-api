@@ -1,4 +1,5 @@
-﻿using Beatok.Application.DTOs.Submission;
+﻿using AutoMapper;
+using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
@@ -11,7 +12,8 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissionDto> createValidator,
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService) : ISubmissionService
+    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService,
+    IMapper mapper) : ISubmissionService
 {
     public SubmissionUploadDto GenerateUploadUrl(string fileExtension)
     {
@@ -89,11 +91,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
                 Value = submission.Value,
                 LobbyId = lobby.Id,
                 DurationSeconds = submission.DurationSeconds,
-                User = new UserDto
-                {
-                    Id = userId,
-                    Name = participation.User!.Name
-                }
+                User = mapper.Map<UserDto>(participation.User)
             });
         }
     }
@@ -120,17 +118,6 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         }
 
         await unitOfWork.Submissions.UpdateValueAsync(submission.Id, dto.Value);
-        await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
-        {
-            Id = submission.Id,
-            Value = submission.Value,
-            LobbyId = submission.Participant.LobbyId,
-            DurationSeconds = submission.DurationSeconds,
-            User = new UserDto
-            {
-                Id = submission.Participant.UserId,
-                Name = submission.Participant.User!.Name
-            }
-        });
+        await lobbyNotifier.SubmissionRegisteredAsync(mapper.Map<SubmissionDto>(submission));
     }
 }

@@ -1,4 +1,5 @@
-﻿using Beatok.Application.DTOs.Category;
+﻿using AutoMapper;
+using Beatok.Application.DTOs.Category;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -8,7 +9,8 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class CategoryService(IUnitOfWork unitOfWork,
-    IValidator<CreateCategoryDto> createValidator, IValidator<UpdateCategoryDto> updateValidator)
+    IValidator<CreateCategoryDto> createValidator, IValidator<UpdateCategoryDto> updateValidator, 
+    IMapper mapper)
     : ICategoryService
 {
     public async Task CreateAsync(CreateCategoryDto dto)
@@ -26,11 +28,7 @@ public class CategoryService(IUnitOfWork unitOfWork,
             throw new NotFoundException("Kit not found");      
         }
 
-        await unitOfWork.Categories.CreateAsync(new Category
-        {
-            Name = dto.Name,
-            KitId = dto.KitId
-        });
+        await unitOfWork.Categories.CreateAsync(mapper.Map<Category>(dto));
         await unitOfWork.SaveChangesAsync();
     }
 

@@ -37,6 +37,7 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
     public async Task<Lobby?> GetByIdAsync(Guid id)
     {
         return await context.Lobbies
+            .Include(l => l.Genre)
             .Include(l => l.Participants)
                 .ThenInclude(p => p.User)
             .Include(l => l.Participants)

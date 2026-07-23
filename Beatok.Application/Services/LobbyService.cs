@@ -1,6 +1,6 @@
+using AutoMapper;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
-using Beatok.Application.DTOs.Genre;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
@@ -16,7 +16,8 @@ namespace Beatok.Application.Services;
 
 public class LobbyService(IUnitOfWork unitOfWork,
     IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage, IKitService kitService) : ILobbyService
+    ILobbyNotifier lobbyNotifier, IStorage storage, IKitService kitService,
+    IMapper mapper) : ILobbyService
 {
     public async Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId)
     {
@@ -86,11 +87,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
             await unitOfWork.Participations.AddAsync(newParticipant);
             await unitOfWork.SaveChangesAsync();
 
-            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, new UserDto
-            {
-                Id = user.Id,
-                Name = user.Name
-            });
+            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<UserDto>(user));
         }
     }
 
@@ -98,11 +95,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
     {
         participant.IsConnected = true;
         await unitOfWork.SaveChangesAsync();
-        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name
-        });
+        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, mapper.Map<UserDto>(user));
     }
 
     public async Task LeaveAsync(Guid lobbyId, Guid userId)
@@ -123,11 +116,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         {
             await HandleStartedLeaveAsync(participant);
         }
-        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, new UserDto
-        {
-            Id = user.Id,
-            Name = user.Name
-        });
+        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, mapper.Map<UserDto>(user));
     }
 
     private async Task HandleNotStartedLeaveAsync(Lobby lobby, Participation participant)
@@ -175,29 +164,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         participant.ConnectionId = connectionId;
         await unitOfWork.SaveChangesAsync();
 
-        return new LobbyWithParticipantsDto
-        {
-            Id = lobby.Id,
-            Name = lobby.Name,
-            CreatedAt = lobby.CreatedAt,
-            Genre = new GenreDto
-            {
-                Id = lobby.Genre!.Id,
-                Name = lobby.Genre.Name
-            },
-            Owner = new UserDto
-            {
-                Id = lobby.Owner!.Id,
-                Name = lobby.Owner.Name
-            },
-            ParticipantLimit = lobby.ParticipantLimit,
-            Participants = [.. lobby.Participants.Select(p => new UserDto
-            {
-                Id = p.UserId,
-                Name = p.User!.Name
-            })],
-            SubmissionTimeLimit = lobby.SubmissionTimeLimit
-        };
+        return mapper.Map<LobbyWithParticipantsDto>(lobby);
     }
 
     public async Task DisconnectAsync(string connectionId)
@@ -216,37 +183,15 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 await HandleStartedLeaveAsync(participation);
             }
 
-            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, new UserDto
-            {
-                Name = participation.User!.Name,
-                Id = participation.User.Id
-            });
+            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, 
+                mapper.Map<UserDto>(participation.User));
         }
     }
     
     public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter)
     {
         var lobbies = await unitOfWork.Lobbies.GetFilteredAsync(filter);
-        return lobbies.Select(l => new LobbyDto
-            {
-                Id = l.Id,
-                Name = l.Name,
-                CreatedAt = l.CreatedAt,
-                Genre = new GenreDto
-                {
-                    Id = l.Genre!.Id,
-                    Name = l.Genre.Name
-                },
-                Owner = new UserDto
-                {
-                    Id = l.Owner!.Id,
-                    Name = l.Owner.Name
-                },
-                ParticipantLimit = l.ParticipantLimit,
-                ParticipantCount = l.Participants.Count,
-                SubmissionTimeLimit = l.SubmissionTimeLimit
-            }
-        );
+        return mapper.Map<IEnumerable<LobbyDto>>(lobbies);
     }
 
     public async Task StartAsync(Guid lobbyId, Guid userId)
@@ -292,10 +237,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 Id = s.Id,
                 Value = s.Value,
                 LobbyId = lobby.Id,
-                User = new UserDto {
-                    Id = s.Participant!.UserId,
-                    Name = s.Participant!.User!.Name
-                }
+                User = mapper.Map<UserDto>(s.Participant!.User)
             }
         })).ToList();
         
@@ -343,12 +285,8 @@ public class LobbyService(IUnitOfWork unitOfWork,
             await lobbyNotifier.EndedAsync(null, null, lobby.Id);
             return;   
         }
-        
-        var winnerUserDto = new UserDto
-        {
-            Id = winnerSubmission.Participant!.UserId,
-            Name = winnerSubmission.Participant!.User!.Name
-        };
+
+        var winnerUserDto = mapper.Map<UserDto>(winnerSubmission.Participant!.User);
 
         var winnerSubmissionDto = new SubmissionDto
         {
