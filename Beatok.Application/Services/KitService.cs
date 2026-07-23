@@ -36,14 +36,13 @@ public class KitService(IUnitOfWork unitOfWork,
     public async Task<IEnumerable<KitDto>> GetAllAsync()
     {
         var kits = await unitOfWork.Kits.GetAllAsync();
-        
         return mapper.Map<IEnumerable<KitDto>>(kits);
     }
 
     public async Task<Kit> GetRandomAsync()
     {
         var kit = await unitOfWork.Kits.GetRandomAsync();
-        return kit == null ? throw new NotFoundException("Kit not found") : kit;
+        return kit ?? throw new NotFoundException("Kit not found");
     }
 
     public async Task UpdateAsync(Guid id, UpdateKitDto dto)

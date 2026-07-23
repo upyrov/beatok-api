@@ -30,6 +30,12 @@ public class SoundService(IUnitOfWork unitOfWork,
         await unitOfWork.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<SoundDto>> GetAllByCategoryIdAsync(Guid categoryId)
+    {
+        var sounds = await unitOfWork.Sounds.GetAllByCategoryIdAsync(categoryId);
+        return mapper.Map<IEnumerable<SoundDto>>(sounds);
+    }
+
     public async Task UpdateValueAsync(Guid id, UpdateSoundDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);

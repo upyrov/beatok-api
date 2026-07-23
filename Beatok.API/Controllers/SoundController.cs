@@ -19,6 +19,13 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<SoundDto>>> GetAllByCategoryId([FromQuery] Guid id)
+        {
+            var sounds = await soundService.GetAllByCategoryIdAsync(id);
+            return Ok(sounds);
+        }
+
         [HttpPut]
         public async Task<IActionResult> UpdateValue([FromQuery] Guid id, [FromBody] UpdateSoundDto dto)
         {
