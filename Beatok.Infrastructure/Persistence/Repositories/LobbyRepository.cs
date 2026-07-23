@@ -18,6 +18,7 @@ public class LobbyRepository(ApplicationDbContext context): ILobbyRepository
         query = query
             .Include(l => l.Genre)
             .Include(l => l.Owner)
+            .Include(l => l.Participants)
             .Where(l => l.Phase == LobbyPhase.NotStarted 
                                  && l.Participants.Count < l.ParticipantLimit);
         
