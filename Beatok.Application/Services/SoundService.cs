@@ -10,9 +10,27 @@ namespace Beatok.Application.Services;
 
 public class SoundService(IUnitOfWork unitOfWork,
     IValidator<CreateSoundDto> createValidator, IValidator<UpdateSoundDto> updateValidator,
-    IMapper mapper)
+    IMapper mapper, IStorage storage)
     : ISoundService
 {
+    public SoundUploadDto GenerateUploadUrl(string fileExtension)
+    {
+        // Standardize the extension format (e.g., "mp3" -> ".mp3")
+        if (!fileExtension.StartsWith('.'))
+        {
+            fileExtension = $".{fileExtension}";
+        }
+
+        var fileKey = $"sounds/{Guid.NewGuid()}{fileExtension}";
+        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15));
+
+        return new SoundUploadDto
+        {
+            UploadUrl = uploadUrl,
+            FileKey = fileKey
+        };
+    }
+
     public async Task CreateAsync(CreateSoundDto dto)
     {
         var fluentValidationResult = await createValidator.ValidateAsync(dto);
@@ -22,9 +40,8 @@ public class SoundService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var category = await unitOfWork.Categories.GetByIdAsync(dto.CategoryId);
-        if (category == null)
-            throw new BadRequestException("Category not found");
+        var category = await unitOfWork.Categories.GetByIdAsync(dto.CategoryId) 
+            ?? throw new BadRequestException("Category not found");
 
         await unitOfWork.Sounds.CreateAsync(mapper.Map<Sound>(dto));
         await unitOfWork.SaveChangesAsync();

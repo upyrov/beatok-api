@@ -11,8 +11,7 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissionDto> createValidator,
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService,
-    IMapper mapper) : ISubmissionService
+    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService) : ISubmissionService
 {
     public SubmissionUploadDto GenerateUploadUrl(string fileExtension)
     {

@@ -15,7 +15,6 @@ namespace Beatok.API.Controllers
     {
         [HttpGet("me")]
         [Authorize]
-        [ImplicitAnonymous]
         public async Task<IActionResult> GetMe()
         {
             var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
