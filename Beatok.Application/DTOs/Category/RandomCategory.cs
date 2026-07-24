@@ -6,5 +6,5 @@ public record RandomCategoryDto
 {
     public Guid Id { get; set; }
     public required string Name { get; set; }
-    public required ICollection<SoundDto> Sounds { get; set; }
+    public required IEnumerable<SoundDto> Sounds { get; set; }
 }
