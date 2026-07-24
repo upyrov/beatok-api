@@ -210,7 +210,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
             Sounds = [.. c.Sounds.Select(s => new SoundDto
             {
                 Id = s.Id,
-                Value = storage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1))
+                Value = storage.GeneratePresignedUrl(s.Value, TimeSpan.FromHours(1))
             })]
         }).ToList();
         await lobbyNotifier.StartedAsync(lobby.Id, categories);
@@ -288,7 +288,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         var winnerSubmissionDto = new SubmissionDto
         {
             Id = winnerSubmission.Id,
-            Value = storage.GeneratePresignedSoundUrl($"submissions/{winnerSubmission.Value}", TimeSpan.FromHours(1)),
+            Value = storage.GeneratePresignedUrl($"submissions/{winnerSubmission.Value}", TimeSpan.FromHours(1)),
             UserId = winnerSubmission.Participant!.User!.Id
         };
         await lobbyNotifier.EndedAsync(winnerSubmissionDto.UserId, winnerSubmissionDto, lobby.Id); 
