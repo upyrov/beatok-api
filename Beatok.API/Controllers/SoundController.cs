@@ -16,11 +16,16 @@ namespace Beatok.API.Controllers
         private static readonly string[] AllowedExtensions = [".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac"];
 
         [HttpGet("upload")]
-        public ActionResult<SubmissionUploadDto> GetUploadUrl([FromQuery] string extension)
+        public ActionResult<SoundUploadDto> GetUploadUrl([FromQuery] string extension, [FromQuery] string contentType)
         {
             if (string.IsNullOrWhiteSpace(extension))
             {
                 return BadRequest("File extension is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(contentType))
+            {
+                return BadRequest("Content type is required");
             }
 
             // Normalize the extension to ensure it starts with a dot and is lowercase
@@ -37,7 +42,7 @@ namespace Beatok.API.Controllers
                 });
             }
 
-            var dto = soundService.GenerateUploadUrl(normalizedExtension);
+            var dto = soundService.GenerateUploadUrl(normalizedExtension, contentType);
             return Ok(dto);
         }
 

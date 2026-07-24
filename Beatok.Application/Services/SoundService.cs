@@ -13,7 +13,7 @@ public class SoundService(IUnitOfWork unitOfWork,
     IMapper mapper, IStorage storage)
     : ISoundService
 {
-    public SoundUploadDto GenerateUploadUrl(string fileExtension)
+    public SoundUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
         // Standardize the extension format (e.g., "mp3" -> ".mp3")
         if (!fileExtension.StartsWith('.'))
@@ -22,7 +22,7 @@ public class SoundService(IUnitOfWork unitOfWork,
         }
 
         var fileKey = $"sounds/{Guid.NewGuid()}{fileExtension}";
-        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15));
+        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15), contentType);
 
         return new SoundUploadDto
         {

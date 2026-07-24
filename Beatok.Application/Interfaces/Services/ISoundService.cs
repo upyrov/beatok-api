@@ -4,7 +4,7 @@ namespace Beatok.Application.Interfaces.Services;
 
 public interface ISoundService
 {
-    SoundUploadDto GenerateUploadUrl(string fileExtension);
+    SoundUploadDto GenerateUploadUrl(string fileExtension, string contentType);
     Task CreateAsync(CreateSoundDto dto);
     Task<IEnumerable<SoundDto>> GetAllByCategoryIdAsync(Guid categoryId);
     Task UpdateValueAsync(Guid id, UpdateSoundDto dto);

@@ -13,16 +13,15 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
     ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService) : ISubmissionService
 {
-    public SubmissionUploadDto GenerateUploadUrl(string fileExtension)
+    public SubmissionUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
-        // Standardize the extension format (e.g., "mp3" -> ".mp3")
         if (!fileExtension.StartsWith('.'))
         {
             fileExtension = $".{fileExtension}";
         }
 
         var fileKey = $"submissions/{Guid.NewGuid()}{fileExtension}";
-        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15));
+        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15), contentType);
 
         return new SubmissionUploadDto
         {
