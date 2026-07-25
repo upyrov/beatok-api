@@ -13,11 +13,7 @@ public class KitRepository(ApplicationDbContext context) : IKitRepository
 
     public async Task<IEnumerable<Kit>> GetAllAsync()
     {
-        return await context.Kits
-            .Include(k => k.Categories)
-            .ThenInclude(f => f.Sounds)
-            .Include(k => k.Genres)
-            .ToListAsync();
+        return await context.Kits.Include(k => k.Genres).ToListAsync();
     }
 
     public async Task<Kit?> GetByIdAsync(Guid id)

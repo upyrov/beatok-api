@@ -16,6 +16,11 @@ public class SoundRepository(ApplicationDbContext context) : ISoundRepository
         return await context.Sounds.FindAsync(id);
     }
 
+    public async Task<IEnumerable<Sound>> GetAllByCategoryIdAsync(Guid id)
+    {
+        return await context.Sounds.Where(s => s.CategoryId == id).ToListAsync();
+    }
+
     public async Task UpdateValueAsync(Guid soundId, string value)
     {
         await context.Sounds.Where(s => s.Id == soundId)

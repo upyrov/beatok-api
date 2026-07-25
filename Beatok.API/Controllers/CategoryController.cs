@@ -18,6 +18,13 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAllByKitId([FromQuery] Guid id)
+        {
+            var categories = await categoryService.GetAllByKitIdAsync(id);
+            return Ok(categories);
+        }
+
         [HttpPut]
         public async Task<IActionResult> UpdateName([FromQuery] Guid id, [FromBody] UpdateCategoryDto dto)
         {

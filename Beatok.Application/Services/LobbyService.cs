@@ -95,7 +95,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
     {
         participant.IsConnected = true;
         await unitOfWork.SaveChangesAsync();
-        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, mapper.Map<UserDto>(user));
+        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, user.Id);
     }
 
     public async Task LeaveAsync(Guid lobbyId, Guid userId)
@@ -116,7 +116,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         {
             await HandleStartedLeaveAsync(participant);
         }
-        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, mapper.Map<UserDto>(user));
+        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
     }
 
     private async Task HandleNotStartedLeaveAsync(Lobby lobby, Participation participant)
@@ -183,8 +183,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 await HandleStartedLeaveAsync(participation);
             }
 
-            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, 
-                mapper.Map<UserDto>(participation.User));
+            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
         }
     }
     
@@ -211,7 +210,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
             Sounds = [.. c.Sounds.Select(s => new SoundDto
             {
                 Id = s.Id,
-                Value = storage.GeneratePresignedSoundUrl($"sounds/{s.Value}", TimeSpan.FromHours(1))
+                Value = storage.GeneratePresignedUrl(s.Value, TimeSpan.FromHours(1))
             })]
         }).ToList();
         await lobbyNotifier.StartedAsync(lobby.Id, categories);
@@ -237,7 +236,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
                 Id = s.Id,
                 Value = s.Value,
                 LobbyId = lobby.Id,
-                User = mapper.Map<UserDto>(s.Participant!.User)
+                UserId = s.Participant!.UserId
             }
         })).ToList();
         
@@ -285,16 +284,14 @@ public class LobbyService(IUnitOfWork unitOfWork,
             await lobbyNotifier.EndedAsync(null, null, lobby.Id);
             return;   
         }
-
-        var winnerUserDto = mapper.Map<UserDto>(winnerSubmission.Participant!.User);
-
+        
         var winnerSubmissionDto = new SubmissionDto
         {
             Id = winnerSubmission.Id,
-            Value = storage.GeneratePresignedSoundUrl($"submissions/{winnerSubmission.Value}", TimeSpan.FromHours(1)),
-            User = winnerUserDto
+            Value = storage.GeneratePresignedUrl($"submissions/{winnerSubmission.Value}", TimeSpan.FromHours(1)),
+            UserId = winnerSubmission.Participant!.User!.Id
         };
-        await lobbyNotifier.EndedAsync(winnerUserDto, winnerSubmissionDto, lobby.Id); 
+        await lobbyNotifier.EndedAsync(winnerSubmissionDto.UserId, winnerSubmissionDto, lobby.Id); 
     }
 
     private Submission? GetWinnerSubmission(Lobby lobby)

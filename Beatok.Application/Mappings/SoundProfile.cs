@@ -9,5 +9,6 @@ public class SoundProfile: Profile
     public SoundProfile()
     {
         CreateMap<CreateSoundDto, Sound>();
+        CreateMap<Sound, SoundDto>();
     }
 }

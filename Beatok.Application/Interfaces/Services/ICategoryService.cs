@@ -5,6 +5,7 @@ namespace Beatok.Application.Interfaces.Services;
 public interface ICategoryService
 {
     Task CreateAsync(CreateCategoryDto dto);
+    Task<IEnumerable<CategoryDto>> GetAllByKitIdAsync(Guid id);
     Task UpdateNameAsync(Guid id, UpdateCategoryDto dto);
     Task DeleteAsync(Guid id);
 }

@@ -16,6 +16,11 @@ public class CategoryRepository(ApplicationDbContext context) : ICategoryReposit
         return await context.Categories.FindAsync(id);
     }
 
+    public async Task<IEnumerable<Category>> GetAllByKitIdAsync(Guid id)
+    {
+        return await context.Categories.Where(c => c.KitId == id).ToListAsync();
+    }
+
     public async Task UpdateNameAsync(Guid categoryId, string name)
     {
         await context.Categories

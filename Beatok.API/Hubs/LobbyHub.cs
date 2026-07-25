@@ -14,8 +14,8 @@ namespace Beatok.API.Hubs
     public interface ILobbyClient
     {
         Task ParticipantJoined(UserDto user);
-        Task ParticipantRejoined(UserDto user);
-        Task ParticipantLeft(UserDto user);
+        Task ParticipantRejoined(Guid userId);
+        Task ParticipantLeft(Guid userId);
         Task OwnerChanged(Guid ownerId);
         Task MMRWithheld(); 
         Task MessageReceived(string content, Guid senderId);
@@ -23,7 +23,7 @@ namespace Beatok.API.Hubs
         Task SubmissionRegistered(SubmissionDto userSubmission);
         Task VotingStarted(ICollection<SubmissionDto> submissions);
         Task VoteRegistered(ScoreDto score);
-        Task Ended(UserDto? winner, SubmissionDto? submission);
+        Task Ended(Guid? winnerId, SubmissionDto? submission);
     }
 
     [Authorize]

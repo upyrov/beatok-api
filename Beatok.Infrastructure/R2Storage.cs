@@ -6,7 +6,7 @@ namespace Beatok.Infrastructure;
 
 public class R2Storage(IAmazonS3 s3Client): IStorage
 {
-    public string GeneratePresignedSoundUrl(string key, TimeSpan expires)
+    public string GeneratePresignedUrl(string key, TimeSpan expires)
     {
         return s3Client.GetPreSignedURL(new GetPreSignedUrlRequest
         {

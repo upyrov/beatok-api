@@ -32,6 +32,12 @@ public class CategoryService(IUnitOfWork unitOfWork,
         await unitOfWork.SaveChangesAsync();
     }
 
+    public async Task <IEnumerable<CategoryDto>> GetAllByKitIdAsync(Guid id)
+    {
+        var categories = await unitOfWork.Categories.GetAllByKitIdAsync(id);
+        return mapper.Map<IEnumerable<CategoryDto>>(categories);
+    }
+
     public async Task UpdateNameAsync(Guid id, UpdateCategoryDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);

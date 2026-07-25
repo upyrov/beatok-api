@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Beatok.Application.DTOs.Submission;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -12,19 +11,17 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissionDto> createValidator,
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService,
-    IMapper mapper) : ISubmissionService
+    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService) : ISubmissionService
 {
-    public SubmissionUploadDto GenerateUploadUrl(string fileExtension)
+    public SubmissionUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
-        // Standardize the extension format (e.g., "mp3" -> ".mp3")
         if (!fileExtension.StartsWith('.'))
         {
             fileExtension = $".{fileExtension}";
         }
 
         var fileKey = $"submissions/{Guid.NewGuid()}{fileExtension}";
-        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15));
+        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15), contentType);
 
         return new SubmissionUploadDto
         {
@@ -91,7 +88,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
                 Value = submission.Value,
                 LobbyId = lobby.Id,
                 DurationSeconds = submission.DurationSeconds,
-                User = mapper.Map<UserDto>(participation.User)
+                UserId = participation.UserId
             });
         }
     }
@@ -124,7 +121,7 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
             Value = submission.Value,
             LobbyId = submission.Participant.LobbyId,
             DurationSeconds = submission.DurationSeconds,
-            User = mapper.Map<UserDto>(submission.Participant.User)
+            UserId = submission.Participant!.User!.Id
         });
     }
 }
