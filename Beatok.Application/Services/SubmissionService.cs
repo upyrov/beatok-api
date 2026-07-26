@@ -71,7 +71,6 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
 
         // Initialize the collection if null and add the submission locally
         participation.Submissions ??= [];
-        participation.Submissions.Add(submission);
 
         // Check if all connected participants have a submission
         if (lobby.Participants.Where(p => p.IsConnected).All(p => p.Submissions.Count != 0))
