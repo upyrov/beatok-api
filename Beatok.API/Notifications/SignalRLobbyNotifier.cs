@@ -25,13 +25,6 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .Started(categories);
     }
 
-    public async Task SubmissionRegisteredAsync(SubmissionDto userSubmission)
-    {
-        await hubContext.Clients
-            .Group(userSubmission.LobbyId.ToString())
-            .SubmissionRegistered(userSubmission);
-    }
-
     public async Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions)
     {
         await hubContext.Clients
@@ -58,13 +51,6 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
         await hubContext.Clients
             .Group(lobbyId.ToString())
             .OwnerChanged(newOwnerId);
-    }
-
-    public async Task VoteRegisteredAsync(ScoreDto score)
-    {
-        await hubContext.Clients
-            .Group(score.LobbyId.ToString())
-            .VoteRegistered(score);
     }
 
     public async Task EndedAsync(Guid lobbyId, SubmissionDto? submission)

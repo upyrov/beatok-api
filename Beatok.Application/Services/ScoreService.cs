@@ -9,8 +9,7 @@ using FluentValidation;
 namespace Beatok.Application.Services;
 
 public class ScoreService(IUnitOfWork unitOfWork, IValidator<CreateScoreDto> validator, 
-    ILobbyService lobbyService, ILobbyNotifier lobbyNotifier, IMapper mapper)
-    : IScoreService
+    ILobbyService lobbyService) : IScoreService
 {
     public async Task CreateAsync(Guid userId, Guid lobbyId, CreateScoreDto dto)
     {
@@ -46,8 +45,6 @@ public class ScoreService(IUnitOfWork unitOfWork, IValidator<CreateScoreDto> val
         
         await unitOfWork.Scores.CreateAsync(score);
         await unitOfWork.SaveChangesAsync();
-        await lobbyNotifier.VoteRegisteredAsync(mapper.Map<ScoreDto>(score));
-
         await lobbyService.TryFinishVoting(lobby);
     }
 }

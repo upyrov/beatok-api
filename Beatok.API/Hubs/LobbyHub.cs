@@ -20,9 +20,7 @@ namespace Beatok.API.Hubs
         Task MMRWithheld(); 
         Task MessageReceived(string content, Guid senderId);
         Task Started(ICollection<RandomCategoryDto> categories);
-        Task SubmissionRegistered(SubmissionDto userSubmission);
         Task VotingStarted(ICollection<SubmissionDto> submissions);
-        Task VoteRegistered(ScoreDto score);
         Task Ended(SubmissionDto? submission);
     }
 
@@ -45,17 +43,17 @@ namespace Beatok.API.Hubs
             return Groups.RemoveFromGroupAsync(Context.ConnectionId, lobbyId);
         }
 
-        public override async Task OnDisconnectedAsync(Exception? exception)
-        {
-            await lobbyService.DisconnectAsync(Context.ConnectionId);
-            await base.OnDisconnectedAsync(exception);
-        }
-
-        public async Task SendMessage(string content, Guid lobbyId)
+        public async Task SendMessage(Guid lobbyId, string content)
         {
             var userId = Guid.Parse(
                 Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             await lobbyService.SendMessageAsync(lobbyId, userId, content);
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            await lobbyService.DisconnectAsync(Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }

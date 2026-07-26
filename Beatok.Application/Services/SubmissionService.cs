@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissionDto> createValidator,
     IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage, ILobbyService lobbyService) : ISubmissionService
+    IStorage storage, ILobbyService lobbyService) : ISubmissionService
 {
     public SubmissionUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
@@ -81,13 +81,6 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         else
         {
             await unitOfWork.SaveChangesAsync();
-            await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
-            {
-                Id = submission.Id,
-                Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1)),
-                LobbyId = lobby.Id,
-                UserId = participation.UserId
-            });
         }
     }
 
@@ -113,12 +106,5 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         }
 
         await unitOfWork.Submissions.UpdateValueAsync(submission.Id, dto.Value);
-        await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
-        {
-            Id = submission.Id,
-            Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1)),
-            LobbyId = submission.Participant.LobbyId,
-            UserId = submission.Participant!.User!.Id
-        });
     }
 }
