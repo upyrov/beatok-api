@@ -84,9 +84,8 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
             await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
             {
                 Id = submission.Id,
-                Value = submission.Value,
+                Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1)),
                 LobbyId = lobby.Id,
-                DurationSeconds = submission.DurationSeconds,
                 UserId = participation.UserId
             });
         }
@@ -117,9 +116,8 @@ public class SubmissionService(IUnitOfWork unitOfWork, IValidator<CreateSubmissi
         await lobbyNotifier.SubmissionRegisteredAsync(new SubmissionDto
         {
             Id = submission.Id,
-            Value = submission.Value,
+            Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1)),
             LobbyId = submission.Participant.LobbyId,
-            DurationSeconds = submission.DurationSeconds,
             UserId = submission.Participant!.User!.Id
         });
     }

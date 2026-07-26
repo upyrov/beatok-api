@@ -17,5 +17,5 @@ public interface ILobbyNotifier
     Task SubmissionRegisteredAsync(SubmissionDto userSubmission);
     Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions);
     Task VoteRegisteredAsync(ScoreDto score);
-    Task EndedAsync(Guid? winnerId, SubmissionDto? submission, Guid lobbyId);
+    Task EndedAsync(Guid lobbyId, SubmissionDto? submission);
 }

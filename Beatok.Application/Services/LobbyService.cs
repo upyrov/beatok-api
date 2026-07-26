@@ -281,17 +281,17 @@ public class LobbyService(IUnitOfWork unitOfWork,
 
         if (winnerSubmission == null)
         {
-            await lobbyNotifier.EndedAsync(null, null, lobby.Id);
+            await lobbyNotifier.EndedAsync(lobby.Id, null);
             return;   
         }
         
         var winnerSubmissionDto = new SubmissionDto
         {
             Id = winnerSubmission.Id,
-            Value = storage.GeneratePresignedUrl($"submissions/{winnerSubmission.Value}", TimeSpan.FromHours(1)),
+            Value = storage.GeneratePresignedUrl(winnerSubmission.Value, TimeSpan.FromHours(1)),
             UserId = winnerSubmission.Participant!.User!.Id
         };
-        await lobbyNotifier.EndedAsync(winnerSubmissionDto.UserId, winnerSubmissionDto, lobby.Id); 
+        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmissionDto); 
     }
 
     private Submission? GetWinnerSubmission(Lobby lobby)
