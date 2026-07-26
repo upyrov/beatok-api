@@ -23,7 +23,7 @@ namespace Beatok.API.Hubs
         Task SubmissionRegistered(SubmissionDto userSubmission);
         Task VotingStarted(ICollection<SubmissionDto> submissions);
         Task VoteRegistered(ScoreDto score);
-        Task Ended(Guid? winnerId, SubmissionDto? submission);
+        Task Ended(SubmissionDto? submission);
     }
 
     [Authorize]

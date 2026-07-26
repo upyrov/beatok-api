@@ -67,11 +67,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .VoteRegistered(score);
     }
 
-    public async Task EndedAsync(Guid? winnerId, SubmissionDto? submission, Guid lobbyId)
+    public async Task EndedAsync(Guid lobbyId, SubmissionDto? submission)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .Ended(winnerId, submission);
+            .Ended(submission);
     }
 
     public async Task MessageReceivedAsync(string content, Guid userId, Guid lobbyId)
