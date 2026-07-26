@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
+using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Score;
 using Beatok.Application.Interfaces.Services;
@@ -37,6 +38,13 @@ namespace Beatok.API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             await lobbyService.StartAsync(id, Guid.Parse(userId!));
             return Ok();
+        }
+
+        [Authorize]
+        [HttpGet("{id}/sounds")]
+        public async Task<ActionResult<List<RandomCategoryDto>>> GetCategories([FromRoute] Guid id)
+        {
+            return Ok(await lobbyService.GetRandomCategoriesAsync(id));
         }
 
         [Authorize]

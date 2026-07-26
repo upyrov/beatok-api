@@ -13,7 +13,7 @@ public interface ILobbyNotifier
     Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId);
     // Task MMRWithheldAsync();
     Task MessageReceivedAsync(string content, Guid userId, Guid lobbyId);
-    Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories);
+    Task StartedAsync(Guid lobbyId);
     Task SubmissionRegisteredAsync(SubmissionDto userSubmission);
     Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions);
     Task VoteRegisteredAsync(ScoreDto score);

@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using Beatok.API.Attributes;
-using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Score;
 using Beatok.Application.DTOs.Submission;
@@ -19,7 +18,7 @@ namespace Beatok.API.Hubs
         Task OwnerChanged(Guid ownerId);
         Task MMRWithheld(); 
         Task MessageReceived(string content, Guid senderId);
-        Task Started(ICollection<RandomCategoryDto> categories);
+        Task Started();
         Task SubmissionRegistered(SubmissionDto userSubmission);
         Task VotingStarted(ICollection<SubmissionDto> submissions);
         Task VoteRegistered(ScoreDto score);

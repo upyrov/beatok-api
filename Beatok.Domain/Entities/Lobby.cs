@@ -22,4 +22,5 @@ public class Lobby
     public Guid OwnerId { get; set; }
     public User? Owner { get; set; }
     public ICollection<Participation> Participants { get; set; } = [];
+    public ICollection<Sound> Sounds { get; set; } = [];
 }

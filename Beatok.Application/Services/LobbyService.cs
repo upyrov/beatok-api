@@ -203,24 +203,38 @@ public class LobbyService(IUnitOfWork unitOfWork,
             throw new BadRequestException("Lobby must have at least 2 participants");
 
         var kit = await kitService.GetRandomAsync();
-        var categories = kit.Categories.Select(c => new RandomCategoryDto
+        var selectedSounds = kit.Categories.SelectMany(c => c.Sounds).ToList();
+        foreach (var sound in selectedSounds)
         {
-            Id = c.Id,
-            Name = c.Name,
-            Sounds = [.. c.Sounds.Select(s => new SoundDto
-            {
-                Id = s.Id,
-                Value = storage.GeneratePresignedUrl(s.Value, TimeSpan.FromHours(1))
-            })]
-        }).ToList();
-        await lobbyNotifier.StartedAsync(lobby.Id, categories);
-
+            lobby.Sounds.Add(sound);
+        }
+        
         var jobId = backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
             lobby.SubmissionTimeLimit);
         lobby.Phase = LobbyPhase.Submission;
         lobby.JobId = jobId;
         await unitOfWork.SaveChangesAsync();
+        
+        await lobbyNotifier.StartedAsync(lobby.Id);
+    }
+
+    public async Task<IEnumerable<RandomCategoryDto>> GetRandomCategoriesAsync(Guid lobbyId)
+    {
+        var lobby = await unitOfWork.Lobbies.GetByIdAsync(lobbyId)
+                    ?? throw new NotFoundException("Lobby not found");
+        return lobby.Sounds
+            .GroupBy(s => s.Category)
+            .Select(group => new RandomCategoryDto
+            {
+                Id = group.Key!.Id,
+                Name = group.Key.Name,
+                Sounds = group.Select(s => new SoundDto
+                {
+                    Id = s.Id,
+                    Value = storage.GeneratePresignedUrl($"{s.Value}", TimeSpan.FromHours(1)),
+                }).ToList()
+            });
     }
 
     public async Task TransitionToVotingAsync(Guid lobbyId)

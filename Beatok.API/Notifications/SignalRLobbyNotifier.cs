@@ -18,11 +18,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .ParticipantJoined(user);
     }
     
-    public async Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories)
+    public async Task StartedAsync(Guid lobbyId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .Started(categories);
+            .Started();
     }
 
     public async Task SubmissionRegisteredAsync(SubmissionDto userSubmission)

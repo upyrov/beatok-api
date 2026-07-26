@@ -31,5 +31,8 @@ public class LobbyEntityTypeConfiguration : IEntityTypeConfiguration<Lobby>
         builder.HasOne(x => x.Genre)
             .WithMany()
             .HasForeignKey(x => x.GenreId);
+
+        builder.HasMany(x => x.Sounds)
+            .WithMany();
     }
 }

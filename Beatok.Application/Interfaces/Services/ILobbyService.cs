@@ -1,4 +1,5 @@
 using Beatok.Application.DTOs;
+using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Domain.Entities;
 
@@ -9,6 +10,7 @@ public interface ILobbyService
     Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId);
     Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter);
     Task StartAsync(Guid lobbyId, Guid userId);
+    Task<IEnumerable<RandomCategoryDto>> GetRandomCategoriesAsync(Guid lobbyId);
     Task TransitionToVotingAsync(Guid lobbyId);
     Task TransitionToEndAsync(Guid lobbyId);
     Task JoinAsync(Guid lobbyId, Guid userId);
