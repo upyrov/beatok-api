@@ -234,7 +234,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
         var submissions = lobby.Participants.SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> {
             new() {
                 Id = s.Id,
-                Value = s.Value,
+                Value = storage.GeneratePresignedUrl($"{s.Value}", TimeSpan.FromHours(1)),
                 LobbyId = lobby.Id,
                 UserId = s.Participant!.UserId
             }
