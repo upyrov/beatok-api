@@ -118,7 +118,9 @@ public class AuthService(IPasswordHasher passwordHasher,
     public async Task<AuthResultDto> RefreshTokenAsync(string refreshToken)
     {
         var tokenHash = jwtProvider.ComputeHash(refreshToken);
-        var refreshTokenEntity = await context.RefreshTokens.Where(r => r.TokenHash == tokenHash)
+        var refreshTokenEntity = await context.RefreshTokens
+            .Where(r => r.TokenHash == tokenHash)
+            .Include(r => r.User)
             .FirstOrDefaultAsync();
 
         if (refreshTokenEntity == null || refreshTokenEntity.Expires < DateTime.UtcNow)
