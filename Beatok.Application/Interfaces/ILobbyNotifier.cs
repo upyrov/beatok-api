@@ -2,12 +2,13 @@ using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Score;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.DTOs.Submission;
+using Beatok.Application.DTOs;
 
 namespace Beatok.Application.Interfaces;
 
 public interface ILobbyNotifier
 {
-    Task ParticipantJoinedAsync(Guid lobbyId, UserDto user);
+    Task ParticipantJoinedAsync(Guid lobbyId, ParticipationDto participant);
     Task ParticipantConnectedAsync(Guid lobbyId, Guid userId);
     Task ParticipantLeftAsync(Guid lobbyId, Guid userId);
     Task ParticipantDisconnectedAsync(Guid lobbyId, Guid userId);
