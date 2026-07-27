@@ -5,10 +5,11 @@ using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class KitService(IUnitOfWork unitOfWork, 
+public class KitService(IApplicationDbContext context, 
     IValidator<CreateKitDto> createValidator, IValidator<UpdateKitDto> updateValidator,
     IMapper mapper)
     : IKitService
@@ -22,26 +23,35 @@ public class KitService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var genres = await unitOfWork.Genres.GetByIdsAsync(dto.GenreIds);
+        var genresCount = await context.Genres
+            .Where(g => dto.GenreIds.Contains(g.Id))
+            .CountAsync();
 
-        if (genres.Count != dto.GenreIds.Count())
+        if (genresCount != dto.GenreIds.Count())
         {
             throw new NotFoundException("One or more genres not found");
         }
     
-        await unitOfWork.Kits.CreateAsync(mapper.Map<Kit>(dto));
-        await unitOfWork.SaveChangesAsync();
+        await context.Kits.AddAsync(mapper.Map<Kit>(dto));
+        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<KitDto>> GetAllAsync()
     {
-        var kits = await unitOfWork.Kits.GetAllAsync();
+        var kits = await context.Kits
+            .Include(k => k.Genres)
+            .ToListAsync();
         return mapper.Map<IEnumerable<KitDto>>(kits);
     }
 
     public async Task<Kit> GetRandomAsync()
     {
-        var kit = await unitOfWork.Kits.GetRandomAsync();
+        var kit = await context.Kits
+            .Include(k => k.Categories)
+            .ThenInclude(c => c.Sounds.OrderBy(s => EF.Functions.Random()).Take(1))
+            .OrderBy(k => EF.Functions.Random())
+            .FirstOrDefaultAsync();
+        
         return kit ?? throw new NotFoundException("Kit not found");
     }
 
@@ -53,25 +63,30 @@ public class KitService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var kit = await unitOfWork.Kits.GetByIdAsync(id)
+        var kit = await context.Kits
+                      .Include(k => k.Genres)
+                      .FirstOrDefaultAsync(k => k.Id == id)
             ?? throw new NotFoundException("Kit not found");
         
-        var genres = await unitOfWork.Genres.GetByIdsAsync(dto.GenreIds);
+        var genres = await context.Genres
+            .Where(g => dto.GenreIds.Contains(g.Id))
+            .ToListAsync();
+        
         if (genres.Count != dto.GenreIds.Count())
         {
             throw new NotFoundException("One or more genres not found");
         }
         kit.Name = dto.Name;
         kit.Genres = genres;
-        await unitOfWork.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        var kit = await unitOfWork.Kits.GetByIdAsync(id) 
+        var kit = await context.Kits.FindAsync(id)
             ?? throw new NotFoundException("Kit not found");
 
-        unitOfWork.Kits.Delete(kit);
-        await unitOfWork.SaveChangesAsync();
+        context.Kits.Remove(kit);
+        await context.SaveChangesAsync();
     }
 }

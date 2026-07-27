@@ -5,10 +5,11 @@ using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class CategoryService(IUnitOfWork unitOfWork,
+public class CategoryService(IApplicationDbContext context,
     IValidator<CreateCategoryDto> createValidator, IValidator<UpdateCategoryDto> updateValidator, 
     IMapper mapper)
     : ICategoryService
@@ -22,19 +23,22 @@ public class CategoryService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var kit = await unitOfWork.Kits.GetByIdAsync(dto.KitId);
+        var kit = await context.Kits
+            .Include(k => k.Genres)
+            .FirstOrDefaultAsync(k => k.Id == dto.KitId);
         if (kit == null)
         {
             throw new NotFoundException("Kit not found");      
         }
 
-        await unitOfWork.Categories.CreateAsync(mapper.Map<Category>(dto));
-        await unitOfWork.SaveChangesAsync();
+        await context.Categories.AddAsync(mapper.Map<Category>(dto));
+        await context.SaveChangesAsync();
     }
 
     public async Task <IEnumerable<CategoryDto>> GetAllByKitIdAsync(Guid id)
     {
-        var categories = await unitOfWork.Categories.GetAllByKitIdAsync(id);
+        var categories = await context.Categories
+            .Where(c => c.KitId == id).ToListAsync();
         return mapper.Map<IEnumerable<CategoryDto>>(categories);
     }
 
@@ -46,18 +50,21 @@ public class CategoryService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var category = await unitOfWork.Categories.GetByIdAsync(id)
+        var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == id)
             ?? throw new NotFoundException("Category not found");
 
-        await unitOfWork.Categories.UpdateNameAsync(category.Id, dto.Name);
+        await context.Categories
+            .Where(c => c.Id == category.Id)
+            .ExecuteUpdateAsync(s =>
+                s.SetProperty(c => c.Name, dto.Name));
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        var category = await unitOfWork.Categories.GetByIdAsync(id)
+        var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == id)
             ?? throw new NotFoundException("Category not found");
 
-        unitOfWork.Categories.Delete(category);
-        await unitOfWork.SaveChangesAsync();
+        context.Categories.Remove(category);
+        await context.SaveChangesAsync();
     }
 }

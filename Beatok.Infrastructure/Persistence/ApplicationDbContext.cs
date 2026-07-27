@@ -1,3 +1,4 @@
+using Beatok.Application.Interfaces;
 using Beatok.Domain.Entities;
 using Beatok.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
@@ -5,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Infrastructure.Persistence;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    : DbContext(options)
+    : DbContext(options), IApplicationDbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Genre> Genres { get; set; }

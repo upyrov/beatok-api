@@ -6,12 +6,13 @@ using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
 public class AuthService(IPasswordHasher passwordHasher,
     IValidator<UserSignupDto> validator,
-    IJwtProvider jwtProvider, IUnitOfWork unitOfWork): IAuthService
+    IJwtProvider jwtProvider, IApplicationDbContext context): IAuthService
 {
     public async Task SignUpAsync(UserSignupDto dto)
     {
@@ -22,7 +23,7 @@ public class AuthService(IPasswordHasher passwordHasher,
             throw new ValidationException(fluentValidationResult.Errors);
         }
         
-        if (await unitOfWork.Users.ExistsByEmailAsync(dto.Email))
+        if (await context.Users.AnyAsync(u => u.Email == dto.Email))
         {
             throw new EmailAlreadyExistsException("User with this email already exists");
         }
@@ -38,13 +39,13 @@ public class AuthService(IPasswordHasher passwordHasher,
             Role = UserRole.Player
         };
         
-        await unitOfWork.Users.AddAsync(user);
-        await unitOfWork.SaveChangesAsync();
+        await context.Users.AddAsync(user);
+        await context.SaveChangesAsync();
     }
 
     public async Task<AuthResultDto> SignInAsync(UserSigninDto dto)
     {
-        var user = await unitOfWork.Users.GetByEmailAsync(dto.Email);
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
         if (user == null)
         {
@@ -68,8 +69,8 @@ public class AuthService(IPasswordHasher passwordHasher,
             Expires = DateTime.UtcNow.AddDays(30)
         };
 
-        await unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity);
-        await unitOfWork.SaveChangesAsync();
+        await context.RefreshTokens.AddAsync(refreshTokenEntity);
+        await context.SaveChangesAsync();
         
         return new AuthResultDto
         {
@@ -91,7 +92,7 @@ public class AuthService(IPasswordHasher passwordHasher,
             Role = UserRole.Player
         };
         
-        await unitOfWork.Users.AddAsync(user);
+        await context.Users.AddAsync(user);
         
         var accessToken = jwtProvider.GenerateToken(user, true);
         var refreshToken = jwtProvider.GenerateRefreshToken();
@@ -103,8 +104,8 @@ public class AuthService(IPasswordHasher passwordHasher,
             Expires = DateTime.UtcNow.AddYears(1)
         };
         
-        await unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity);
-        await unitOfWork.SaveChangesAsync();
+        await context.RefreshTokens.AddAsync(refreshTokenEntity);
+        await context.SaveChangesAsync();
         
         return new AuthResultDto
         {
@@ -117,15 +118,17 @@ public class AuthService(IPasswordHasher passwordHasher,
     public async Task<AuthResultDto> RefreshTokenAsync(string refreshToken)
     {
         var tokenHash = jwtProvider.ComputeHash(refreshToken);
-        var refreshTokenEntity = await unitOfWork.RefreshTokens.GetByHashAsync(tokenHash);
+        var refreshTokenEntity = await context.RefreshTokens.Where(r => r.TokenHash == tokenHash)
+            .FirstOrDefaultAsync();
 
         if (refreshTokenEntity == null || refreshTokenEntity.Expires < DateTime.UtcNow)
         {
             throw new TokenExpiredException("The refresh token has expired");
         }
-        
-        unitOfWork.RefreshTokens.Delete(refreshTokenEntity);
 
+        context.RefreshTokens.Remove(refreshTokenEntity);
+        await context.SaveChangesAsync();
+        
         string accessToken = jwtProvider.GenerateToken(refreshTokenEntity.User!);
         string newRefreshToken = jwtProvider.GenerateRefreshToken();
 
@@ -137,8 +140,8 @@ public class AuthService(IPasswordHasher passwordHasher,
             UserId = refreshTokenEntity.UserId
         };
         
-        await unitOfWork.RefreshTokens.AddAsync(newRefreshTokenEntity);
-        await unitOfWork.SaveChangesAsync();
+        await context.RefreshTokens.AddAsync(newRefreshTokenEntity);
+        await context.SaveChangesAsync();
 
         return new AuthResultDto
         {

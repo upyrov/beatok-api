@@ -5,10 +5,11 @@ using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class SoundService(IUnitOfWork unitOfWork,
+public class SoundService(IApplicationDbContext context,
     IValidator<CreateSoundDto> createValidator, IValidator<UpdateSoundDto> updateValidator,
     IMapper mapper, IStorage storage)
     : ISoundService
@@ -40,16 +41,18 @@ public class SoundService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var category = await unitOfWork.Categories.GetByIdAsync(dto.CategoryId) 
+        var category = await context.Categories.FindAsync(dto.CategoryId) 
             ?? throw new BadRequestException("Category not found");
 
-        await unitOfWork.Sounds.CreateAsync(mapper.Map<Sound>(dto));
-        await unitOfWork.SaveChangesAsync();
+        await context.Sounds.AddAsync(mapper.Map<Sound>(dto));
+        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<SoundDto>> GetAllByCategoryIdAsync(Guid categoryId)
     {
-        var sounds = await unitOfWork.Sounds.GetAllByCategoryIdAsync(categoryId);
+        var sounds = await context.Sounds
+            .Where(s => s.CategoryId == categoryId)
+            .ToListAsync();
         return mapper.Map<IEnumerable<SoundDto>>(sounds);
     }
 
@@ -61,18 +64,19 @@ public class SoundService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var sound = await unitOfWork.Sounds.GetByIdAsync(id)
+        var sound = await context.Sounds.FindAsync(id)
             ?? throw new NotFoundException("Sound not found");
 
-        await unitOfWork.Sounds.UpdateValueAsync(sound.Id, dto.Value); 
+        sound.Value = dto.Value;
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        var sound = await unitOfWork.Sounds.GetByIdAsync(id) 
+        var sound = await context.Sounds.FindAsync(id)
             ?? throw new NotFoundException("Sound not found");
 
-        unitOfWork.Sounds.Delete(sound);
-        await unitOfWork.SaveChangesAsync();
+        context.Sounds.Remove(sound);
+        await context.SaveChangesAsync();
     }
 }
