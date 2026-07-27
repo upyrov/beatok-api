@@ -14,8 +14,9 @@ namespace Beatok.API.Hubs
     public interface ILobbyClient
     {
         Task ParticipantJoined(UserDto user);
-        Task ParticipantRejoined(Guid userId);
+        Task ParticipantConnected(Guid userId);
         Task ParticipantLeft(Guid userId);
+        Task ParticipantDisconnected(Guid userId);
         Task OwnerChanged(Guid ownerId);
         Task MMRWithheld(); 
         Task MessageReceived(string content, Guid senderId);

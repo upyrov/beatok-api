@@ -32,11 +32,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .VotingStarted(submissions);
     }
 
-    public async Task ParticipantRejoinedAsync(Guid lobbyId, Guid userId)
+    public async Task ParticipantConnectedAsync(Guid lobbyId, Guid userId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .ParticipantRejoined(userId);
+            .ParticipantConnected(userId);
     }
 
     public async Task ParticipantLeftAsync(Guid lobbyId, Guid userId)
@@ -44,6 +44,13 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
         await hubContext.Clients
             .Group(lobbyId.ToString())
             .ParticipantLeft(userId);   
+    }
+
+    public async Task ParticipantDisconnectedAsync(Guid lobbyId, Guid userId)
+    {
+        await hubContext.Clients
+            .Group(lobbyId.ToString())
+            .ParticipantDisconnected(userId);
     }
 
     public async Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId)
