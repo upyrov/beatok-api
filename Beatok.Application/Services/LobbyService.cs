@@ -95,7 +95,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
     {
         participant.IsConnected = true;
         await unitOfWork.SaveChangesAsync();
-        await lobbyNotifier.ParticipantRejoinedAsync(lobby.Id, user.Id);
+        await lobbyNotifier.ParticipantConnectedAsync(lobby.Id, user.Id);
     }
 
     public async Task LeaveAsync(Guid lobbyId, Guid userId)
@@ -111,12 +111,13 @@ public class LobbyService(IUnitOfWork unitOfWork,
         if (lobby.Phase == LobbyPhase.NotStarted)
         {
             await HandleNotStartedLeaveAsync(lobby, participant);
+            await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
         }
         else
         {
             await HandleStartedLeaveAsync(participant);
+            await lobbyNotifier.ParticipantDisconnectedAsync(lobby.Id, userId);
         }
-        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
     }
 
     private async Task HandleNotStartedLeaveAsync(Lobby lobby, Participation participant)
@@ -177,13 +178,13 @@ public class LobbyService(IUnitOfWork unitOfWork,
             if (participation.Lobby!.Phase == LobbyPhase.NotStarted)
             {
                 await HandleNotStartedLeaveAsync(participation.Lobby, participation);
+                await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
             }
             else
             {
                 await HandleStartedLeaveAsync(participation);
+                await lobbyNotifier.ParticipantDisconnectedAsync(participation.LobbyId, participation.UserId);
             }
-
-            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
         }
     }
     
