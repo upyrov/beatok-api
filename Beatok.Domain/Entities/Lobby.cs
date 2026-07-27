@@ -1,24 +1,29 @@
 ﻿namespace Beatok.Domain.Entities;
 
-public enum LobbyPhase
+public enum LobbyState
 {
-    NotStarted,
-    Submission,
+    Waiting,
+    Submitting,
     Voting,
-    End
+    Ended
 }
 
 public class Lobby
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
+    public short ParticipantLimit { get; set; }
+    public string? JobId { get; set; }
+    public TimeSpan SubmissionTime { get; set; }
+    public LobbyState State { get; set; } = LobbyState.Waiting;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime SubmissionStartedAt { get; set; }
+    public DateTime VotingStartedAt { get; set; }
+    public DateTime EndedAt { get; set; }
+
     public Guid GenreId { get; set; }
     public Genre? Genre { get; set; }
-    public short ParticipantLimit { get; set; }
-    public LobbyPhase Phase { get; set; } = LobbyPhase.NotStarted;
-    public string JobId { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public TimeSpan SubmissionTimeLimit { get; set; }
     public Guid OwnerId { get; set; }
     public User? Owner { get; set; }
     public ICollection<Participation> Participants { get; set; } = [];

@@ -17,7 +17,7 @@ public class LobbyEntityTypeConfiguration : IEntityTypeConfiguration<Lobby>
         builder.Property(x => x.ParticipantLimit)
             .IsRequired();
 
-        builder.Property(x => x.Phase)
+        builder.Property(x => x.State)
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)

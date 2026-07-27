@@ -24,11 +24,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .Started(categories);
     }
 
-    public async Task VotingStartedAsync(Guid lobbyId, ICollection<SubmissionDto> submissions)
+    public async Task VotingStartedAsync(Guid lobbyId, TimeSpan votingTime, ICollection<SubmissionDto> submissions)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .VotingStarted(submissions);
+            .VotingStarted(votingTime, submissions);
     }
 
     public async Task ParticipantConnectedAsync(Guid lobbyId, Guid userId)
