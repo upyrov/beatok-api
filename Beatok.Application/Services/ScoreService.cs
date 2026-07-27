@@ -21,6 +21,7 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
         var lobby = await context.Lobbies
                 .Include(l => l.Participants)
                 .ThenInclude(p => p.Submissions)
+                .ThenInclude(s => s.Scores)
                 .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
         

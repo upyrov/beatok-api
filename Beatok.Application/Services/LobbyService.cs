@@ -4,7 +4,6 @@ using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
