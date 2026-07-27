@@ -5,10 +5,11 @@ using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class GenreService(IUnitOfWork unitOfWork,
+public class GenreService(IApplicationDbContext context,
     IValidator<CreateGenreDto> validator, IMapper mapper): IGenreService
 {
     public async Task CreateAsync(CreateGenreDto dto)
@@ -20,25 +21,25 @@ public class GenreService(IUnitOfWork unitOfWork,
             throw new ValidationException(fluentValidation.Errors);
         }
 
-        await unitOfWork.Genres.CreateAsync(mapper.Map<Genre>(dto));
-        await unitOfWork.SaveChangesAsync();
+        await context.Genres.AddAsync(mapper.Map<Genre>(dto));
+        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<GenreDto>> GetAllAsync()
     {
-        var genres = await unitOfWork.Genres.GetAllAsync();
+        var genres = await context.Genres.ToListAsync();
         return mapper.Map<IEnumerable<GenreDto>>(genres);
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        var genre = await unitOfWork.Genres.GetByIdAsync(id);
+        var genre = await context.Genres.FindAsync(id);
         if (genre == null)
         {
             throw new NotFoundException("Genre not found");
         }
         
-        unitOfWork.Genres.Delete(genre);
-        await unitOfWork.SaveChangesAsync();
+        context.Genres.Remove(genre);
+        await context.SaveChangesAsync();
     }
 }

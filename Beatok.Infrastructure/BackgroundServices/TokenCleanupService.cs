@@ -1,4 +1,5 @@
-using Beatok.Application.Interfaces.Repositories;
+using Beatok.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -20,9 +21,11 @@ public class TokenCleanupService(IServiceProvider serviceProvider,
             {
                 using (var scope = serviceProvider.CreateScope())
                 {
-                    var refreshTokenRepository = scope.ServiceProvider.GetRequiredService<IRefreshTokenRepository>();
+                    var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
 
-                    int deletedCount = await refreshTokenRepository.DeleteExpiredAsync();
+                    int deletedCount = await context.RefreshTokens
+                        .Where(t => t.Expires < DateTime.UtcNow)
+                        .ExecuteDeleteAsync();
                     logger.LogInformation("Deleted {DeletedCount} expired tokens", deletedCount);
                 }
             }

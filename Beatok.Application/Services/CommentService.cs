@@ -1,16 +1,16 @@
 using AutoMapper;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
 using Beatok.Domain.Entities;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class CommentService(IUnitOfWork unitOfWork, IValidator<CreateCommentDto> validator,
+public class CommentService(IApplicationDbContext context, IValidator<CreateCommentDto> validator,
     IMapper mapper): ICommentService
 {
     public async Task CreateAsync(Guid authorId, Guid targetUserId, CreateCommentDto dto)
@@ -22,30 +22,35 @@ public class CommentService(IUnitOfWork unitOfWork, IValidator<CreateCommentDto>
         if (authorId == targetUserId)
             throw new BadRequestException("You cannot comment on yourself");
         
-        var author = await unitOfWork.Users.GetByIdAsync(authorId);
-        if (author == null)
+        if (!await context.Users.AnyAsync(u => u.Id == authorId))
             throw new NotFoundException("Author not found");
-        var targetUser = await unitOfWork.Users.GetByIdAsync(targetUserId);
-        if (targetUser == null)
+        if (!await context.Users.AnyAsync(u => u.Id == targetUserId))
             throw new NotFoundException("Taget user not found");
 
-        await unitOfWork.Comments.CreateAsync(new Comment
+        await context.Comments.AddAsync(new Comment
         {
             AuthorId = authorId,
             TargetUserId = targetUserId,
             Content = dto.Content
         });
-        await unitOfWork.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     public async Task<PageResult<CommentDto>> GetCommentsAsync(Guid targetUserId, int page, int pageSize)
     {
-        var user = await unitOfWork.Users.GetByIdAsync(targetUserId);
-        if (user == null)
+        if (!await context.Users.AnyAsync(u => u.Id == targetUserId))
             throw new NotFoundException("Target user not found");
         
-        var comments = await unitOfWork.Comments.GetByUserIdAsync(targetUserId, page, pageSize);
-        var totalCount = await unitOfWork.Comments.CountByUserId(targetUserId);
+        var comments = await context.Comments
+            .Include(c => c.Author)
+            .Where(c => c.TargetUserId == targetUserId)
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+        
+        var totalCount = await context.Comments
+            .CountAsync(c => c.TargetUserId == targetUserId);
 
         return new PageResult<CommentDto>
         {

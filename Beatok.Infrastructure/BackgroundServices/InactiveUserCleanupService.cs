@@ -1,4 +1,5 @@
-using Beatok.Application.Interfaces.Repositories;
+using Beatok.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -23,11 +24,15 @@ public class InactiveUserCleanupService(
             {
                 using (var scope = serviceProvider.CreateScope())
                 {
-                    var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+                    var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
 
                     var threshold = DateTime.UtcNow - _expirationThreshold;
 
-                    int deletedCount = await userRepository.DeleteExpiredAnonymousUsersAsync(threshold);
+                    int deletedCount = await context.Users
+                        .Where(u => u.IsAnonymous
+                                    && u.LastActiveAt != null
+                                    && u.LastActiveAt < threshold)
+                        .ExecuteDeleteAsync();
                     logger.LogInformation("Deleted {DeletedCount} anonymous users", deletedCount);
                 }
             }

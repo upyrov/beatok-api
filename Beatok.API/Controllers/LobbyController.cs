@@ -43,6 +43,7 @@ namespace Beatok.API.Controllers
         [HttpPost("{id}/participants")]
         public async Task<IActionResult> Join([FromRoute] Guid id)
         {
+            Console.WriteLine($"LobbyId = {id}");
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             await lobbyService.JoinAsync(id, Guid.Parse(userId!));
             return Ok();
