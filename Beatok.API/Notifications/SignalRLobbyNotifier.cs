@@ -1,21 +1,20 @@
 using Beatok.API.Hubs;
 using Beatok.Application.DTOs.Category;
-using Beatok.Application.DTOs.Score;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using Beatok.Application.DTOs;
 
 namespace Beatok.API.Notifications;
 
 public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext)
     : ILobbyNotifier
 {
-    public async Task ParticipantJoinedAsync(Guid lobbyId, UserDto user)
+    public async Task ParticipantJoinedAsync(Guid lobbyId, ParticipationDto participant)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .ParticipantJoined(user);
+            .ParticipantJoined(participant);
     }
     
     public async Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories)
@@ -32,11 +31,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .VotingStarted(submissions);
     }
 
-    public async Task ParticipantRejoinedAsync(Guid lobbyId, Guid userId)
+    public async Task ParticipantConnectedAsync(Guid lobbyId, Guid userId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .ParticipantRejoined(userId);
+            .ParticipantConnected(userId);
     }
 
     public async Task ParticipantLeftAsync(Guid lobbyId, Guid userId)
@@ -44,6 +43,13 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
         await hubContext.Clients
             .Group(lobbyId.ToString())
             .ParticipantLeft(userId);   
+    }
+
+    public async Task ParticipantDisconnectedAsync(Guid lobbyId, Guid userId)
+    {
+        await hubContext.Clients
+            .Group(lobbyId.ToString())
+            .ParticipantDisconnected(userId);
     }
 
     public async Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId)

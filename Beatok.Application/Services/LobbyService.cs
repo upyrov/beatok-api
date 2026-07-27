@@ -94,7 +94,7 @@ public class LobbyService(IApplicationDbContext context,
             await context.Participation.AddAsync(newParticipant);
             await context.SaveChangesAsync();
 
-            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<UserDto>(user));
+            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant));
         }
     }
 
@@ -102,7 +102,7 @@ public class LobbyService(IApplicationDbContext context,
     {
         participant.IsConnected = true;
         await context.SaveChangesAsync();
-        await lobbyNotifier.ParticipantRejoinedAsync(participant.LobbyId, participant.UserId);
+        await lobbyNotifier.ParticipantConnectedAsync(participant.LobbyId, participant.UserId);
     }
 
     public async Task LeaveAsync(Guid lobbyId, Guid userId)
@@ -120,12 +120,13 @@ public class LobbyService(IApplicationDbContext context,
         if (lobby.Phase == LobbyPhase.NotStarted)
         {
             await HandleNotStartedLeaveAsync(lobby, participant);
+            await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
         }
         else
         {
             await HandleStartedLeaveAsync(participant);
+            await lobbyNotifier.ParticipantDisconnectedAsync(lobby.Id, userId);
         }
-        await lobbyNotifier.ParticipantLeftAsync(lobbyId, userId);
     }
 
     private async Task HandleNotStartedLeaveAsync(Lobby lobby, Participation participant)
@@ -192,13 +193,13 @@ public class LobbyService(IApplicationDbContext context,
             if (participation.Lobby!.Phase == LobbyPhase.NotStarted)
             {
                 await HandleNotStartedLeaveAsync(participation.Lobby, participation);
+                await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
             }
             else
             {
                 await HandleStartedLeaveAsync(participation);
+                await lobbyNotifier.ParticipantDisconnectedAsync(participation.LobbyId, participation.UserId);
             }
-
-            await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
         }
     }
     
