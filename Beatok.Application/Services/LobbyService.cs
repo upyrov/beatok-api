@@ -94,7 +94,7 @@ public class LobbyService(IApplicationDbContext context,
             await context.Participation.AddAsync(newParticipant);
             await context.SaveChangesAsync();
 
-            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant));
+            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant), false);
         }
     }
 
