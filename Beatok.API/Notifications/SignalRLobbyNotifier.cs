@@ -1,21 +1,20 @@
 using Beatok.API.Hubs;
 using Beatok.Application.DTOs.Category;
-using Beatok.Application.DTOs.Score;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
+using Beatok.Application.DTOs;
 
 namespace Beatok.API.Notifications;
 
 public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext)
     : ILobbyNotifier
 {
-    public async Task ParticipantJoinedAsync(Guid lobbyId, UserDto user)
+    public async Task ParticipantJoinedAsync(Guid lobbyId, ParticipationDto participant)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .ParticipantJoined(user);
+            .ParticipantJoined(participant);
     }
     
     public async Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories)

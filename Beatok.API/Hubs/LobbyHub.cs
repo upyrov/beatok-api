@@ -1,10 +1,10 @@
 ﻿using System.Security.Claims;
 using Beatok.API.Attributes;
+using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Score;
 using Beatok.Application.DTOs.Submission;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -13,7 +13,7 @@ namespace Beatok.API.Hubs
 {
     public interface ILobbyClient
     {
-        Task ParticipantJoined(UserDto user);
+        Task ParticipantJoined(ParticipationDto participant);
         Task ParticipantConnected(Guid userId);
         Task ParticipantLeft(Guid userId);
         Task ParticipantDisconnected(Guid userId);

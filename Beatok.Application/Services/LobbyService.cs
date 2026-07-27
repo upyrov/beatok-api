@@ -87,7 +87,7 @@ public class LobbyService(IUnitOfWork unitOfWork,
             await unitOfWork.Participations.AddAsync(newParticipant);
             await unitOfWork.SaveChangesAsync();
 
-            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<UserDto>(user));
+            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant));
         }
     }
 
