@@ -10,11 +10,11 @@ namespace Beatok.API.Notifications;
 public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext)
     : ILobbyNotifier
 {
-    public async Task ParticipantJoinedAsync(Guid lobbyId, ParticipationDto participant, bool isMMRWithheld)
+    public async Task ParticipantJoinedAsync(Guid lobbyId, ParticipationDto participant)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .ParticipantJoined(participant, isMMRWithheld);
+            .ParticipantJoined(participant);
     }
     
     public async Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories)
@@ -66,10 +66,10 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .Ended(submission);
     }
 
-    public async Task MessageReceivedAsync(string content, Guid userId, Guid lobbyId)
+    public async Task MessageReceivedAsync(Guid lobbyId, Guid userId, string content)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .MessageReceived(content, userId);
+            .MessageReceived(userId, content);
     }
 }

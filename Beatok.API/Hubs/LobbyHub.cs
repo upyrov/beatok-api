@@ -13,12 +13,12 @@ namespace Beatok.API.Hubs
 {
     public interface ILobbyClient
     {
-        Task ParticipantJoined(ParticipationDto participant, bool isMMRWithheld);
+        Task ParticipantJoined(ParticipationDto participant);
         Task ParticipantConnected(Guid userId);
         Task ParticipantLeft(Guid userId);
         Task ParticipantDisconnected(Guid userId);
         Task OwnerChanged(Guid ownerId);
-        Task MessageReceived(string content, Guid senderId);
+        Task MessageReceived(Guid senderId, string content);
         Task Started(ICollection<RandomCategoryDto> categories);
         Task VotingStarted(TimeSpan votingTime, ICollection<SubmissionDto> submissions);
         Task Ended(SubmissionDto? submission);

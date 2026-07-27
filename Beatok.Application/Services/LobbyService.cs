@@ -94,7 +94,7 @@ public class LobbyService(IApplicationDbContext context,
             await context.Participation.AddAsync(newParticipant);
             await context.SaveChangesAsync();
 
-            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant), false);
+            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant));
         }
     }
 
@@ -381,6 +381,6 @@ public class LobbyService(IApplicationDbContext context,
         if (content.Length > 250)
             throw new BadRequestException("Message cannot be longer than 250 characters");
 
-        await lobbyNotifier.MessageReceivedAsync(content, userId, lobbyId);
+        await lobbyNotifier.MessageReceivedAsync(lobbyId, userId, content);
     }
 }
