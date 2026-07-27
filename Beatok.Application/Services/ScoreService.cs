@@ -24,7 +24,7 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
                 .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
         
-        if (lobby.Phase != LobbyPhase.Voting)
+        if (lobby.State != LobbyState.Voting)
             throw new BadRequestException("Lobby is not in voting phase");
 
         var submission = await context.Submissions

@@ -24,6 +24,9 @@ public class UserEntityTypeConfiguration: IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Email)
             .IsUnique();
 
+        builder.Property(x => x.IsAnonymous)
+            .IsRequired();
+
         builder.HasMany(x => x.OwnedLobbies)
             .WithOne(x => x.Owner)
             .HasForeignKey(x => x.OwnerId)
@@ -33,5 +36,15 @@ public class UserEntityTypeConfiguration: IEntityTypeConfiguration<User>
             .WithOne(x => x.User)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(x => x.CommentsAuthored)
+            .WithOne(x => x.Author)
+            .HasForeignKey(x => x.AuthorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(x => x.ProfileComments)
+           .WithOne(x => x.TargetUser)
+           .HasForeignKey(x => x.TargetUserId)
+           .OnDelete(DeleteBehavior.Cascade);
     }
 }

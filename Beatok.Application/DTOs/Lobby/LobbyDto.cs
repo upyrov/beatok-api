@@ -6,11 +6,11 @@ namespace Beatok.Application.DTOs.Lobby;
 public record LobbyDto
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
+    public int ParticipantCount { get; set; }
+    public int ParticipantLimit { get; set; }
+    public TimeSpan SubmissionTime { get; set; }
+    public DateTime CreatedAt { get; set; }
     public required GenreDto Genre { get; set; }
     public required UserDto Owner { get; set; }
-    public int ParticipantLimit { get; set; }
-    public int ParticipantCount {  get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public TimeSpan SubmissionTimeLimit { get; set; }
 }

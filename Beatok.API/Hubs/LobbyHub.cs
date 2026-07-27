@@ -20,7 +20,7 @@ namespace Beatok.API.Hubs
         Task OwnerChanged(Guid ownerId);
         Task MessageReceived(string content, Guid senderId);
         Task Started(ICollection<RandomCategoryDto> categories);
-        Task VotingStarted(ICollection<SubmissionDto> submissions);
+        Task VotingStarted(TimeSpan votingTime, ICollection<SubmissionDto> submissions);
         Task Ended(SubmissionDto? submission);
     }
 

@@ -16,7 +16,7 @@ public class CreateLobbyDtoValidator: AbstractValidator<CreateLobbyDto>
             .InclusiveBetween((short)2, short.MaxValue)
             .WithMessage($"Participant limit must be between 2 and {short.MaxValue}");
         
-        RuleFor(x => x.SubmissionTimeLimit)
+        RuleFor(x => x.SubmissionTime)
             .NotEmpty().WithMessage("Submission time limit is required")
             .Must(t => t.TotalMinutes >= 3 && t.TotalMinutes <= 30)
             .WithMessage("Submission time limit must be between 3 and 30 minutes");

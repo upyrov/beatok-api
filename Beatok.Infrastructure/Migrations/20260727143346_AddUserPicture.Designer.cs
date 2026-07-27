@@ -3,6 +3,7 @@ using System;
 using Beatok.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Beatok.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260727143346_AddUserPicture")]
+    partial class AddUserPicture
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,13 +132,11 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("EndedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("GenreId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("JobId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -149,17 +150,11 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<short>("ParticipantLimit")
                         .HasColumnType("smallint");
 
-                    b.Property<int>("State")
+                    b.Property<int>("Phase")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("SubmissionStartedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<TimeSpan>("SubmissionTime")
+                    b.Property<TimeSpan>("SubmissionTimeLimit")
                         .HasColumnType("interval");
-
-                    b.Property<DateTime>("VotingStartedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -332,6 +327,7 @@ namespace Beatok.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Picture")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("Role")

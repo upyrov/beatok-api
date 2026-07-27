@@ -33,7 +33,7 @@ public class LobbyService(IApplicationDbContext context,
         if (!await context.Genres.AnyAsync(g => g.Id == dto.GenreId))
             throw new NotFoundException("Genre not found");
         var activeLobbyCount = await context.Participation
-            .Where(p => p.UserId == ownerId && p.Lobby!.Phase != LobbyPhase.End)
+            .Where(p => p.UserId == ownerId && p.Lobby!.State != LobbyState.Ended)
             .CountAsync();
         if (activeLobbyCount >= 2)
             throw new BadRequestException("User cannot join more than 2 active lobbies");
@@ -44,7 +44,7 @@ public class LobbyService(IApplicationDbContext context,
             OwnerId = ownerId,
             GenreId = dto.GenreId,
             ParticipantLimit = dto.ParticipantLimit,
-            SubmissionTimeLimit = dto.SubmissionTimeLimit
+            SubmissionTime = dto.SubmissionTime
         };
 
         await context.Lobbies.AddAsync(lobby);
@@ -77,11 +77,11 @@ public class LobbyService(IApplicationDbContext context,
         else
         {
             var activeLobbyCount = await context.Participation
-                .Where(p => p.UserId == userId && p.Lobby!.Phase != LobbyPhase.End)
+                .Where(p => p.UserId == userId && p.Lobby!.State != LobbyState.Ended)
                 .CountAsync();
             if (activeLobbyCount >= 2)
                 throw new BadRequestException("User cannot join more than 2 active lobbies");
-            if (lobby.Phase != LobbyPhase.NotStarted)
+            if (lobby.State != LobbyState.Waiting)
                 throw new BadRequestException("Lobby is already started");
             if (lobby.Participants.Count >= lobby.ParticipantLimit)
                 throw new BadRequestException("Lobby is full");
@@ -117,7 +117,7 @@ public class LobbyService(IApplicationDbContext context,
             .FirstOrDefault(p => p.UserId == user.Id) ??
                           throw new NotFoundException("User not found in lobby");
 
-        if (lobby.Phase == LobbyPhase.NotStarted)
+        if (lobby.State == LobbyState.Waiting)
         {
             await HandleNotStartedLeaveAsync(lobby, participant);
             await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
@@ -190,7 +190,7 @@ public class LobbyService(IApplicationDbContext context,
         
         foreach (var participation in participations)
         {
-            if (participation.Lobby!.Phase == LobbyPhase.NotStarted)
+            if (participation.Lobby!.State == LobbyState.Waiting)
             {
                 await HandleNotStartedLeaveAsync(participation.Lobby, participation);
                 await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
@@ -209,7 +209,7 @@ public class LobbyService(IApplicationDbContext context,
             .Include(l => l.Genre)
             .Include(l => l.Owner)
             .Include(l => l.Participants)
-            .Where(l => l.Phase == LobbyPhase.NotStarted
+            .Where(l => l.State == LobbyState.Waiting
                         && l.Participants.Count < l.ParticipantLimit);
         
         var lobbies = await ApplyFilter(query, filter).ToListAsync();
@@ -258,8 +258,9 @@ public class LobbyService(IApplicationDbContext context,
 
         var jobId = backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
-            lobby.SubmissionTimeLimit);
-        lobby.Phase = LobbyPhase.Submission;
+            lobby.SubmissionTime);
+        lobby.State = LobbyState.Submitting;
+        lobby.SubmissionStartedAt = DateTime.UtcNow;
         lobby.JobId = jobId;
         await context.SaveChangesAsync();
     }
@@ -289,11 +290,12 @@ public class LobbyService(IApplicationDbContext context,
         var jobId = backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToEndAsync(lobby.Id), votingTime);
         
-        lobby.Phase = LobbyPhase.Voting;
+        lobby.State = LobbyState.Voting;
+        lobby.VotingStartedAt = DateTime.UtcNow;
         lobby.JobId = jobId;
         await context.SaveChangesAsync();
         
-        await lobbyNotifier.VotingStartedAsync(lobby.Id, submissions);
+        await lobbyNotifier.VotingStartedAsync(lobby.Id, votingTime, submissions);
     }
 
     public async Task TryFinishVoting(Lobby lobby)
@@ -322,7 +324,8 @@ public class LobbyService(IApplicationDbContext context,
         if (lobby == null)
             return;
 
-        lobby.Phase = LobbyPhase.End;
+        lobby.State = LobbyState.Ended;
+        lobby.EndedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
         
         var winnerSubmission = GetWinnerSubmission(lobby);

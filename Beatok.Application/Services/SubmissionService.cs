@@ -45,7 +45,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
                 .FirstOrDefaultAsync(l => l.Id == dto.LobbyId)
             ?? throw new NotFoundException("Lobby not found");
 
-        if (lobby.Phase != LobbyPhase.Submission)
+        if (lobby.State != LobbyState.Submitting)
         {
             throw new InvalidOperationException("Lobby is not in submission phase");
         }
@@ -58,7 +58,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
             throw new InvalidOperationException("User has already submitted a track");
         }
 
-        if (dto.DurationSeconds <= 0 || dto.DurationSeconds > lobby.SubmissionTimeLimit.TotalSeconds / 2)
+        if (dto.DurationSeconds <= 0 || dto.DurationSeconds > lobby.SubmissionTime.TotalSeconds / 2)
         {
             throw new ValidationException("Duration seconds must be a positive value and not exceed half the submission time limit");
         }
@@ -103,7 +103,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
             throw new UnauthorizedAccessException("User is not the owner of this submission");
         }
 
-        if (submission.Participant?.Lobby?.Phase != LobbyPhase.Submission)
+        if (submission.Participant?.Lobby?.State != LobbyState.Submitting)
         {
             throw new InvalidOperationException("Lobby is not in submission phase");
         }
