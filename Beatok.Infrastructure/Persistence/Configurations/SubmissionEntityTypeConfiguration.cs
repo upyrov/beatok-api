@@ -12,9 +12,9 @@ public class SubmissionEntityTypeConfiguration: IEntityTypeConfiguration<Submiss
         
         builder.HasOne(x => x.Participant)
             .WithMany(p => p.Submissions)
-            .HasForeignKey(x => x.ParticipantId)
+            .HasForeignKey(x => x.ParticipationId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        builder.HasIndex(x => x.ParticipantId);
+        builder.HasIndex(x => x.ParticipationId);
     }
 }
