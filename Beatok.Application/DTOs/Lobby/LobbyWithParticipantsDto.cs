@@ -11,6 +11,7 @@ public record LobbyWithParticipantsDto
     public required string Name { get; set; }
     public int ParticipantLimit { get; set; }
     public TimeSpan SubmissionTime { get; set; }
+    public TimeSpan? VotingTime { get; set; }
     public LobbyState State { get; set; } = LobbyState.Waiting;
 
     public DateTime CreatedAt { get; set; }

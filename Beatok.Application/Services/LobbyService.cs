@@ -296,6 +296,7 @@ public class LobbyService(IApplicationDbContext context,
         
         lobby.State = LobbyState.Voting;
         lobby.VotingStartedAt = DateTime.UtcNow;
+        lobby.VotingTime = votingTime;
         lobby.JobId = jobId;
         await context.SaveChangesAsync();
         
