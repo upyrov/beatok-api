@@ -10,5 +10,6 @@ public class SoundProfile: Profile
     {
         CreateMap<CreateSoundDto, Sound>();
         CreateMap<Sound, SoundDto>();
+        CreateMap<Sound, SoundWithCategory>();
     }
 }
