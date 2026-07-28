@@ -304,7 +304,7 @@ public class LobbyService(IApplicationDbContext context,
         var scores = submissions.SelectMany(s => s.Scores).ToList();
         
         var expectedVotes = lobby.Participants.Sum(participant =>
-            submissions.Count(s => s.Participant!.UserId != participant.UserId));
+            submissions.Count(s => s.ParticipantId != participant.Id));
         if (scores.Count != expectedVotes)
             return;
 
