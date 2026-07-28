@@ -179,6 +179,11 @@ public class LobbyService(IApplicationDbContext context,
         {
             sound.Value = storage.GeneratePresignedUrl(sound.Value, TimeSpan.FromHours(1));
         }
+
+        foreach (var submission in lobby.Submissions)
+        {
+            submission.Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1));
+        }
         return mapper.Map<LobbyWithParticipantsDto>(lobby);
     }
 
