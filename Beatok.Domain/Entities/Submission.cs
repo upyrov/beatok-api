@@ -7,5 +7,7 @@ public class Submission
     public int DurationSeconds { get; set; }
     public Guid ParticipantId { get; set; } 
     public Participation? Participant { get; set; }
+    public Guid LobbyId { get; set; }
+    public Lobby? Lobby { get; set; }
     public ICollection<Score> Scores { get; set; } = [];
 }

@@ -21,7 +21,7 @@ public record LobbyWithParticipantsDto
     public required GenreDto Genre { get; set; }
     public Guid OwnerId { get; set; }
     public IEnumerable<ParticipationDto> Participants { get; set; } = [];
-    public IEnumerable<SoundDto> Sounds { get; set; } = [];
+    public IEnumerable<SoundWithCategory> Sounds { get; set; } = [];
     public IEnumerable<SubmissionDto> Submissions { get; set; } = [];
-    public SubmissionDto? WinningSubmission { get; set; }
+    public Guid? WinningSubmissionId { get; set; }
 }

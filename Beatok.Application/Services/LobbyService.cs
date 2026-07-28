@@ -166,6 +166,8 @@ public class LobbyService(IApplicationDbContext context,
         var lobby = await context.Lobbies
                 .Include(l => l.Participants)
                     .ThenInclude(p => p.User)
+                .Include(l => l.Participants)
+                .ThenInclude(p => p.Scores)
                 .Include(l => l.Genre)
                 .Include(l => l.Owner)
                 .FirstOrDefaultAsync(l => l.Id == lobbyId)
@@ -243,17 +245,20 @@ public class LobbyService(IApplicationDbContext context,
             throw new BadRequestException("Lobby must have at least 2 participants");
 
         var kit = await kitService.GetRandomAsync();
-        var categories = kit.Categories.Select(c => new RandomCategoryDto
+        var sounds = kit.Categories.SelectMany(c => c.Sounds).ToList();
+        lobby.Sounds = sounds;
+        
+        var soundsDto = sounds.Select(s => new SoundWithCategory
         {
-            Id = c.Id,
-            Name = c.Name,
-            Sounds = [.. c.Sounds.Select(s => new SoundDto
+            Id = s.Id,
+            Value = storage.GeneratePresignedUrl(s.Value, TimeSpan.FromHours(1)),
+            Category = new CategoryDto
             {
-                Id = s.Id,
-                Value = storage.GeneratePresignedUrl(s.Value, TimeSpan.FromHours(1))
-            })]
+                Id = s.CategoryId,
+                Name = s.Category!.Name
+            }
         }).ToList();
-        await lobbyNotifier.StartedAsync(lobby.Id, categories);
+        await lobbyNotifier.StartedAsync(lobby.Id, soundsDto);
 
         var jobId = backgroundJobClient.Schedule<ILobbyService>(
             s => s.TransitionToVotingAsync(lobby.Id),
@@ -279,7 +284,7 @@ public class LobbyService(IApplicationDbContext context,
                 Id = s.Id,
                 Value = storage.GeneratePresignedUrl($"{s.Value}", TimeSpan.FromHours(1)),
                 LobbyId = lobby.Id,
-                UserId = s.Participant!.UserId
+                ParticipationId = s.Participant!.Id
             }
         })).ToList();
         
@@ -299,12 +304,11 @@ public class LobbyService(IApplicationDbContext context,
 
     public async Task TryFinishVoting(Lobby lobby)
     {
-        var submissions = lobby.Participants.SelectMany(p => p.Submissions).ToList();
+        var submissions = lobby.Submissions.ToList();
         
         var scores = submissions.SelectMany(s => s.Scores).ToList();
         
-        var expectedVotes = lobby.Participants.Sum(participant =>
-            submissions.Count(s => s.ParticipantId != participant.Id));
+        var expectedVotes = lobby.Participants.Sum(participant => participant.Scores.Count);
         if (scores.Count != expectedVotes)
             return;
 
@@ -335,13 +339,7 @@ public class LobbyService(IApplicationDbContext context,
             return;   
         }
         
-        var winnerSubmissionDto = new SubmissionDto
-        {
-            Id = winnerSubmission.Id,
-            Value = storage.GeneratePresignedUrl(winnerSubmission.Value, TimeSpan.FromHours(1)),
-            UserId = winnerSubmission.Participant!.UserId
-        };
-        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmissionDto); 
+        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission.Id); 
     }
 
     private Submission? GetWinnerSubmission(Lobby lobby)

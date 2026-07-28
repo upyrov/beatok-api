@@ -1,9 +1,9 @@
 using Beatok.API.Hubs;
-using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Beatok.Application.DTOs;
+using Beatok.Application.DTOs.Sound;
 
 namespace Beatok.API.Notifications;
 
@@ -17,11 +17,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .ParticipantJoined(participant);
     }
     
-    public async Task StartedAsync(Guid lobbyId, ICollection<RandomCategoryDto> categories)
+    public async Task StartedAsync(Guid lobbyId, ICollection<SoundWithCategory> sounds)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .Started(categories);
+            .Started(sounds);
     }
 
     public async Task VotingStartedAsync(Guid lobbyId, TimeSpan votingTime, ICollection<SubmissionDto> submissions)
@@ -59,11 +59,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .OwnerChanged(newOwnerId);
     }
 
-    public async Task EndedAsync(Guid lobbyId, SubmissionDto? submission)
+    public async Task EndedAsync(Guid lobbyId, Guid? winningSubmissionId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .Ended(submission);
+            .Ended(winningSubmissionId);
     }
 
     public async Task MessageReceivedAsync(Guid lobbyId, Guid userId, string content)
