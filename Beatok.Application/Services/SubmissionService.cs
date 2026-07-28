@@ -67,7 +67,8 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
         {
             Value = dto.Value,
             ParticipantId = participation.Id,
-            DurationSeconds = dto.DurationSeconds
+            DurationSeconds = dto.DurationSeconds,
+            LobbyId = dto.LobbyId
         };
 
         await context.Submissions.AddAsync(submission);

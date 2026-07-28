@@ -181,6 +181,10 @@ public class LobbyService(IApplicationDbContext context,
         participant.ConnectionId = connectionId;
         await context.SaveChangesAsync();
 
+        foreach (var sound in lobby.Sounds)
+        {
+            sound.Value = storage.GeneratePresignedUrl(sound.Value, TimeSpan.FromHours(1));
+        }
         return mapper.Map<LobbyWithParticipantsDto>(lobby);
     }
 
@@ -311,7 +315,8 @@ public class LobbyService(IApplicationDbContext context,
         
         var scores = submissions.SelectMany(s => s.Scores).ToList();
         
-        var expectedVotes = lobby.Participants.Sum(participant => participant.Scores.Count);
+        var expectedVotes = lobby.Participants.Sum(participant =>
+            submissions.Count(s => s.ParticipantId != participant.Id));
         if (scores.Count != expectedVotes)
             return;
 
