@@ -331,7 +331,6 @@ public class LobbyService(IApplicationDbContext context,
 
         lobby.State = LobbyState.Ended;
         lobby.EndedAt = DateTime.UtcNow;
-        await context.SaveChangesAsync();
         
         var winnerSubmission = GetWinnerSubmission(lobby);
 
@@ -340,6 +339,8 @@ public class LobbyService(IApplicationDbContext context,
             await lobbyNotifier.EndedAsync(lobby.Id, null);
             return;   
         }
+        lobby.WinningSubmissionId = winnerSubmission.Id;
+        await context.SaveChangesAsync();
         
         await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission.Id); 
     }
