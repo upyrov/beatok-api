@@ -1,4 +1,6 @@
 ﻿using Beatok.Application.DTOs.Genre;
+using Beatok.Application.DTOs.Sound;
+using Beatok.Application.DTOs.Submission;
 using Beatok.Domain.Entities;
 
 namespace Beatok.Application.DTOs.Lobby;
@@ -9,6 +11,7 @@ public record LobbyWithParticipantsDto
     public required string Name { get; set; }
     public int ParticipantLimit { get; set; }
     public TimeSpan SubmissionTime { get; set; }
+    public TimeSpan? VotingTime { get; set; }
     public LobbyState State { get; set; } = LobbyState.Waiting;
 
     public DateTime CreatedAt { get; set; }
@@ -19,4 +22,7 @@ public record LobbyWithParticipantsDto
     public required GenreDto Genre { get; set; }
     public Guid OwnerId { get; set; }
     public IEnumerable<ParticipationDto> Participants { get; set; } = [];
+    public IEnumerable<SoundWithCategory> Sounds { get; set; } = [];
+    public IEnumerable<SubmissionDto> Submissions { get; set; } = [];
+    public Guid? WinningSubmissionId { get; set; }
 }

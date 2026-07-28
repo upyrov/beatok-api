@@ -1,9 +1,8 @@
 ﻿using System.Security.Claims;
 using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
-using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
-using Beatok.Application.DTOs.Score;
+using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -19,9 +18,9 @@ namespace Beatok.API.Hubs
         Task ParticipantDisconnected(Guid userId);
         Task OwnerChanged(Guid ownerId);
         Task MessageReceived(Guid senderId, string content);
-        Task Started(ICollection<RandomCategoryDto> categories);
+        Task Started(ICollection<SoundWithCategory> sounds);
         Task VotingStarted(TimeSpan votingTime, ICollection<SubmissionDto> submissions);
-        Task Ended(SubmissionDto? submission);
+        Task Ended(Guid? winningSubmissionId);
     }
 
     [Authorize]

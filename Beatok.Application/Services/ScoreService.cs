@@ -33,17 +33,25 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
             .Include(s => s.Scores)
             .FirstOrDefaultAsync(s => s.Id == dto.SubmissionId)
             ?? throw new NotFoundException("Submission not found");
+        
+        var participation = lobby.Participants
+            .FirstOrDefault(p => p.UserId == userId);
+        if (participation == null)
+        {
+            throw new BadRequestException("User is not a participant in this lobby");
+        }
+        
         if (submission.Participant?.UserId == userId)
             throw new BadRequestException("User cannot vote for their own track");
         if (submission.Participant!.LobbyId != lobbyId)
             throw new BadRequestException("Submission is not part of this lobby");
-        if (submission.Scores.Any(s => s.UserId == userId)) 
+        if (submission.Scores.Any(s => s.ParticipationId == participation.Id)) 
             throw new BadRequestException("User has already voted");
 
         var score = new Score
         {
             LobbyId = lobbyId,
-            UserId = userId,
+            ParticipationId = participation.Id,
             SubmissionId = dto.SubmissionId,
             Value = dto.Value
         };

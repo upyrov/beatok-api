@@ -28,6 +28,13 @@ public class LobbyEntityTypeConfiguration : IEntityTypeConfiguration<Lobby>
             .HasForeignKey(x => x.LobbyId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasMany(x => x.Sounds)
+            .WithMany();
+
+        builder.HasMany(x => x.Submissions)
+            .WithOne(s => s.Lobby)
+            .HasForeignKey(s => s.LobbyId);
+
         builder.HasOne(x => x.Genre)
             .WithMany()
             .HasForeignKey(x => x.GenreId);

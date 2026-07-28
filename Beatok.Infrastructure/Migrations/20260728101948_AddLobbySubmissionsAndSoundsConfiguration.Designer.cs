@@ -3,6 +3,7 @@ using System;
 using Beatok.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Beatok.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260728101948_AddLobbySubmissionsAndSoundsConfiguration")]
+    partial class AddLobbySubmissionsAndSoundsConfiguration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,9 +164,6 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<DateTime>("VotingStartedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<TimeSpan?>("VotingTime")
-                        .HasColumnType("interval");
-
                     b.Property<Guid?>("WinningSubmissionId")
                         .HasColumnType("uuid");
 
@@ -301,7 +301,7 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<Guid>("LobbyId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ParticipationId")
+                    b.Property<Guid>("ParticipantId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Value")
@@ -312,7 +312,7 @@ namespace Beatok.Infrastructure.Migrations
 
                     b.HasIndex("LobbyId");
 
-                    b.HasIndex("ParticipationId");
+                    b.HasIndex("ParticipantId");
 
                     b.ToTable("Submissions");
                 });
@@ -516,7 +516,7 @@ namespace Beatok.Infrastructure.Migrations
 
                     b.HasOne("Beatok.Domain.Entities.Participation", "Participant")
                         .WithMany("Submissions")
-                        .HasForeignKey("ParticipationId")
+                        .HasForeignKey("ParticipantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
