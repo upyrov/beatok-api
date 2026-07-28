@@ -170,6 +170,8 @@ public class LobbyService(IApplicationDbContext context,
                 .ThenInclude(p => p.Scores)
                 .Include(l => l.Genre)
                 .Include(l => l.Owner)
+                .Include(l => l.Submissions)
+                .Include(l => l.Sounds)
                 .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
         var participant = lobby.Participants
