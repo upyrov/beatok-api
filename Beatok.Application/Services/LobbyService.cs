@@ -186,6 +186,7 @@ public class LobbyService(IApplicationDbContext context,
     {
         var participations = await context.Participation
             .Include(p => p.Lobby)
+                .ThenInclude(l => l!.Participants)
             .Where(p => p.ConnectionId == connectionId)
             .ToListAsync();
         
