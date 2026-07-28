@@ -11,4 +11,5 @@ public class Participation
     public User? User { get; set; }
     public Lobby? Lobby { get; set; }
     public ICollection<Submission> Submissions { get; set; } = [];
+    public ICollection<Score> Scores { get; set; } = [];
 }

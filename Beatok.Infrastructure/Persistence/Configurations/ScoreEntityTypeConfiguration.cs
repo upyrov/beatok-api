@@ -10,9 +10,9 @@ public class ScoreEntityTypeConfiguration: IEntityTypeConfiguration<Score>
     {
         builder.HasKey(x => x.Id);
         
-        builder.HasOne(x => x.User)
-            .WithMany()
-            .HasForeignKey(x => x.UserId);
+        builder.HasOne(x => x.Participant)
+            .WithMany(p => p.Scores)
+            .HasForeignKey(x => x.ParticipationId);
         
         builder.HasOne(x => x.Lobby)
             .WithMany()
@@ -22,7 +22,7 @@ public class ScoreEntityTypeConfiguration: IEntityTypeConfiguration<Score>
             .WithMany(s => s.Scores)
             .HasForeignKey(x => x.SubmissionId);
 
-        builder.HasIndex(x => new { x.SubmissionId, x.UserId })
+        builder.HasIndex(x => new { x.SubmissionId, x.ParticipationId })
             .IsUnique();
     }
 }
