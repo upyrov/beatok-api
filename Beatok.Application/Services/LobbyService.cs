@@ -47,14 +47,7 @@ public class LobbyService(IApplicationDbContext context,
         };
 
         await context.Lobbies.AddAsync(lobby);
-
-        await context.Participation.AddAsync(new Participation
-        {
-            LobbyId = lobby.Id,
-            UserId = ownerId
-        });
         await context.SaveChangesAsync();
-
         return lobby.Id;
     }
 
