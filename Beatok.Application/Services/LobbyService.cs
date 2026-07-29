@@ -279,7 +279,7 @@ public class LobbyService(IApplicationDbContext context,
     {
         var lobby = await context.Lobbies.
             Include(l => l.Participants)
-            .ThenInclude(p => p.Submissions)
+                .ThenInclude(p => p.Submissions)
             .Where(l => l.Id == lobbyId)
             .FirstOrDefaultAsync();
         if (lobby == null)
@@ -290,9 +290,15 @@ public class LobbyService(IApplicationDbContext context,
                 Id = s.Id,
                 Value = storage.GeneratePresignedUrl($"{s.Value}", TimeSpan.FromHours(1)),
                 LobbyId = lobby.Id,
-                ParticipationId = s.Participant!.Id
+                ParticipationId = s.ParticipationId
             }
         })).ToList();
+
+        if (submissions.Count == 0)
+        {
+            await TransitionToEndAsync(lobby.Id);
+            return;
+        }
         
         var votingTime = TimeSpan.FromSeconds(lobby.Participants
             .SelectMany(s => s.Submissions)
@@ -342,6 +348,7 @@ public class LobbyService(IApplicationDbContext context,
 
         if (winnerSubmission == null)
         {
+            await context.SaveChangesAsync();
             await lobbyNotifier.EndedAsync(lobby.Id, null);
             return;   
         }
