@@ -96,6 +96,11 @@ public class LobbyService(IApplicationDbContext context,
 
     private async Task RejoinAsync(Participation participant)
     {
+        if (!string.IsNullOrEmpty(participant.DisconnectJobId))
+        {
+            backgroundJobClient.Delete(participant.DisconnectJobId);
+            participant.DisconnectJobId = null;
+        }
         participant.IsConnected = true;
         await context.SaveChangesAsync();
         await lobbyNotifier.ParticipantConnectedAsync(participant.LobbyId, participant.UserId);
@@ -120,7 +125,6 @@ public class LobbyService(IApplicationDbContext context,
         }
         else
         {
-            await HandleStartedLeaveAsync(participant);
             await lobbyNotifier.ParticipantDisconnectedAsync(lobby.Id, userId);
         }
     }
@@ -150,14 +154,7 @@ public class LobbyService(IApplicationDbContext context,
         }
         await context.SaveChangesAsync();
     }
-
-    private async Task HandleStartedLeaveAsync(Participation participant)
-    {
-        participant.IsConnected = false;
-        participant.ConnectionId = null;
-        await context.SaveChangesAsync();
-    }
-
+    
     public async Task<LobbyWithParticipantsDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
     {
         var lobby = await context.Lobbies
@@ -195,22 +192,53 @@ public class LobbyService(IApplicationDbContext context,
     {
         var participations = await context.Participation
             .Include(p => p.Lobby)
-                .ThenInclude(l => l!.Participants)
+            .ThenInclude(l => l!.Participants)
             .Where(p => p.ConnectionId == connectionId)
             .ToListAsync();
-        
+    
         foreach (var participation in participations)
         {
+            participation.IsConnected = false;
+            participation.ConnectionId = null;
+        
             if (participation.Lobby!.State == LobbyState.Waiting)
             {
-                await HandleNotStartedLeaveAsync(participation.Lobby, participation);
-                await lobbyNotifier.ParticipantLeftAsync(participation.LobbyId, participation.UserId);
+                var jobId = backgroundJobClient.Schedule<ILobbyService>(
+                    s => s.HandleDisconnectTimeoutAsync(participation.LobbyId, participation.UserId),
+                    TimeSpan.FromSeconds(5));
+        
+                participation.DisconnectJobId = jobId;
             }
             else
             {
-                await HandleStartedLeaveAsync(participation);
+                participation.DisconnectJobId = null;
+            }
+        }
+        await context.SaveChangesAsync();
+
+        foreach (var participation in participations)
+        {
+            if (participation.Lobby!.State != LobbyState.Waiting)
+            {
                 await lobbyNotifier.ParticipantDisconnectedAsync(participation.LobbyId, participation.UserId);
             }
+        }
+    }
+    
+    public async Task HandleDisconnectTimeoutAsync(Guid lobbyId, Guid userId)
+    {
+        var lobby = await context.Lobbies
+            .Include(l => l.Participants)
+            .FirstOrDefaultAsync(l => l.Id == lobbyId);
+
+        if (lobby == null || lobby.State != LobbyState.Waiting)
+            return;
+
+        var participant = lobby.Participants.FirstOrDefault(p => p.UserId == userId);
+        if (participant != null && !participant.IsConnected)
+        {
+            await HandleNotStartedLeaveAsync(lobby, participant);
+            await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
         }
     }
     
