@@ -88,6 +88,10 @@ public class LobbyService(IApplicationDbContext context,
 
             await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant));
         }
+        if (lobby.ParticipantLimit == lobby.Participants.Count)
+        {
+            await StartAsync(lobbyId, lobby.OwnerId);
+        }
     }
 
     private async Task RejoinAsync(Participation participant)
