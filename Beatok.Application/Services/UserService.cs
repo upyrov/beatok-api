@@ -1,4 +1,5 @@
 using AutoMapper;
+using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
@@ -7,8 +8,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class UserService(IApplicationDbContext context, IMapper mapper): IUserService
+public class UserService(IApplicationDbContext context, IMapper mapper, 
+    IStorage storage): IUserService
 {
+    public PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType)
+    {
+        if (!fileExtension.StartsWith('.'))
+        {
+            fileExtension = $".{fileExtension}";
+        }
+
+        var fileKey = $"pictures/{Guid.NewGuid()}{fileExtension}";
+        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15), contentType);
+
+        return new PictureUploadDto
+        {
+            UploadUrl = uploadUrl,
+            FileKey = fileKey
+        };
+    }
+    
     public async Task UpdateLastActiveAtAsync(Guid userId)
     {
         await context.Users

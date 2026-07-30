@@ -13,6 +13,40 @@ namespace Beatok.API.Controllers
     [ApiController]
     public class UserController(IUserService userService, ICommentService commentService) : ControllerBase
     {
+        private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png"];
+        
+        [HttpGet("upload")]
+        [Authorize]
+        public ActionResult<PictureUploadDto> GetUploadUrl([FromQuery] string extension, [FromQuery] string contentType)
+        {
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                return BadRequest("File extension is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(contentType))
+            {
+                return BadRequest("Content type is required");
+            }
+
+            var normalizedExtension = extension.StartsWith('.')
+                ? extension.ToLowerInvariant()
+                : $".{extension.ToLowerInvariant()}";
+
+            if (!AllowedExtensions.Contains(normalizedExtension))
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid file type",
+                    allowedExtensions = AllowedExtensions
+                });
+            }
+
+            var dto = userService.GenerateUploadUrl(normalizedExtension, contentType);
+            return Ok(dto);
+        }
+
+        
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetMe()
