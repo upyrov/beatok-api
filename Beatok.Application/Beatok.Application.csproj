@@ -16,6 +16,7 @@
       <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+      <PackageReference Include="OpenSkillSharp" Version="1.1.0" />
     </ItemGroup>
 
 </Project>

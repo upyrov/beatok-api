@@ -4,6 +4,7 @@ using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
+using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -17,7 +18,7 @@ namespace Beatok.Application.Services;
 public class LobbyService(IApplicationDbContext context,
     IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
     ILobbyNotifier lobbyNotifier, IStorage storage, IKitService kitService,
-    IMapper mapper) : ILobbyService
+    IMapper mapper, IMmrService mmrService) : ILobbyService
 {
     public async Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId)
     {
@@ -368,6 +369,8 @@ public class LobbyService(IApplicationDbContext context,
             .Include(l => l.Participants)
                 .ThenInclude(p => p.Submissions)
                     .ThenInclude(s => s.Scores)
+            .Include(l => l.Participants)
+                .ThenInclude(p => p.User)
             .Where(l => l.Id == lobbyId)
             .FirstOrDefaultAsync();
         if (lobby == null)
@@ -377,19 +380,37 @@ public class LobbyService(IApplicationDbContext context,
         lobby.EndedAt = DateTime.UtcNow;
         
         var winnerSubmission = GetWinnerSubmission(lobby);
-
-        if (winnerSubmission == null)
-        {
-            await context.SaveChangesAsync();
-            await lobbyNotifier.EndedAsync(lobby.Id, null);
-            return;   
-        }
-        lobby.WinningSubmissionId = winnerSubmission.Id;
-        await context.SaveChangesAsync();
         
-        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission.Id); 
-    }
+        var ratingResults = mmrService.CalculateRatings(lobby);
 
+        if (!ratingResults.Any())
+            return;
+
+        foreach (var participant in lobby.Participants)
+        {
+            if (participant.User != null && ratingResults.TryGetValue(participant.UserId, out var result))
+            {
+                participant.User.Mu = result.NewMu;
+                participant.User.Sigma = result.NewSigma;
+            }
+        }
+
+        if (winnerSubmission != null)
+        {
+            lobby.WinningSubmissionId = winnerSubmission.Id;
+        }
+        await context.SaveChangesAsync();
+
+        var ratingChanges = ratingResults
+            .Select(r => new UserRatingChangeDto
+            {
+                UserId = r.Key,
+                RatingChange = r.Value.RatingChange,
+            }).ToList();
+        
+        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission.Id, ratingChanges); 
+    }
+    
     private Submission? GetWinnerSubmission(Lobby lobby)
     {
         var submissions = lobby.Participants.SelectMany(p => p.Submissions).ToList();
