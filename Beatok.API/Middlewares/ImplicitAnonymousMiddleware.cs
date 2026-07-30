@@ -25,7 +25,7 @@ public class ImplicitAnonymousMiddleware(RequestDelegate next)
                     HttpOnly = true,
                     Secure = true,
                     Expires = AuthResultDto.Expires,
-                    SameSite = SameSiteMode.Strict
+                    SameSite = SameSiteMode.None
                 };
             
                 context.Response.Cookies.Append("jwt", AuthResultDto.AccessToken, cookieOptions);
