@@ -4,6 +4,7 @@ using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
+using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -20,7 +21,7 @@ namespace Beatok.API.Hubs
         Task MessageReceived(Guid senderId, string content);
         Task Started(ICollection<SoundWithCategory> sounds);
         Task VotingStarted(TimeSpan votingTime, ICollection<SubmissionDto> submissions);
-        Task Ended(Guid? winningSubmissionId);
+        Task Ended(Guid? winningSubmissionId, IEnumerable<UserRatingChangeDto> ratingChanges);
     }
 
     [Authorize]

@@ -15,6 +15,7 @@ public interface ILobbyService
     Task LeaveAsync(Guid lobbyId, Guid userId);
     Task<LobbyWithParticipantsDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId);
     Task DisconnectAsync(string connectionId);
+    Task HandleDisconnectTimeoutAsync(Guid lobbyId, Guid userId);
     Task TryFinishVoting(Lobby lobby);
     Task SendMessageAsync(Guid lobbyId, Guid userId, string content);
 }
