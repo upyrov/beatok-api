@@ -4,6 +4,7 @@ using Beatok.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Sound;
+using Beatok.Application.DTOs.User;
 
 namespace Beatok.API.Notifications;
 
@@ -59,11 +60,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .OwnerChanged(newOwnerId);
     }
 
-    public async Task EndedAsync(Guid lobbyId, Guid? winningSubmissionId)
+    public async Task EndedAsync(Guid lobbyId, Guid? winningSubmissionId, IEnumerable<UserRatingChangeDto> ratingChanges)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .Ended(winningSubmissionId);
+            .Ended(winningSubmissionId, ratingChanges);
     }
 
     public async Task MessageReceivedAsync(Guid lobbyId, Guid userId, string content)
