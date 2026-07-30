@@ -175,7 +175,7 @@ public class LobbyService(IApplicationDbContext context,
         var participant = lobby.Participants
             .FirstOrDefault(p => p.UserId == userId) ??
                           throw new NotFoundException("User not found in lobby");
-        
+
         participant.ConnectionId = connectionId;
         await context.SaveChangesAsync();
 
