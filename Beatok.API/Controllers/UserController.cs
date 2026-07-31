@@ -62,12 +62,12 @@ namespace Beatok.API.Controllers
             return Ok(await userService.GetUserByIdAsync(id));
         }
 
-        [HttpPut]
+        [HttpPatch]
         [Authorize]
-        public async Task<IActionResult> UpdateUser([FromBody] UserUpdateDto dto)
+        public async Task<IActionResult> Update([FromBody] UserUpdateDto dto)
         {
             var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-            await userService.UpdateUserAsync(Guid.Parse(userId), dto);
+            await userService.UpdateAsync(Guid.Parse(userId), dto);
             return Ok();
         }
         

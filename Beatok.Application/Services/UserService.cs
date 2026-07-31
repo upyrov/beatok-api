@@ -43,11 +43,18 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
         return mapper.Map<UserDto>(user);
     }
 
-    public async Task UpdateUserAsync(Guid userId, UserUpdateDto dto)
+    public async Task UpdateAsync(Guid userId, UserUpdateDto dto)
     {
         var user = await context.Users.FindAsync(userId)
             ?? throw new UserNotFoundException();
-        mapper.Map(dto, user);
+        if (dto.Name is not null)
+        {
+            user.Name = dto.Name;
+        }
+        if (dto.Picture is not null)
+        {
+            user.Picture = dto.Picture;
+        }
         await context.SaveChangesAsync();
     }
 }
