@@ -25,7 +25,7 @@ namespace Beatok.API.Hubs
     }
 
     [Authorize]
-    [ImplicitAnonymous]
+    [AnonymousAuthorize]
     public class LobbyHub(ILobbyService lobbyService) : Hub<ILobbyClient>
     {
         public async Task<LobbyWithParticipantsDto> Join(string lobbyId)

@@ -73,7 +73,6 @@ namespace Beatok.API.Controllers
         
         [HttpPost("{id}/comments")]
         [Authorize]
-        [ImplicitAnonymous]
         public async Task<IActionResult> AddComment([FromRoute] Guid id, [FromBody] CreateCommentDto dto)
         {
             var authorId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
