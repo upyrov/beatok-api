@@ -42,4 +42,12 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
             ?? throw new UserNotFoundException();
         return mapper.Map<UserDto>(user);
     }
+
+    public async Task UpdateUserAsync(Guid userId, UserUpdateDto dto)
+    {
+        var user = await context.Users.FindAsync(userId)
+            ?? throw new UserNotFoundException();
+        mapper.Map(dto, user);
+        await context.SaveChangesAsync();
+    }
 }

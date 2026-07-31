@@ -61,6 +61,15 @@ namespace Beatok.API.Controllers
         {
             return Ok(await userService.GetUserByIdAsync(id));
         }
+
+        [HttpPut]
+        [Authorize]
+        public async Task<IActionResult> UpdateUser([FromBody] UserUpdateDto dto)
+        {
+            var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+            await userService.UpdateUserAsync(Guid.Parse(userId), dto);
+            return Ok();
+        }
         
         [HttpPost("{id}/comments")]
         [Authorize]
