@@ -14,9 +14,9 @@ namespace Beatok.API.Controllers
     public class LobbyController(ILobbyService lobbyService, 
         IScoreService scoreService) : ControllerBase
     {
-        [HttpPost]
         [Authorize]
-        [ImplicitAnonymous]
+        [AnonymousAuthorize]
+        [HttpPost]
         public async Task<ActionResult<Guid>> Create([FromBody] CreateLobbyDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -40,6 +40,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
+        [AnonymousAuthorize]
         [HttpPost("{id}/participants")]
         public async Task<IActionResult> Join([FromRoute] Guid id)
         {

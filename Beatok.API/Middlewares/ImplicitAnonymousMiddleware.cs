@@ -11,7 +11,7 @@ public class ImplicitAnonymousMiddleware(RequestDelegate next)
         var endpoint = context.GetEndpoint();
 
         var hasAttribute = endpoint?.Metadata
-            .GetMetadata<ImplicitAnonymousAttribute>() != null;
+            .GetMetadata<AnonymousAuthorizeAttribute>() != null;
 
         if (hasAttribute)
         {
