@@ -283,9 +283,14 @@ public class LobbyService(IApplicationDbContext context,
             throw new BadRequestException("You are not the owner of this lobby");
         if (lobby.Participants.Count < 2)
             throw new BadRequestException("Lobby must have at least 2 participants");
+        if (lobby.State != LobbyState.Waiting)
+            return;
 
         var kit = await kitService.GetRandomAsync();
-        var sounds = kit.Categories.SelectMany(c => c.Sounds).ToList();
+        var sounds = kit.Categories.
+            SelectMany(c => c.Sounds)
+            .DistinctBy(s => s.Id) 
+            .ToList();
         lobby.Sounds = sounds;
         
         var soundsDto = sounds.Select(s => new SoundWithCategory
