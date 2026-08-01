@@ -30,6 +30,17 @@ namespace Beatok.API.Controllers
             return Ok(await lobbyService.GetAllAsync(filter));
         }
 
+        [HttpGet("to-rejoin")]
+        public async Task<ActionResult<List<LobbyDto>>> GetAllToRejoin()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId is null)
+            {
+                return Ok(Array.Empty<LobbyDto>());
+            }
+            return Ok(await lobbyService.GetAllToRejoinAsync(Guid.Parse(userId)));
+        }
+
         [Authorize]
         [HttpPatch("{id}/start")]
         public async Task<IActionResult> Start([FromRoute] Guid id)

@@ -58,9 +58,8 @@ public class LobbyService(IApplicationDbContext context,
                         .Include(l => l.Participants)
                         .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
-
-        if (!await context.Users.AnyAsync(u => u.Id == userId))
-            throw new NotFoundException("User not found");
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new NotFoundException("User not found");
 
         var participant = lobby.Participants.FirstOrDefault(p =>
             p.UserId == userId && p.LobbyId == lobbyId);
@@ -81,6 +80,7 @@ public class LobbyService(IApplicationDbContext context,
             {
                 LobbyId = lobbyId,
                 UserId = userId,
+                User = user,
                 ConnectionId = connectionId
             };
 
@@ -104,13 +104,15 @@ public class LobbyService(IApplicationDbContext context,
         var lobbyWithParticipants = await context.Lobbies
             .AsNoTracking() // prevents presigned URLs from saving to DB
             .AsSplitQuery() // prevents Cartesian Explosion
+            .Include(l => l.Genre)
+            .Include(l => l.Owner)
             .Include(l => l.Participants)
                 .ThenInclude(p => p.User)
             .Include(l => l.Participants)
                 .ThenInclude(p => p.Scores)
-            .Include(l => l.Genre)
-            .Include(l => l.Owner)
             .Include(l => l.Submissions)
+                .ThenInclude(s => s.Participant)
+                    .ThenInclude(p => p!.User)
             .Include(l => l.Sounds)
                 .ThenInclude(s => s.Category)
             .FirstOrDefaultAsync(l => l.Id == lobbyId)
@@ -207,7 +209,7 @@ public class LobbyService(IApplicationDbContext context,
             {
                 var jobId = backgroundJobClient.Schedule<ILobbyService>(
                     s => s.HandleDisconnectTimeoutAsync(participation.LobbyId, participation.UserId),
-                    TimeSpan.FromSeconds(5));
+                    TimeSpan.FromSeconds(3));
         
                 participation.DisconnectJobId = jobId;
             }
@@ -257,7 +259,18 @@ public class LobbyService(IApplicationDbContext context,
         
         return mapper.Map<IEnumerable<LobbyDto>>(lobbies);
     }
-    
+
+    public async Task<IEnumerable<LobbyDto>> GetAllToRejoinAsync(Guid userId)
+    {
+        var lobbies = await context.Lobbies
+            .Include(l => l.Genre)
+            .Include(l => l.Owner)
+            .Include(l => l.Participants)
+            .Where(l => l.State != LobbyState.Ended && l.Participants.Any(p => p.UserId == userId)).ToListAsync();
+
+        return mapper.Map<IEnumerable<LobbyDto>>(lobbies);
+    }
+
     private IQueryable<Lobby> ApplyFilter(IQueryable<Lobby> query, LobbyFilterDto filter)
     {
         if (!string.IsNullOrEmpty(filter.Name))

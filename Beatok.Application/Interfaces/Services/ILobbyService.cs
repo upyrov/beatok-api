@@ -8,6 +8,7 @@ public interface ILobbyService
 {
     Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId);
     Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter);
+    Task<IEnumerable<LobbyDto>> GetAllToRejoinAsync(Guid userId);
     Task StartAsync(Guid lobbyId, Guid userId);
     Task TransitionToVotingAsync(Guid lobbyId);
     Task TransitionToEndAsync(Guid lobbyId);
