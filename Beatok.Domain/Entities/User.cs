@@ -18,6 +18,7 @@ public class User
     public DateTime? LastActiveAt { get; set; }
     public double Mu { get; set; } = 25.0;
     public double Sigma { get; set; } = 8.333;
+    public int Rating { get; set; } = 0;
     public ICollection<Lobby> OwnedLobbies { get; set; } = [];
     public ICollection<Participation> Participations { get; set; } = [];
     public ICollection<Comment> CommentsAuthored { get; set; } = [];

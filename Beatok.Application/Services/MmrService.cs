@@ -46,12 +46,10 @@ public class MmrService: IMmrService
             var user = item.Participant.User;
             var userId = user!.Id;
 
-            double oldOrdinal = model.Rating(mu: user.Mu, sigma: user.Sigma).Ordinal;
 
             IRating newRating = updatedTeams[i].Players.First();
-            double newOrdinal = newRating.Ordinal;
 
-            double ratingChange = newOrdinal - oldOrdinal;
+            double ratingChange = newRating.Mu - user.Mu;
 
             results[userId] = (newRating.Mu, newRating.Sigma, ratingChange);
         }

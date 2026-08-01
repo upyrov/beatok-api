@@ -387,12 +387,25 @@ public class LobbyService(IApplicationDbContext context,
         if (!ratingResults.Any())
             return;
 
+        var ratingChanges = new List<UserRatingChangeDto>();
+        
         foreach (var participant in lobby.Participants)
         {
             if (participant.User != null && ratingResults.TryGetValue(participant.UserId, out var result))
             {
                 participant.User.Mu = result.NewMu;
                 participant.User.Sigma = result.NewSigma;
+
+                var ratingDelta = result.RatingChange >= 0
+                    ? (int)Math.Round(result.RatingChange * 10)
+                    : (int)Math.Round(result.RatingChange * 5);
+                participant.User.Rating = Math.Max(0, participant.User.Rating + ratingDelta);
+                
+                ratingChanges.Add(new UserRatingChangeDto
+                {
+                    UserId = participant.UserId,
+                    RatingChange = ratingDelta
+                });
             }
         }
 
@@ -401,13 +414,6 @@ public class LobbyService(IApplicationDbContext context,
             lobby.WinningSubmissionId = winnerSubmission.Id;
         }
         await context.SaveChangesAsync();
-
-        var ratingChanges = ratingResults
-            .Select(r => new UserRatingChangeDto
-            {
-                UserId = r.Key,
-                RatingChange = r.Value.RatingChange,
-            }).ToList();
         
         await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission.Id, ratingChanges); 
     }
