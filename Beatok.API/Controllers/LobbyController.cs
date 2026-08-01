@@ -40,25 +40,6 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
-        [AnonymousAuthorize]
-        [HttpPost("{id}/participants")]
-        public async Task<IActionResult> Join([FromRoute] Guid id)
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await lobbyService.JoinAsync(id, Guid.Parse(userId!));
-            return Ok();
-        }
-
-        [Authorize]
-        [HttpDelete("{id}/participants/me")]
-        public async Task<IActionResult> Leave([FromRoute] Guid id)
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await lobbyService.LeaveAsync(id, Guid.Parse(userId!));
-            return Ok();
-        }
-
-        [Authorize]
         [HttpPost("{id}/scores")]
         public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
         {

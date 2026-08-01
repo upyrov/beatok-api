@@ -8,7 +8,7 @@ public class LobbyProfile: Profile
 {
     public LobbyProfile()
     {
-        CreateMap<Lobby, LobbyWithParticipantsDto>();
+        CreateMap<Lobby, DetailedLobbyDto>();
 
         CreateMap<Lobby, LobbyDto>()
             .ForMember(dest => dest.ParticipantCount, opt

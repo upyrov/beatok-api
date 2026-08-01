@@ -1,13 +1,14 @@
-﻿using System.Security.Claims;
-using Beatok.API.Attributes;
+﻿using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
+using Beatok.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 
 namespace Beatok.API.Hubs
 {
@@ -28,19 +29,19 @@ namespace Beatok.API.Hubs
     [AnonymousAuthorize]
     public class LobbyHub(ILobbyService lobbyService) : Hub<ILobbyClient>
     {
-        public async Task<LobbyWithParticipantsDto> Join(string lobbyId)
+        public async Task<DetailedLobbyDto> Join(string lobbyId)
         {
-            var userId = Guid.Parse(
-                Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var lobby = await lobbyService
-                .SetConnectionIdAsync(Guid.Parse(lobbyId), userId, Context.ConnectionId);
+            var userId = Guid.Parse(Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var lobby = await lobbyService.JoinAsync(Guid.Parse(lobbyId), userId, Context.ConnectionId);
             await Groups.AddToGroupAsync(Context.ConnectionId, lobbyId);
             return lobby;
         }
 
-        public Task Leave(string lobbyId)
+        public async Task Leave(string lobbyId)
         {
-            return Groups.RemoveFromGroupAsync(Context.ConnectionId, lobbyId);
+            var userId = Guid.Parse(Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            await lobbyService.LeaveAsync(Guid.Parse(lobbyId), userId);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, lobbyId);
         }
 
         public async Task SendMessage(Guid lobbyId, string content)

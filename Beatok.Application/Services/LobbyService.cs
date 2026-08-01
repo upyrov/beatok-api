@@ -52,26 +52,24 @@ public class LobbyService(IApplicationDbContext context,
         return lobby.Id;
     }
 
-    public async Task JoinAsync(Guid lobbyId, Guid userId)
+    public async Task<DetailedLobbyDto> JoinAsync(Guid lobbyId, Guid userId, string connectionId)
     {
         var lobby = await context.Lobbies
                         .Include(l => l.Participants)
                         .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
-        var user = await context.Users.FindAsync(userId)
-            ??throw new NotFoundException("User not found");
+
+        if (!await context.Users.AnyAsync(u => u.Id == userId))
+            throw new NotFoundException("User not found");
 
         var participant = lobby.Participants.FirstOrDefault(p =>
-            p.UserId == user.Id && p.LobbyId == lobby.Id);
-        if (participant != null)
-        {
-            await RejoinAsync(participant);
-        }
-        else
+            p.UserId == userId && p.LobbyId == lobbyId);
+
+        if (participant is null)
         {
             var activeLobbyCount = await context.Participation
-                .Where(p => p.UserId == userId && p.Lobby!.State != LobbyState.Ended)
-                .CountAsync();
+                .CountAsync(p => p.UserId == userId && p.Lobby!.State != LobbyState.Ended);
+
             if (activeLobbyCount >= 2)
                 throw new BadRequestException("User cannot join more than 2 active lobbies");
             if (lobby.State != LobbyState.Waiting)
@@ -81,18 +79,54 @@ public class LobbyService(IApplicationDbContext context,
 
             var newParticipant = new Participation
             {
-                LobbyId = lobby.Id,
-                UserId = user.Id
+                LobbyId = lobbyId,
+                UserId = userId,
+                ConnectionId = connectionId
             };
+
+            lobby.Participants.Add(newParticipant);
             await context.Participation.AddAsync(newParticipant);
             await context.SaveChangesAsync();
 
-            await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant));
+            await lobbyNotifier.ParticipantJoinedAsync(lobbyId, mapper.Map<ParticipationDto>(newParticipant));
         }
+        else
+        {
+            participant.ConnectionId = connectionId;
+            await RejoinAsync(participant);
+        }
+
         if (lobby.ParticipantLimit == lobby.Participants.Count)
         {
             await StartAsync(lobbyId, lobby.OwnerId);
         }
+
+        var lobbyWithParticipants = await context.Lobbies
+            .AsNoTracking() // prevents presigned URLs from saving to DB
+            .AsSplitQuery() // prevents Cartesian Explosion
+            .Include(l => l.Participants)
+                .ThenInclude(p => p.User)
+            .Include(l => l.Participants)
+                .ThenInclude(p => p.Scores)
+            .Include(l => l.Genre)
+            .Include(l => l.Owner)
+            .Include(l => l.Submissions)
+            .Include(l => l.Sounds)
+                .ThenInclude(s => s.Category)
+            .FirstOrDefaultAsync(l => l.Id == lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+
+        foreach (var sound in lobbyWithParticipants.Sounds)
+        {
+            sound.Value = storage.GeneratePresignedUrl(sound.Value, TimeSpan.FromHours(1));
+        }
+
+        foreach (var submission in lobbyWithParticipants.Submissions)
+        {
+            submission.Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1));
+        }
+
+        return mapper.Map<DetailedLobbyDto>(lobbyWithParticipants);
     }
 
     private async Task RejoinAsync(Participation participant)
@@ -154,39 +188,6 @@ public class LobbyService(IApplicationDbContext context,
             return;
         }
         await context.SaveChangesAsync();
-    }
-    
-    public async Task<LobbyWithParticipantsDto> SetConnectionIdAsync(Guid lobbyId, Guid userId, string connectionId)
-    {
-        var lobby = await context.Lobbies
-                .Include(l => l.Participants)
-                    .ThenInclude(p => p.User)
-                .Include(l => l.Participants)
-                .ThenInclude(p => p.Scores)
-                .Include(l => l.Genre)
-                .Include(l => l.Owner)
-                .Include(l => l.Submissions)
-                .Include(l => l.Sounds)
-                    .ThenInclude(s => s.Category)
-                .FirstOrDefaultAsync(l => l.Id == lobbyId)
-            ?? throw new NotFoundException("Lobby not found");
-        var participant = lobby.Participants
-            .FirstOrDefault(p => p.UserId == userId) ??
-                          throw new NotFoundException("User not found in lobby");
-
-        participant.ConnectionId = connectionId;
-        await context.SaveChangesAsync();
-
-        foreach (var sound in lobby.Sounds)
-        {
-            sound.Value = storage.GeneratePresignedUrl(sound.Value, TimeSpan.FromHours(1));
-        }
-
-        foreach (var submission in lobby.Submissions)
-        {
-            submission.Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1));
-        }
-        return mapper.Map<LobbyWithParticipantsDto>(lobby);
     }
 
     public async Task DisconnectAsync(string connectionId)
