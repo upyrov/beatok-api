@@ -5,7 +5,7 @@ using Beatok.Domain.Entities;
 
 namespace Beatok.Application.DTOs.Lobby;
 
-public record LobbyWithParticipantsDto
+public record DetailedLobbyDto
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public required string Name { get; set; }

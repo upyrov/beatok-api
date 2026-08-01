@@ -13,9 +13,10 @@
     <ItemGroup>
       <PackageReference Include="AutoMapper" Version="16.2.0" />
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-      <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+      <PackageReference Include="Hangfire.AspNetCore" Version="1.8.24" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.10" />
       <PackageReference Include="OpenSkillSharp" Version="1.1.0" />
     </ItemGroup>
 
