@@ -41,6 +41,15 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
+        [HttpDelete("/{id}/participants/{targetUserId}")]
+        public async Task<IActionResult> Kick([FromRoute] Guid id, [FromRoute] Guid targetUserId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await lobbyService.KickAsync(id, Guid.Parse(userId!), targetUserId);
+            return Ok();
+        }
+
+        [Authorize]
         [HttpPost("{id}/scores")]
         public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
         {

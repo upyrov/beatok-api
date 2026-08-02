@@ -58,7 +58,7 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
         
         await context.Scores.AddAsync(score);
         await context.SaveChangesAsync();
-        await lobbyService.TryFinishVoting(lobby);
+        await lobbyService.TryFinishVotingAsync(lobby);
     }
 
     public async Task UpdateValueAsync(Guid id, UpdateScoreDto dto)

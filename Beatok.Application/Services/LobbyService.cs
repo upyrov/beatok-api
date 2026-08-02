@@ -335,6 +335,32 @@ public class LobbyService(IApplicationDbContext context,
         await context.SaveChangesAsync();
     }
 
+    public async Task KickAsync(Guid lobbyId, Guid userId, Guid targetUserId)
+    {
+        var lobby = await context.Lobbies
+                .Include(l => l.Participants)
+                .FirstOrDefaultAsync(l => l.Id == lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+        if (lobby.OwnerId != userId)
+            throw new BadRequestException("You are not the owner of this lobby");
+        var participant = lobby.Participants
+            .FirstOrDefault(p => p.UserId == targetUserId) ??
+                throw new NotFoundException("User not found in lobby");
+
+        if (lobby.State == LobbyState.Waiting)
+        {
+            await HandleNotStartedLeaveAsync(lobby, participant);
+            await lobbyNotifier.ParticipantLeftAsync(lobby.Id, targetUserId);
+        }
+        else
+        {
+            participant.IsConnected = false;
+            participant.ConnectionId = null;
+            await context.SaveChangesAsync();
+            await lobbyNotifier.ParticipantLeftAsync(lobby.Id, targetUserId);
+        }
+    }
+
     public async Task TransitionToVotingAsync(Guid lobbyId)
     {
         var lobby = await context.Lobbies.
@@ -375,7 +401,7 @@ public class LobbyService(IApplicationDbContext context,
         await lobbyNotifier.VotingStartedAsync(lobby.Id, votingTime, submissions);
     }
 
-    public async Task TryFinishVoting(Lobby lobby)
+    public async Task TryFinishVotingAsync(Lobby lobby)
     {
         var submissions = lobby.Submissions.ToList();
         
