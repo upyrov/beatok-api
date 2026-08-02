@@ -48,7 +48,11 @@ namespace Beatok.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateSubmissionDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await submissionService.CreateAsync(dto, Guid.Parse(userId!));
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            await submissionService.CreateAsync(dto, Guid.Parse(userId));
             return Ok();
         }
 
@@ -56,7 +60,11 @@ namespace Beatok.API.Controllers
         public async Task<IActionResult> UpdateValue([FromRoute] Guid id, [FromBody] UpdateSubmissionDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await submissionService.UpdateValueAsync(id, dto, Guid.Parse(userId!));
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            await submissionService.UpdateValueAsync(id, dto, Guid.Parse(userId));
             return Ok();
         }
 

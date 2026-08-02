@@ -279,6 +279,31 @@ public class LobbyService(IApplicationDbContext context,
         return dtos;
     }
 
+    public Task<PageResult<LobbyDto>> GetAllByUserId(Guid userId, int page, int pageSize)
+    {
+        var query = context.Lobbies
+            .Include(l => l.Genre)
+            .Include(l => l.Owner)
+            .Include(l => l.Participants)
+            .Where(l => l.Participants.Any(p => p.UserId == userId))
+            .AsQueryable();
+
+        var totalCount = query.Count();
+        var lobbies = query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var dtos = mapper.Map<List<LobbyDto>>(lobbies);
+        return Task.FromResult(new PageResult<LobbyDto>
+        {
+            Items = dtos,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        });
+    }
+
     private IQueryable<Lobby> ApplyFilter(IQueryable<Lobby> query, LobbyFilterDto filter)
     {
         if (!string.IsNullOrEmpty(filter.Name))

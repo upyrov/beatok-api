@@ -8,6 +8,7 @@ public interface ILobbyService
 {
     Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId);
     Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter, string? userIdStr);
+    Task<PageResult<LobbyDto>> GetAllByUserId(Guid userId, int page, int pageSize);
     Task StartAsync(Guid lobbyId, Guid userId);
     Task KickAsync(Guid lobbyId, Guid userId, Guid targetUserId);
     Task TransitionToVotingAsync(Guid lobbyId);

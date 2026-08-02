@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
+using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,8 @@ namespace Beatok.API.Controllers
 {
     [Route("users")]
     [ApiController]
-    public class UserController(IUserService userService, ICommentService commentService) : ControllerBase
+    public class UserController(IUserService userService, ILobbyService lobbyService,
+        ICommentService commentService) : ControllerBase
     {
         private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png"];
         
@@ -69,7 +71,16 @@ namespace Beatok.API.Controllers
             await userService.UpdateAsync(Guid.Parse(userId), dto);
             return Ok();
         }
-        
+
+        [HttpGet("{id:guid}/history")]
+        public async Task<ActionResult<PageResult<LobbyDto>>> GetHistory(
+           [FromRoute] Guid id, [FromQuery] PaginationParams paginationParams)
+        {
+            var pageResult = await lobbyService
+                .GetAllByUserIdAsync(id, paginationParams.Page, paginationParams.PageSize);
+            return Ok(pageResult);
+        }
+
         [HttpPost("{id:guid}/comments")]
         [Authorize]
         public async Task<IActionResult> AddComment([FromRoute] Guid id, [FromBody] CreateCommentDto dto)

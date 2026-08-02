@@ -20,7 +20,11 @@ namespace Beatok.API.Controllers
         public async Task<ActionResult<Guid>> Create([FromBody] CreateLobbyDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var lobbyId = await lobbyService.CreateAsync(dto, Guid.Parse(userId!));
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            var lobbyId = await lobbyService.CreateAsync(dto, Guid.Parse(userId));
             return Ok(lobbyId);
         }
 
@@ -31,12 +35,28 @@ namespace Beatok.API.Controllers
             return Ok(await lobbyService.GetAllAsync(filter, userId));
         }
 
+        [HttpGet]
+        public Task<ActionResult<PageResult<LobbyDto>>> GetAllByUserId([FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Task.FromResult<ActionResult<PageResult<LobbyDto>>>(Unauthorized());
+            }
+            return lobbyService.GetAllByUserId(Guid.Parse(userId), page, pageSize)
+                .ContinueWith<ActionResult<PageResult<LobbyDto>>>(t => Ok(t.Result));
+        }
+
         [Authorize]
         [HttpPatch("{id:guid}/start")]
         public async Task<IActionResult> Start([FromRoute] Guid id)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await lobbyService.StartAsync(id, Guid.Parse(userId!));
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            await lobbyService.StartAsync(id, Guid.Parse(userId));
             return Ok();
         }
 
@@ -45,7 +65,11 @@ namespace Beatok.API.Controllers
         public async Task<IActionResult> Kick([FromRoute] Guid id, [FromRoute] Guid targetUserId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await lobbyService.KickAsync(id, Guid.Parse(userId!), targetUserId);
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            await lobbyService.KickAsync(id, Guid.Parse(userId), targetUserId);
             return Ok();
         }
 
@@ -54,7 +78,11 @@ namespace Beatok.API.Controllers
         public async Task<IActionResult> UpdateScore([FromRoute] Guid id, [FromRoute] Guid scoreId, [FromBody] UpdateScoreDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await scoreService.UpdateValueAsync(Guid.Parse(userId!), id, scoreId, dto);
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            await scoreService.UpdateValueAsync(Guid.Parse(userId), id, scoreId, dto);
             return Ok();
         }
 
@@ -63,7 +91,11 @@ namespace Beatok.API.Controllers
         public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            await scoreService.CreateAsync(Guid.Parse(userId!), id, dto);
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+            await scoreService.CreateAsync(Guid.Parse(userId), id, dto);
             return Ok();
         }
     }
