@@ -34,7 +34,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize(Roles = nameof(UserRole.Administrator))]
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             await genreService.DeleteAsync(id);

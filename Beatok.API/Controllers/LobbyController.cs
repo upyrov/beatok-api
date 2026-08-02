@@ -32,7 +32,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
-        [HttpPatch("{id}/start")]
+        [HttpPatch("{id:guid}/start")]
         public async Task<IActionResult> Start([FromRoute] Guid id)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -41,7 +41,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
-        [HttpDelete("/{id}/participants/{targetUserId}")]
+        [HttpDelete("{id:guid}/participants/{targetUserId:guid}")]
         public async Task<IActionResult> Kick([FromRoute] Guid id, [FromRoute] Guid targetUserId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -50,7 +50,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
-        [HttpPatch("{id}/scores/{scoreId}")]
+        [HttpPatch("{id:guid}/scores/{scoreId:guid}")]
         public async Task<IActionResult> UpdateScore([FromRoute] Guid id, [FromRoute] Guid scoreId, [FromBody] UpdateScoreDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -59,7 +59,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("{id}/scores")]
+        [HttpPost("{id:guid}/scores")]
         public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -56,7 +56,7 @@ namespace Beatok.API.Controllers
             return Ok(await userService.GetUserByIdAsync(Guid.Parse(userId)));
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<ActionResult<UserDto>> GetById([FromRoute] Guid id)
         {
             return Ok(await userService.GetUserByIdAsync(id));
@@ -71,7 +71,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
         
-        [HttpPost("{id}/comments")]
+        [HttpPost("{id:guid}/comments")]
         [Authorize]
         public async Task<IActionResult> AddComment([FromRoute] Guid id, [FromBody] CreateCommentDto dto)
         {
@@ -80,7 +80,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [HttpGet("{id}/comments")]
+        [HttpGet("{id:guid}/comments")]
         public async Task<ActionResult<PageResult<CommentDto>>> GetComments(
             [FromRoute] Guid id, [FromQuery] PaginationParams paginationParams)
         {

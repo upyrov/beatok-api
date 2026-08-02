@@ -32,7 +32,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             await categoryService.DeleteAsync(id);

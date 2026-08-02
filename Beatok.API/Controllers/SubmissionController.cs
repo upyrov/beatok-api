@@ -52,7 +52,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [HttpPatch("{id}")]
+        [HttpPatch("{id:guid}")]
         public async Task<IActionResult> UpdateValue([FromRoute] Guid id, [FromBody] UpdateSubmissionDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -60,7 +60,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             await submissionService.DeleteAsync(id);
