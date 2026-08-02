@@ -14,7 +14,7 @@ public class AuthService(IPasswordHasher passwordHasher,
     IValidator<UserSignupDto> validator,
     IJwtProvider jwtProvider, IApplicationDbContext context): IAuthService
 {
-    public async Task SignUpAsync(UserSignupDto dto)
+    public async Task SignUpAsync(UserSignupDto dto, Guid? userId)
     {
         var fluentValidationResult = await validator.ValidateAsync(dto);
 
@@ -26,6 +26,13 @@ public class AuthService(IPasswordHasher passwordHasher,
         if (await context.Users.AnyAsync(u => u.Email == dto.Email))
         {
             throw new EmailAlreadyExistsException("User with this email already exists");
+        }
+        
+        User? existingUser = await context.Users.FindAsync(userId);
+        if (existingUser != null && existingUser.IsAnonymous)
+        {
+            await ConvertAnonymousUserAsync(dto, existingUser);
+            return;
         }
         
         var passwordHash = passwordHasher.GenerateHash(dto.Password);
@@ -40,6 +47,17 @@ public class AuthService(IPasswordHasher passwordHasher,
         };
         
         await context.Users.AddAsync(user);
+        await context.SaveChangesAsync();
+    }
+
+    private async Task ConvertAnonymousUserAsync(UserSignupDto dto, User user)
+    {
+        user.Name = dto.Name;
+        user.Email = dto.Email;
+        user.LastActiveAt = null;
+        user.PasswordHash = passwordHasher.GenerateHash(dto.Password);
+        user.Role = UserRole.Player;
+        user.IsAnonymous = false;
         await context.SaveChangesAsync();
     }
 

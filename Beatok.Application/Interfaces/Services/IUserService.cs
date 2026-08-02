@@ -7,5 +7,6 @@ public interface IUserService
     PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType);
     Task UpdateLastActiveAtAsync(Guid userId);
     Task<UserDto> GetUserByIdAsync(Guid userId);
+    Task<MeDto> GetMeAsync(Guid userId);
     Task UpdateAsync(Guid userId, UserUpdateDto dto);
 }

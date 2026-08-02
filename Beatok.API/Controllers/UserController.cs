@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
 using Beatok.Application.DTOs.User;
@@ -49,11 +48,11 @@ namespace Beatok.API.Controllers
         
         [HttpGet("me")]
         [Authorize]
-        public async Task<IActionResult> GetMe()
+        public async Task<ActionResult<MeDto>> GetMe()
         {
             var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
-            return Ok(await userService.GetUserByIdAsync(Guid.Parse(userId)));
+            return Ok(await userService.GetMeAsync(Guid.Parse(userId)));
         }
 
         [HttpGet("{id:guid}")]
