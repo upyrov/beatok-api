@@ -112,4 +112,20 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
         submission.Value = dto.Value;
         await context.SaveChangesAsync();
     }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var submission = await context.Submissions
+            .Include(s => s.Lobby)
+            .FirstOrDefaultAsync(s => s.Id == id)
+                ?? throw new NotFoundException("Submission not found");
+
+        if (submission.Lobby!.State != LobbyState.Submitting)
+        {
+            throw new InvalidOperationException("Lobby is not in submission phase");
+        }
+
+        context.Submissions.Remove(submission);
+        await context.SaveChangesAsync();
+    }
 }

@@ -58,6 +58,14 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
         
         await context.Scores.AddAsync(score);
         await context.SaveChangesAsync();
-        await lobbyService.TryFinishVoting(lobby);
+        await lobbyService.TryFinishVotingAsync(lobby);
+    }
+
+    public async Task UpdateValueAsync(Guid id, UpdateScoreDto dto)
+    {
+        var score = await context.Scores.FindAsync(id) ?? throw new NotFoundException("Score not found");
+        score.Value = dto.Value;
+        context.Scores.Update(score);
+        await context.SaveChangesAsync();
     }
 }

@@ -1,5 +1,7 @@
 using Beatok.Application.DTOs.Genre;
+using Beatok.Application.DTOs.Sound;
 using Beatok.Application.Interfaces.Services;
+using Beatok.Application.Services;
 using Beatok.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +24,13 @@ namespace Beatok.API.Controllers
         public async Task<ActionResult<List<GenreDto>>> GetAll()
         {
             return Ok(await genreService.GetAllAsync());
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateName([FromQuery] Guid id, [FromBody] UpdateGenreDto dto)
+        {
+            await genreService.UpdateNameAsync(id, dto);
+            return Ok();
         }
 
         [Authorize(Roles = nameof(UserRole.Administrator))]
