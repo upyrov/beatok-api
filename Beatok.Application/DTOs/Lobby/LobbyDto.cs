@@ -13,4 +13,5 @@ public record LobbyDto
     public DateTime CreatedAt { get; set; }
     public required GenreDto Genre { get; set; }
     public required UserDto Owner { get; set; }
+    public bool IsJoined { get; set; }
 }

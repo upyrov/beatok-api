@@ -245,30 +245,38 @@ public class LobbyService(IApplicationDbContext context,
             await lobbyNotifier.ParticipantLeftAsync(lobby.Id, userId);
         }
     }
-    
-    public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter)
+
+    public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter, string? userIdStr)
     {
+        Guid? userId = Guid.TryParse(userIdStr, out var parsedId) ? parsedId : null;
+
         var query = context.Lobbies
             .Include(l => l.Genre)
             .Include(l => l.Owner)
             .Include(l => l.Participants)
-            .Where(l => l.State == LobbyState.Waiting
-                        && l.Participants.Count < l.ParticipantLimit);
-        
-        var lobbies = await ApplyFilter(query, filter).ToListAsync();
-        
-        return mapper.Map<IEnumerable<LobbyDto>>(lobbies);
-    }
+            .AsQueryable();
 
-    public async Task<IEnumerable<LobbyDto>> GetAllToRejoinAsync(Guid userId)
-    {
-        var lobbies = await context.Lobbies
-            .Include(l => l.Genre)
-            .Include(l => l.Owner)
-            .Include(l => l.Participants)
-            .Where(l => l.State != LobbyState.Ended && l.Participants.Any(p => p.UserId == userId)).ToListAsync();
+        query = query.Where(l =>
+            (userId.HasValue && l.State != LobbyState.Ended && l.Participants.Any(p => p.UserId == userId.Value))
+            ||
+            (l.State == LobbyState.Waiting && l.Participants.Count < l.ParticipantLimit)
+        );
 
-        return mapper.Map<IEnumerable<LobbyDto>>(lobbies);
+
+        var filteredQuery = ApplyFilter(query, filter);
+        var lobbies = await filteredQuery.ToListAsync();
+
+        var dtos = mapper.Map<List<LobbyDto>>(lobbies);
+
+        if (userId.HasValue)
+        {
+            for (int i = 0; i < lobbies.Count; i++)
+            {
+                dtos[i].IsJoined = lobbies[i].Participants.Any(p => p.UserId == userId.Value);
+            }
+        }
+
+        return dtos;
     }
 
     private IQueryable<Lobby> ApplyFilter(IQueryable<Lobby> query, LobbyFilterDto filter)
