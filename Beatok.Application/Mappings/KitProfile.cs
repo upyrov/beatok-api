@@ -8,8 +8,6 @@ public class KitProfile: Profile
 {
     public KitProfile()
     {
-        CreateMap<CreateKitDto, Kit>();
-        
         CreateMap<Kit, KitDto>();
     }
 }

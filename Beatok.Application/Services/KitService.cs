@@ -23,16 +23,23 @@ public class KitService(IApplicationDbContext context,
             throw new ValidationException(fluentValidationResult.Errors);
         }
 
-        var genresCount = await context.Genres
-            .Where(g => dto.GenreIds.Contains(g.Id))
-            .CountAsync();
-
-        if (genresCount != dto.GenreIds.Count())
+        var genreIds = dto.GenreIds.Distinct().ToList();
+        var genres = await context.Genres
+            .Where(g => genreIds.Contains(g.Id))
+            .ToListAsync();
+        
+        if (genres.Count != genreIds.Count)
         {
             throw new NotFoundException("One or more genres not found");
         }
+
+        var kit = new Kit
+        {
+            Name = dto.Name,
+            Genres = genres
+        };
     
-        await context.Kits.AddAsync(mapper.Map<Kit>(dto));
+        await context.Kits.AddAsync(kit);
         await context.SaveChangesAsync();
     }
 
