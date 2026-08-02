@@ -31,14 +31,17 @@ public class GenreService(IApplicationDbContext context,
         return mapper.Map<IEnumerable<GenreDto>>(genres);
     }
 
+    public async Task UpdateNameAsync(Guid id, UpdateGenreDto dto)
+    {
+        var genre = await context.Genres.FindAsync(id) ?? throw new NotFoundException("Genre not found");
+        genre.Name = dto.Name;
+        context.Genres.Update(genre);
+        await context.SaveChangesAsync();
+    }
+
     public async Task DeleteAsync(Guid id)
     {
-        var genre = await context.Genres.FindAsync(id);
-        if (genre == null)
-        {
-            throw new NotFoundException("Genre not found");
-        }
-        
+        var genre = await context.Genres.FindAsync(id) ?? throw new NotFoundException("Genre not found");
         context.Genres.Remove(genre);
         await context.SaveChangesAsync();
     }
