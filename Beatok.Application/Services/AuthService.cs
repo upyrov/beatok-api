@@ -27,15 +27,12 @@ public class AuthService(IPasswordHasher passwordHasher,
         {
             throw new EmailAlreadyExistsException("User with this email already exists");
         }
-
-        if (userId != null)
+        
+        User? existingUser = await context.Users.FindAsync(userId);
+        if (existingUser != null && existingUser.IsAnonymous)
         {
-            User? existingUser = await context.Users.FindAsync(userId);
-            if (existingUser != null)
-            {
-                await ConvertAnonymousUserAsync(dto, existingUser);
-                return;
-            }
+            await ConvertAnonymousUserAsync(dto, existingUser);
+            return;
         }
         
         var passwordHash = passwordHasher.GenerateHash(dto.Password);
@@ -55,11 +52,6 @@ public class AuthService(IPasswordHasher passwordHasher,
 
     private async Task ConvertAnonymousUserAsync(UserSignupDto dto, User user)
     {
-        if (!user.IsAnonymous)
-        {
-            throw new BadRequestException("User already registered");
-        }
-        
         user.Name = dto.Name;
         user.Email = dto.Email;
         user.LastActiveAt = null;
