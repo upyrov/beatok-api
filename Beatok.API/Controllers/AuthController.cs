@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,13 @@ namespace Beatok.API.Controllers
         [HttpPost("sign-up")]
         public async Task<IActionResult> SignUp(UserSignupDto dto)
         {
-            await authService.SignUpAsync(dto);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid? userId = null;
+            if (Guid.TryParse(userIdClaim, out var id))
+            {
+                userId = id;
+            }
+            await authService.SignUpAsync(dto, userId);
             return Ok();
         }
 
