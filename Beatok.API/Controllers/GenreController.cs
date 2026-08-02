@@ -26,8 +26,8 @@ namespace Beatok.API.Controllers
             return Ok(await genreService.GetAllAsync());
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateName([FromQuery] Guid id, [FromBody] UpdateGenreDto dto)
+        [HttpPatch("{id:guid}")]
+        public async Task<IActionResult> UpdateName([FromRoute] Guid id, [FromBody] UpdateGenreDto dto)
         {
             await genreService.UpdateNameAsync(id, dto);
             return Ok();
