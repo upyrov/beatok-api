@@ -59,5 +59,12 @@ namespace Beatok.API.Controllers
             await submissionService.UpdateValueAsync(id, dto, Guid.Parse(userId!));
             return Ok();
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
+        {
+            await submissionService.DeleteAsync(id);
+            return Ok();
+        }
     }
 }
