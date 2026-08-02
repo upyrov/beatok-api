@@ -77,7 +77,7 @@ namespace Beatok.API.Controllers
            [FromRoute] Guid id, [FromQuery] PaginationParams paginationParams)
         {
             var pageResult = await lobbyService
-                .GetAllByUserIdAsync(id, paginationParams.Page, paginationParams.PageSize);
+                .GetAllByUserId(id, paginationParams.Page, paginationParams.PageSize);
             return Ok(pageResult);
         }
 
