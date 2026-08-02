@@ -44,9 +44,10 @@ public class KitService(IApplicationDbContext context,
         return mapper.Map<IEnumerable<KitDto>>(kits);
     }
 
-    public async Task<Kit> GetRandomAsync()
+    public async Task<Kit> GetRandomAsync(Guid genreId)
     {
         var kit = await context.Kits
+            .Where(k => k.Genres.Any(g => g.Id == genreId))
             .Include(k => k.Categories)
             .ThenInclude(c => c.Sounds.OrderBy(s => EF.Functions.Random()).Take(1))
             .OrderBy(k => EF.Functions.Random())

@@ -307,7 +307,7 @@ public class LobbyService(IApplicationDbContext context,
         if (lobby.State != LobbyState.Waiting)
             return;
 
-        var kit = await kitService.GetRandomAsync();
+        var kit = await kitService.GetRandomAsync(lobby.GenreId);
         var sounds = kit.Categories.
             SelectMany(c => c.Sounds)
             .DistinctBy(s => s.Id) 
