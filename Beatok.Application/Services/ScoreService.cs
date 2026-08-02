@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreDto> validator, 
-    ILobbyService lobbyService) : IScoreService
+public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreDto> createValidator, 
+    IValidator<UpdateScoreDto> updateValidator, ILobbyService lobbyService) : IScoreService
 {
     public async Task CreateAsync(Guid userId, Guid lobbyId, CreateScoreDto dto)
     {
-        var fluentValidation = await validator.ValidateAsync(dto);
+        var fluentValidation = await createValidator.ValidateAsync(dto);
         if (!fluentValidation.IsValid)
         {
             throw new ValidationException(fluentValidation.Errors);
@@ -33,14 +33,9 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
             .Include(s => s.Scores)
             .FirstOrDefaultAsync(s => s.Id == dto.SubmissionId)
             ?? throw new NotFoundException("Submission not found");
-        
+
         var participation = lobby.Participants
-            .FirstOrDefault(p => p.UserId == userId);
-        if (participation == null)
-        {
-            throw new BadRequestException("User is not a participant in this lobby");
-        }
-        
+            .FirstOrDefault(p => p.UserId == userId) ?? throw new BadRequestException("User is not a participant in this lobby");
         if (submission.Participant?.UserId == userId)
             throw new BadRequestException("User cannot vote for their own track");
         if (submission.Participant!.LobbyId != lobbyId)
@@ -61,9 +56,28 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
         await lobbyService.TryFinishVotingAsync(lobby);
     }
 
-    public async Task UpdateValueAsync(Guid id, UpdateScoreDto dto)
+    public async Task UpdateValueAsync(Guid userId, Guid lobbyId, Guid scoreId, UpdateScoreDto dto)
     {
-        var score = await context.Scores.FindAsync(id) ?? throw new NotFoundException("Score not found");
+        var fluentValidation = await updateValidator.ValidateAsync(dto);
+        if (!fluentValidation.IsValid)
+        {
+            throw new ValidationException(fluentValidation.Errors);
+        }
+        var lobby = await context.Lobbies.FirstOrDefaultAsync(l => l.Id == lobbyId)
+            ?? throw new NotFoundException("Lobby not found");
+
+        if (lobby.State != LobbyState.Voting)
+            throw new BadRequestException("Lobby is not in voting phase");
+
+        var score = await context.Scores.Include(s => s.Participant).FirstOrDefaultAsync(s => s.Id == scoreId)
+            ?? throw new NotFoundException("Score not found");
+
+        if (score.LobbyId != lobbyId)
+            throw new BadRequestException("Score is not part of this lobby");
+        
+        if (score.Participant?.UserId != userId)
+            throw new BadRequestException("User is not the owner of this score");
+
         score.Value = dto.Value;
         context.Scores.Update(score);
         await context.SaveChangesAsync();

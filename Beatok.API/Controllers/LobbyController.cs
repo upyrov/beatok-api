@@ -50,6 +50,15 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
+        [HttpPatch("{id}/scores/{scoreId}")]
+        public async Task<IActionResult> UpdateScore([FromRoute] Guid id, [FromRoute] Guid scoreId, [FromBody] UpdateScoreDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await scoreService.UpdateValueAsync(Guid.Parse(userId!), id, scoreId, dto);
+            return Ok();
+        }
+
+        [Authorize]
         [HttpPost("{id}/scores")]
         public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
         {

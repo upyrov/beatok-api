@@ -1,7 +1,7 @@
 using Beatok.Application.DTOs.Score;
 using FluentValidation;
 
-namespace Beatok.Application.Validators;
+namespace Beatok.Application.Validators.Score;
 
 public class CreateScoreDtoValidator: AbstractValidator<CreateScoreDto>
 {
