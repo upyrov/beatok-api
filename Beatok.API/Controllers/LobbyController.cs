@@ -35,15 +35,10 @@ namespace Beatok.API.Controllers
             return Ok(await lobbyService.GetAllAsync(filter, userId));
         }
 
-        [HttpGet]
-        public Task<ActionResult<PageResult<LobbyDto>>> GetAllByUserId([FromQuery] int page, [FromQuery] int pageSize)
+        [HttpGet("history/{id:guid}")]
+        public Task<ActionResult<PageResult<LobbyDto>>> GetAllByUserId([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Task.FromResult<ActionResult<PageResult<LobbyDto>>>(Unauthorized());
-            }
-            return lobbyService.GetAllByUserId(Guid.Parse(userId), page, pageSize)
+            return lobbyService.GetAllByUserId(id, page, pageSize)
                 .ContinueWith<ActionResult<PageResult<LobbyDto>>>(t => Ok(t.Result));
         }
 

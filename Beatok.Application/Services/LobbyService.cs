@@ -281,6 +281,9 @@ public class LobbyService(IApplicationDbContext context,
 
     public Task<PageResult<LobbyDto>> GetAllByUserId(Guid userId, int page, int pageSize)
     {
+        var user = context.Users.FirstOrDefault(u => u.Id == userId)
+            ?? throw new NotFoundException("User not found");
+
         var query = context.Lobbies
             .Include(l => l.Genre)
             .Include(l => l.Owner)
