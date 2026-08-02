@@ -13,5 +13,6 @@ public class UserProfile: Profile
             .ForMember(dest => dest.Picture, opt
                 => opt.MapFrom<PresignedUrlResolver>());
         CreateMap<UserUpdateDto, User>();
+        CreateMap<User, MeDto>();
     }
 }

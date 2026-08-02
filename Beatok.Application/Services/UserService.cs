@@ -43,6 +43,13 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
         return mapper.Map<UserDto>(user);
     }
 
+    public async Task<MeDto> GetMeAsync(Guid userId)
+    {
+        var user = await context.Users.FindAsync(userId)
+            ?? throw new UserNotFoundException();
+        return mapper.Map<MeDto>(user);
+    }
+
     public async Task UpdateAsync(Guid userId, UserUpdateDto dto)
     {
         var user = await context.Users.FindAsync(userId)
