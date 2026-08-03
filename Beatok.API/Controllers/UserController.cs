@@ -15,7 +15,7 @@ namespace Beatok.API.Controllers
     public class UserController(IUserService userService, ILobbyService lobbyService,
         ICommentService commentService) : ControllerBase
     {
-        private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png"];
+        private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png", ".jfif"];
         
         [HttpGet("upload")]
         [Authorize]
