@@ -15,8 +15,10 @@ public class GoogleAuthService(
     GoogleAuthOptions _options = options.Value;
     private const string AuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 
-    public string GenerateOAuthUrlRedirectUrl()
+    public OAuthRedirectInfo GenerateOAuthUrlRedirectUrl()
     {
+        var state = Guid.NewGuid().ToString("N");
+        
         var query = new Dictionary<string, string?>
         {
             ["redirect_uri"] = _options.RedirectUri,
@@ -24,10 +26,15 @@ public class GoogleAuthService(
             ["response_type"] = "code",
             ["scope"] = "openid email profile",
             ["access_type"] = "offline",
-            ["prompt"] = "consent"
+            ["prompt"] = "consent",
+            ["state"] = state
         };
         var url = QueryHelpers.AddQueryString(AuthUrl, query);
-        return url;
+        return new OAuthRedirectInfo
+        {
+            RedirectUrl = url,
+            State = state
+        };
     }
 
     public async Task<GoogleTokenResponse> ExchangeCodeForTokenAsync(string code)

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using AutoMapper;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.User;
+using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +14,32 @@ namespace Beatok.API.Controllers
         IMapper mapper) : ControllerBase
     {
         [HttpGet("google/url")]
-        public IActionResult GetGoogleAuthUrl()
+        public ActionResult<string> GetGoogleAuthUrl()
         {
-            return Ok(googleAuthService.GenerateOAuthUrlRedirectUrl());
+            var redirect = googleAuthService.GenerateOAuthUrlRedirectUrl();
+            Response.Cookies.Append(
+                "oauth_state",
+                redirect.State,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(5)
+                });
+            return Ok(redirect.RedirectUrl);
         }
 
         [HttpGet("google/callback")]
-        public async Task<IActionResult> GoogleAuthCallback([FromQuery] string code)
+        public async Task<IActionResult> GoogleAuthCallback([FromQuery] string code, [FromQuery] string state)
         {
+            var expectedState = Request.Cookies["oauth_state"];
+            if (string.IsNullOrEmpty(expectedState) || expectedState != state)
+            {
+                throw new BadRequestException("Invalid oauth state.");
+            }
+            Response.Cookies.Delete("oauth_state");
+            
             Guid? userIdClaim = null;
             if (Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id))
                 userIdClaim = id;
@@ -32,7 +51,7 @@ namespace Beatok.API.Controllers
                 AuthenticateExternalUserAsync(mapper.Map<ExternalUserInfo>(userInfo), userIdClaim);
             
             SetCookie(AuthResultDto.AccessToken, AuthResultDto.RefreshToken, AuthResultDto.Expires);
-            return Redirect("https://localhost:5173/");
+            return Ok();
         }
         
         [HttpPost("sign-up")]
