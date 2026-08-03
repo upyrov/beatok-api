@@ -51,11 +51,9 @@ namespace Beatok.API.Controllers
         
         [HttpGet("me")]
         [Authorize]
-        [AnonymousAuthorize]
         public async Task<ActionResult<MeDto>> GetMe()
         {
-            var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-
+            var userId = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
             return Ok(await userService.GetMeAsync(Guid.Parse(userId)));
         }
 
