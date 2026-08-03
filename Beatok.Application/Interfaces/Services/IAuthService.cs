@@ -9,4 +9,5 @@ public interface IAuthService
     Task<AuthResultDto> SignInAsync(UserSigninDto dto);
     Task<AuthResultDto> SignInAnonymousAsync();
     Task<AuthResultDto> RefreshTokenAsync(string refreshToken);
+    Task<AuthResultDto> AuthenticateExternalUserAsync(ExternalUserInfo userInfo, Guid? userIdClaim);
 }

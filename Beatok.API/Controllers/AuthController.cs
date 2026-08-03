@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using AutoMapper;
+using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,8 +9,32 @@ namespace Beatok.API.Controllers
 {
     [Route("auth")]
     [ApiController]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, IGoogleAuthService googleAuthService, 
+        IMapper mapper) : ControllerBase
     {
+        [HttpGet("google/url")]
+        public IActionResult GetGoogleAuthUrl()
+        {
+            return Ok(googleAuthService.GenerateOAuthUrlRedirectUrl());
+        }
+
+        [HttpGet("google/callback")]
+        public async Task<IActionResult> GoogleAuthCallback([FromQuery] string code)
+        {
+            Guid? userIdClaim = null;
+            if (Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id))
+                userIdClaim = id;
+            
+            var token = await googleAuthService.ExchangeCodeForTokenAsync(code);
+            var userInfo = await googleAuthService.GetUserInfoAsync(token.AccessToken);
+            
+            var AuthResultDto = await authService.
+                AuthenticateExternalUserAsync(mapper.Map<ExternalUserInfo>(userInfo), userIdClaim);
+            
+            SetCookie(AuthResultDto.AccessToken, AuthResultDto.RefreshToken, AuthResultDto.Expires);
+            return Redirect("https://localhost:5173/");
+        }
+        
         [HttpPost("sign-up")]
         public async Task<IActionResult> SignUp(UserSignupDto dto)
         {
