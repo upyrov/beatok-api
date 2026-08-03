@@ -1,5 +1,8 @@
 using System.Security.Claims;
+using AutoMapper;
+using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.User;
+using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,8 +10,50 @@ namespace Beatok.API.Controllers
 {
     [Route("auth")]
     [ApiController]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController(IAuthService authService, IGoogleAuthService googleAuthService, 
+        IMapper mapper) : ControllerBase
     {
+        [HttpGet("google/url")]
+        public ActionResult<string> GetGoogleAuthUrl()
+        {
+            var redirect = googleAuthService.GenerateOAuthUrlRedirectUrl();
+            Response.Cookies.Append(
+                "oauth_state",
+                redirect.State,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(5)
+                });
+            return Ok(redirect.RedirectUrl);
+        }
+
+        [HttpGet("google/callback")]
+        public async Task<IActionResult> GoogleAuthCallback([FromQuery] string code, [FromQuery] string state)
+        {
+            var expectedState = Request.Cookies["oauth_state"];
+            if (string.IsNullOrEmpty(expectedState) || expectedState != state)
+            {
+                throw new BadRequestException("Invalid oauth state.");
+            }
+            Response.Cookies.Delete("oauth_state");
+            
+            Guid? userIdClaim = null;
+            if (Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id))
+                userIdClaim = id;
+            
+            var token = await googleAuthService.ExchangeCodeForTokenAsync(code);
+            var userInfo = await googleAuthService.GetUserInfoAsync(token.AccessToken);
+            
+            var AuthResultDto = await authService.
+                AuthenticateExternalUserAsync(mapper.Map<ExternalUserInfo>(userInfo), userIdClaim);
+            
+            SetCookie(AuthResultDto.AccessToken, AuthResultDto.RefreshToken, AuthResultDto.Expires);
+            return Ok();
+        }
+        
         [HttpPost("sign-up")]
         public async Task<IActionResult> SignUp(UserSignupDto dto)
         {

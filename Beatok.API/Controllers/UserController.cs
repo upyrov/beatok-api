@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
 using Beatok.Application.DTOs.Lobby;
@@ -50,6 +51,7 @@ namespace Beatok.API.Controllers
         
         [HttpGet("me")]
         [Authorize]
+        [AnonymousAuthorize]
         public async Task<ActionResult<MeDto>> GetMe()
         {
             var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;

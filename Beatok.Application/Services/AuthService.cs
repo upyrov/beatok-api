@@ -98,6 +98,65 @@ public class AuthService(IPasswordHasher passwordHasher,
         };
     }
 
+    public async Task<AuthResultDto> AuthenticateExternalUserAsync(ExternalUserInfo userInfo, Guid? userIdClaim)
+    {
+        if (!userInfo.EmailVerified)
+        {
+            throw new BadRequestException("Email not verified");
+        }
+        
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == userInfo.Email);
+        
+        if (userIdClaim.HasValue)
+        {
+            var currentUser = await context.Users.FindAsync(userIdClaim);
+            if (currentUser != null && currentUser.IsAnonymous)
+            {
+                if (user != null)
+                {
+                    throw new BadRequestException("User with this email already exists");
+                }
+                currentUser.IsAnonymous = false;
+                currentUser.Name = userInfo.Name;
+                currentUser.Email = userInfo.Email;
+                currentUser.LastActiveAt = null;
+                user = currentUser;
+            }
+        }
+        if (user == null)
+        {
+            user = new User
+            {
+                Name = userInfo.Name,
+                Email = userInfo.Email,
+                LastActiveAt = null,
+                Role = UserRole.Player,
+                IsAnonymous = false
+            };
+            await context.Users.AddAsync(user);
+        }
+        
+        var accessToken = jwtProvider.GenerateToken(user);
+        var refreshToken = jwtProvider.GenerateRefreshToken();
+        
+        var refreshTokenEntity = new RefreshToken
+        {
+            TokenHash = jwtProvider.ComputeHash(refreshToken),
+            UserId = user.Id,
+            Expires = DateTime.UtcNow.AddDays(30)
+        };
+
+        await context.RefreshTokens.AddAsync(refreshTokenEntity);
+        await context.SaveChangesAsync();
+        
+        return new AuthResultDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            Expires = refreshTokenEntity.Expires
+        };
+    }
+    
     public async Task<AuthResultDto> SignInAnonymousAsync()
     {
         var userName = GenerateAnonymousName();

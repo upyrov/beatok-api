@@ -1,7 +1,9 @@
 using Amazon.S3;
 using Beatok.Application.Interfaces;
+using Beatok.Application.Interfaces.Services;
 using Beatok.Infrastructure.Authentication;
 using Beatok.Infrastructure.BackgroundServices;
+using Beatok.Infrastructure.ExternalAuth;
 using Beatok.Infrastructure.Persistence;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -31,6 +33,20 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
         
         services.Configure<R2Options>(configuration.GetSection(nameof(R2Options)));
+        
+        services.Configure<GoogleAuthOptions>(configuration.GetSection(nameof(GoogleAuthOptions)));
+
+        services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+        
+        services.AddHttpClient("Google", client =>
+        {
+            client.BaseAddress = new Uri("https://oauth2.googleapis.com/");
+        });
+        
+        services.AddHttpClient("GoogleOpenId", client =>
+        {
+            client.BaseAddress = new Uri("https://openidconnect.googleapis.com/");
+        });
         
         services.AddSingleton<IAmazonS3>(_ =>
         {
