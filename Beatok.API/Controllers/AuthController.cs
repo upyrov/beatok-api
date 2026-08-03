@@ -13,6 +13,13 @@ namespace Beatok.API.Controllers
     public class AuthController(IAuthService authService, IGoogleAuthService googleAuthService, 
         IMapper mapper) : ControllerBase
     {
+        private readonly CookieOptions baseCookieOptions = new()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+        };
+
         [HttpGet("google/url")]
         public ActionResult<string> GetGoogleAuthUrl()
         {
@@ -38,7 +45,13 @@ namespace Beatok.API.Controllers
             {
                 throw new BadRequestException("Invalid oauth state.");
             }
-            Response.Cookies.Delete("oauth_state");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+            };
+            Response.Cookies.Delete("oauth_state", baseCookieOptions);
             
             Guid? userIdClaim = null;
             if (Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id))
@@ -94,8 +107,15 @@ namespace Beatok.API.Controllers
         [HttpPost("sign-out")]
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("jwt");
-            Response.Cookies.Delete("refresh_token");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+            };
+
+            Response.Cookies.Delete("jwt", baseCookieOptions);
+            Response.Cookies.Delete("refresh_token", baseCookieOptions);
             return Ok();
         }
         
@@ -103,9 +123,9 @@ namespace Beatok.API.Controllers
         {
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
+                HttpOnly = baseCookieOptions.HttpOnly,
+                Secure = baseCookieOptions.Secure,
+                SameSite = baseCookieOptions.SameSite,
                 Expires = expires
             };
 
