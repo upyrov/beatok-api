@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class SubmissionService(IApplicationDbContext context, IValidator<CreateSubmissionDto> createValidator,
-    IValidator<UpdateSubmissionDto> updateValidator, IBackgroundJobClient backgroundJobClient,
+    IValidator<SubmissionUpdateDto> updateValidator, IBackgroundJobClient backgroundJobClient,
     IStorage storage, ILobbyService lobbyService) : ISubmissionService
 {
     public SubmissionUploadDto GenerateUploadUrl(string fileExtension, string contentType)
@@ -85,7 +85,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
         }
     }
 
-    public async Task UpdateValueAsync(Guid id, UpdateSubmissionDto dto, Guid userId)
+    public async Task UpdateValueAsync(Guid id, SubmissionUpdateDto dto, Guid userId)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)

@@ -1,6 +1,6 @@
 ﻿namespace Beatok.Application.DTOs.Genre;
 
-public record UpdateGenreDto
+public record GenreUpdateDto
 {
     public required string Name { get; set; }
 }

@@ -1,6 +1,6 @@
 namespace Beatok.Application.DTOs.User;
 
-public record UserSignupDto
+public record SignupDto
 {
     public required string Name { get; set; }
     public required string Email { get; set; }

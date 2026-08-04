@@ -1,6 +1,6 @@
 ﻿namespace Beatok.Application.DTOs.Category;
 
-public record UpdateCategoryDto
+public record CategoryUpdateDto
 {
     public required string Name { get; set; }
 }

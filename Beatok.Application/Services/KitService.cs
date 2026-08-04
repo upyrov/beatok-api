@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class KitService(IApplicationDbContext context, 
-    IValidator<CreateKitDto> createValidator, IValidator<UpdateKitDto> updateValidator,
+    IValidator<CreateKitDto> createValidator, IValidator<KitUpdateDto> updateValidator,
     IMapper mapper)
     : IKitService
 {
@@ -63,7 +63,7 @@ public class KitService(IApplicationDbContext context,
         return kit ?? throw new NotFoundException("Kit not found");
     }
 
-    public async Task UpdateAsync(Guid id, UpdateKitDto dto)
+    public async Task UpdateAsync(Guid id, KitUpdateDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)

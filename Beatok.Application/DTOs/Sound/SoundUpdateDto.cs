@@ -1,6 +1,6 @@
 ﻿namespace Beatok.Application.DTOs.Sound;
 
-public record UpdateSoundDto
+public record SoundUpdateDto
 {
     public required string Value { get; set; }
 }

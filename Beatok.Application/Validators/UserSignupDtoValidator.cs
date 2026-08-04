@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Beatok.Application.Validators;
 
-public class UserSignupDtoValidator: AbstractValidator<UserSignupDto>
+public class UserSignupDtoValidator: AbstractValidator<SignupDto>
 {
     public UserSignupDtoValidator()
     {

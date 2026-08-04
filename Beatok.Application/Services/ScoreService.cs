@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreDto> createValidator, 
-    IValidator<UpdateScoreDto> updateValidator, ILobbyService lobbyService) : IScoreService
+    IValidator<ScoreUpdateDto> updateValidator, ILobbyService lobbyService) : IScoreService
 {
     public async Task CreateAsync(Guid userId, Guid lobbyId, CreateScoreDto dto)
     {
@@ -56,7 +56,7 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
         await lobbyService.TryFinishVotingAsync(lobby);
     }
 
-    public async Task UpdateValueAsync(Guid userId, Guid lobbyId, Guid scoreId, UpdateScoreDto dto)
+    public async Task UpdateValueAsync(Guid userId, Guid lobbyId, Guid scoreId, ScoreUpdateDto dto)
     {
         var fluentValidation = await updateValidator.ValidateAsync(dto);
         if (!fluentValidation.IsValid)

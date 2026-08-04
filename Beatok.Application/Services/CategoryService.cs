@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class CategoryService(IApplicationDbContext context,
-    IValidator<CreateCategoryDto> createValidator, IValidator<UpdateCategoryDto> updateValidator, 
+    IValidator<CreateCategoryDto> createValidator, IValidator<CategoryUpdateDto> updateValidator, 
     IMapper mapper)
     : ICategoryService
 {
@@ -42,7 +42,7 @@ public class CategoryService(IApplicationDbContext context,
         return mapper.Map<IEnumerable<CategoryDto>>(categories);
     }
 
-    public async Task UpdateNameAsync(Guid id, UpdateCategoryDto dto)
+    public async Task UpdateNameAsync(Guid id, CategoryUpdateDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)

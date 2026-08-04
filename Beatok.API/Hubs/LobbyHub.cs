@@ -22,7 +22,7 @@ namespace Beatok.API.Hubs
         Task MessageReceived(Guid senderId, string content);
         Task Started(ICollection<SoundWithCategory> sounds);
         Task VotingStarted(TimeSpan votingTime, ICollection<SubmissionDto> submissions);
-        Task Ended(Guid? winningSubmissionId, IEnumerable<UserRatingChangeDto> ratingChanges);
+        Task Ended(Guid? winningSubmissionId, IEnumerable<RatingChangeDto> ratingChanges);
     }
 
     [Authorize]

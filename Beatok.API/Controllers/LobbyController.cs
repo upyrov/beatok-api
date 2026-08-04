@@ -63,7 +63,7 @@ namespace Beatok.API.Controllers
 
         [Authorize]
         [HttpPatch("{id:guid}/scores/{scoreId:guid}")]
-        public async Task<IActionResult> UpdateScore([FromRoute] Guid id, [FromRoute] Guid scoreId, [FromBody] UpdateScoreDto dto)
+        public async Task<IActionResult> UpdateScore([FromRoute] Guid id, [FromRoute] Guid scoreId, [FromBody] ScoreUpdateDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId is null)

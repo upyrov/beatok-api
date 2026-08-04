@@ -459,7 +459,7 @@ public class LobbyService(IApplicationDbContext context,
         if (!ratingResults.Any())
             return;
 
-        var ratingChanges = new List<UserRatingChangeDto>();
+        var ratingChanges = new List<RatingChangeDto>();
         
         foreach (var participant in lobby.Participants)
         {
@@ -473,7 +473,7 @@ public class LobbyService(IApplicationDbContext context,
                     : (int)Math.Round(result.RatingChange * 5);
                 participant.User.Rating = Math.Max(0, participant.User.Rating + ratingDelta);
                 
-                ratingChanges.Add(new UserRatingChangeDto
+                ratingChanges.Add(new RatingChangeDto
                 {
                     UserId = participant.UserId,
                     RatingChange = ratingDelta

@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Beatok.Application.Validators.Category;
 
-public class UpdateCategoryDtoValidator : AbstractValidator<UpdateCategoryDto>
+public class UpdateCategoryDtoValidator : AbstractValidator<CategoryUpdateDto>
 {
     public UpdateCategoryDtoValidator()
     {

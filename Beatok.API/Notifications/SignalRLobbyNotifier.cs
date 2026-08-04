@@ -60,7 +60,7 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .OwnerChanged(newOwnerId);
     }
 
-    public async Task EndedAsync(Guid lobbyId, Guid? winningSubmissionId, IEnumerable<UserRatingChangeDto> ratingChanges)
+    public async Task EndedAsync(Guid lobbyId, Guid? winningSubmissionId, IEnumerable<RatingChangeDto> ratingChanges)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())

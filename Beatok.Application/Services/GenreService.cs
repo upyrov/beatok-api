@@ -31,7 +31,7 @@ public class GenreService(IApplicationDbContext context,
         return mapper.Map<IEnumerable<GenreDto>>(genres);
     }
 
-    public async Task UpdateNameAsync(Guid id, UpdateGenreDto dto)
+    public async Task UpdateNameAsync(Guid id, GenreUpdateDto dto)
     {
         var genre = await context.Genres.FindAsync(id) ?? throw new NotFoundException("Genre not found");
         genre.Name = dto.Name;

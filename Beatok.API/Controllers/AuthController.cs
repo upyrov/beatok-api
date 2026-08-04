@@ -68,7 +68,7 @@ namespace Beatok.API.Controllers
         }
         
         [HttpPost("sign-up")]
-        public async Task<IActionResult> SignUp(UserSignupDto dto)
+        public async Task<IActionResult> SignUp(SignupDto dto)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             Guid? userId = null;
@@ -81,7 +81,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpPost("sign-in")]
-        public async Task<IActionResult> SignIn(UserSigninDto dto)
+        public async Task<IActionResult> SignIn(SigninDto dto)
         {
             var AuthResultDto = await authService.SignInAsync(dto);
             
