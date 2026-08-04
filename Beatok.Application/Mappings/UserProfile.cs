@@ -12,9 +12,16 @@ public class UserProfile: Profile
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.Picture, opt
                 => opt.MapFrom<PresignedUrlResolver<UserDto>>());
+
         CreateMap<UserUpdateDto, User>();
+
         CreateMap<User, MeDto>()
             .ForMember(dest => dest.Picture, opt
                 => opt.MapFrom<PresignedUrlResolver<MeDto>>());
+
+        CreateMap<User, ProfileDto>()
+            .IncludeBase<User, UserDto>()
+            .ForMember(dest => dest.Activity, opt => opt.Ignore())
+            .ForMember(dest => dest.AvailableYears, opt => opt.Ignore());
     }
 }

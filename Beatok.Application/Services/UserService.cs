@@ -36,14 +36,67 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
                 s.SetProperty(u => u.LastActiveAt, DateTime.UtcNow));
     }
 
-    public async Task<UserDto> GetUserByIdAsync(Guid userId)
+    public async Task<ProfileDto> GetByIdAsync(Guid userId, int? year = null)
     {
-        var user = await context.Users.FindAsync(userId)
+        var user = await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new UserNotFoundException();
-        return mapper.Map<UserDto>(user);
+
+        var availableYears = await context.Lobbies
+            .AsNoTracking()
+            .Where(l => l.Participants.Any(p => p.UserId == userId))
+            .Where(l => l.EndedAt > DateTime.MinValue) // ignores active lobbies
+            .Select(l => l.EndedAt.Year)
+            .Distinct()
+            .OrderByDescending(y => y)
+            .ToListAsync();
+
+        DateTime startDate;
+        int dayCount;
+
+        if (year.HasValue)
+        {
+            startDate = new DateTime(year.Value, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            dayCount = DateTime.IsLeapYear(year.Value) ? 366 : 365;
+        }
+        else
+        {
+            dayCount = 365;
+            var todayUtc = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
+            startDate = todayUtc.AddDays(-(dayCount - 1));
+        }
+
+        var nextDay = startDate.AddDays(dayCount);
+
+        var lobbyCounts = await context.Lobbies
+            .AsNoTracking()
+            .Where(l => l.Participants.Any(p => p.UserId == userId))
+            .Where(l => l.EndedAt >= startDate && l.EndedAt < nextDay)
+            .GroupBy(l => l.EndedAt.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Date, x => x.Count);
+
+        var activity = new List<ActivityDayDto>(capacity: dayCount);
+
+        for (int i = 0; i < dayCount; i++)
+        {
+            var currentDate = startDate.AddDays(i);
+            activity.Add(new ActivityDayDto
+            {
+                Date = currentDate.ToString("yyyy-MM-dd"),
+                Count = lobbyCounts.GetValueOrDefault(currentDate, 0)
+            });
+        }
+
+        var profile = mapper.Map<ProfileDto>(user);
+        profile.Activity = activity;
+        profile.AvailableYears = availableYears;
+
+        return profile;
     }
 
-    public async Task<MeDto> GetMeAsync(Guid userId)
+public async Task<MeDto> GetMeAsync(Guid userId)
     {
         var user = await context.Users.FindAsync(userId)
             ?? throw new UserNotFoundException();
