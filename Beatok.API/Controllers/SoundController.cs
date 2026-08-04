@@ -61,7 +61,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpPatch("{id:guid}")]
-        public async Task<IActionResult> UpdateValue([FromRoute] Guid id, [FromBody] UpdateSoundDto dto)
+        public async Task<IActionResult> UpdateValue([FromRoute] Guid id, [FromBody] SoundUpdateDto dto)
         {
             await soundService.UpdateValueAsync(id, dto);
             return Ok();

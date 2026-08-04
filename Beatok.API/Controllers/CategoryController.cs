@@ -26,7 +26,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpPatch("{id:guid}")]
-        public async Task<IActionResult> UpdateName([FromRoute] Guid id, [FromBody] UpdateCategoryDto dto)
+        public async Task<IActionResult> UpdateName([FromRoute] Guid id, [FromBody] CategoryUpdateDto dto)
         {
             await categoryService.UpdateNameAsync(id, dto);
             return Ok();

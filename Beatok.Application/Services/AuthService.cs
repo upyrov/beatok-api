@@ -11,10 +11,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class AuthService(IPasswordHasher passwordHasher,
-    IValidator<UserSignupDto> validator,
+    IValidator<SignupDto> validator,
     IJwtProvider jwtProvider, IApplicationDbContext context): IAuthService
 {
-    public async Task SignUpAsync(UserSignupDto dto, Guid? userId)
+    public async Task SignUpAsync(SignupDto dto, Guid? userId)
     {
         var fluentValidationResult = await validator.ValidateAsync(dto);
 
@@ -50,7 +50,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         await context.SaveChangesAsync();
     }
 
-    private async Task ConvertAnonymousUserAsync(UserSignupDto dto, User user)
+    private async Task ConvertAnonymousUserAsync(SignupDto dto, User user)
     {
         user.Name = dto.Name;
         user.Email = dto.Email;
@@ -61,7 +61,7 @@ public class AuthService(IPasswordHasher passwordHasher,
         await context.SaveChangesAsync();
     }
 
-    public async Task<AuthResultDto> SignInAsync(UserSigninDto dto)
+    public async Task<AuthResultDto> SignInAsync(SigninDto dto)
     {
         var user = await context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
 

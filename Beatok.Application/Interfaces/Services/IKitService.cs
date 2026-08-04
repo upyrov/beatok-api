@@ -8,6 +8,6 @@ public interface IKitService
     Task CreateAsync(CreateKitDto dto);
     Task<IEnumerable<KitDto>> GetAllAsync();
     Task<Kit> GetRandomAsync(Guid genreId);
-    Task UpdateAsync(Guid id, UpdateKitDto dto);
+    Task UpdateAsync(Guid id, KitUpdateDto dto);
     Task DeleteAsync(Guid id);
 }

@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Beatok.Application.Validators.Score;
 
-public class UpdateScoreDtoValidator : AbstractValidator<UpdateScoreDto>
+public class UpdateScoreDtoValidator : AbstractValidator<ScoreUpdateDto>
 {
     public UpdateScoreDtoValidator()
     {

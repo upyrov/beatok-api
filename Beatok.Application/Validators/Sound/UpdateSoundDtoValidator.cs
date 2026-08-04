@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Beatok.Application.Validators.Sound;
 
-public class UpdateSoundDtoValidator : AbstractValidator<UpdateSoundDto>
+public class UpdateSoundDtoValidator : AbstractValidator<SoundUpdateDto>
 {
     public UpdateSoundDtoValidator()
     {

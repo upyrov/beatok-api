@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class SoundService(IApplicationDbContext context,
-    IValidator<CreateSoundDto> createValidator, IValidator<UpdateSoundDto> updateValidator,
+    IValidator<CreateSoundDto> createValidator, IValidator<SoundUpdateDto> updateValidator,
     IMapper mapper, IStorage storage)
     : ISoundService
 {
@@ -60,7 +60,7 @@ public class SoundService(IApplicationDbContext context,
         return mapper.Map<IEnumerable<SoundDto>>(sounds);
     }
 
-    public async Task UpdateValueAsync(Guid id, UpdateSoundDto dto)
+    public async Task UpdateValueAsync(Guid id, SoundUpdateDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)

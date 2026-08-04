@@ -57,7 +57,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpPatch("{id:guid}")]
-        public async Task<IActionResult> UpdateValue([FromRoute] Guid id, [FromBody] UpdateSubmissionDto dto)
+        public async Task<IActionResult> UpdateValue([FromRoute] Guid id, [FromBody] SubmissionUpdateDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId is null)

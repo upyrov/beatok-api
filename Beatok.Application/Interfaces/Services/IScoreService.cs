@@ -5,5 +5,5 @@ namespace Beatok.Application.Interfaces.Services;
 public interface IScoreService
 {
     Task CreateAsync(Guid userId, Guid lobbyId, CreateScoreDto dto);
-    Task UpdateValueAsync(Guid userId, Guid lobbyId, Guid scoreId, UpdateScoreDto dto);
+    Task UpdateValueAsync(Guid userId, Guid lobbyId, Guid scoreId, ScoreUpdateDto dto);
 }

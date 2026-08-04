@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Beatok.Application.Validators.Kit;
 
-public class UpdateKitDtoValidator : AbstractValidator<UpdateKitDto>
+public class UpdateKitDtoValidator : AbstractValidator<KitUpdateDto>
 {
     public UpdateKitDtoValidator()
     {
