@@ -50,7 +50,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
             throw new InvalidOperationException("Lobby is not in submission phase");
         }
 
-        var participation = lobby.Participants.FirstOrDefault(p => p.UserId == userId)
+        var participation = lobby.Participants.FirstOrDefault(p => p.UserId == userId && !p.IsKicked)
             ?? throw new InvalidOperationException("User is not a participant in this lobby");
 
         if (participation.Submissions != null && participation.Submissions.Count != 0)
@@ -78,7 +78,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
 
         await context.SaveChangesAsync();
         // Check if all connected participants have a submission
-        if (lobby.Participants.Where(p => p.IsConnected).All(p => p.Submissions.Count != 0))
+        if (lobby.Participants.Where(p => p.IsConnected && !p.IsKicked).All(p => p.Submissions.Count != 0))
         {
             backgroundJobClient.Delete(lobby.JobId);
             await lobbyService.TransitionToVotingAsync(lobby.Id);

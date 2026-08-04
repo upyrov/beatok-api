@@ -12,7 +12,6 @@ using Beatok.Domain.Entities;
 using FluentValidation;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Beatok.Application.Services;
 
@@ -34,7 +33,7 @@ public class LobbyService(IApplicationDbContext context,
         if (!await context.Genres.AnyAsync(g => g.Id == dto.GenreId))
             throw new NotFoundException("Genre not found");
         var activeLobbyCount = await context.Participation
-            .Where(p => p.UserId == ownerId && p.Lobby!.State != LobbyState.Ended)
+            .Where(p => p.UserId == ownerId && p.Lobby!.State != LobbyState.Ended && !p.IsKicked)
             .CountAsync();
         if (activeLobbyCount >= 2)
             throw new BadRequestException("User cannot join more than 2 active lobbies");
@@ -68,7 +67,7 @@ public class LobbyService(IApplicationDbContext context,
         if (participant is null)
         {
             var activeLobbyCount = await context.Participation
-                .CountAsync(p => p.UserId == userId && p.Lobby!.State != LobbyState.Ended);
+                .CountAsync(p => p.UserId == userId && p.Lobby!.State != LobbyState.Ended && !p.IsKicked);
 
             if (activeLobbyCount >= 2)
                 throw new BadRequestException("User cannot join more than 2 active lobbies");
@@ -93,6 +92,11 @@ public class LobbyService(IApplicationDbContext context,
         }
         else
         {
+            if (participant.IsKicked)
+            {
+                throw new BadRequestException("You have been kicked from the lobby");
+            }
+            
             participant.ConnectionId = connectionId;
             await RejoinAsync(participant);
         }
@@ -173,7 +177,7 @@ public class LobbyService(IApplicationDbContext context,
         
         lobby.Participants.Remove(participant);
         
-        if (lobby.Participants.Count == 0)
+        if (lobby.Participants.Count(p => !p.IsKicked) == 0)
         {
             context.Lobbies.Remove(lobby);
             await context.SaveChangesAsync();
@@ -195,37 +199,37 @@ public class LobbyService(IApplicationDbContext context,
 
     public async Task DisconnectAsync(string connectionId)
     {
-        var participations = await context.Participation
+        var participant = await context.Participation
             .Include(p => p.Lobby)
             .ThenInclude(l => l!.Participants)
             .Where(p => p.ConnectionId == connectionId)
-            .ToListAsync();
-    
-        foreach (var participation in participations)
-        {
-            participation.IsConnected = false;
-            participation.ConnectionId = null;
-        
-            if (participation.Lobby!.State == LobbyState.Waiting)
-            {
-                var jobId = backgroundJobClient.Schedule<ILobbyService>(
-                    s => s.HandleDisconnectTimeoutAsync(participation.LobbyId, participation.UserId),
-                    TimeSpan.FromSeconds(3));
-        
-                participation.DisconnectJobId = jobId;
-            }
-            else
-            {
-                participation.DisconnectJobId = null;
-            }
-        }
-        await context.SaveChangesAsync();
+            .FirstOrDefaultAsync();
 
-        foreach (var participation in participations)
+        if (participant != null)
         {
-            if (participation.Lobby!.State != LobbyState.Waiting)
+            participant.IsConnected = false;
+            participant .ConnectionId = null;
+            
+            if (!participant.IsKicked)
             {
-                await lobbyNotifier.ParticipantDisconnectedAsync(participation.LobbyId, participation.UserId);
+                if (participant.Lobby!.State == LobbyState.Waiting)
+                {
+                    var jobId = backgroundJobClient.Schedule<ILobbyService>(
+                        s => s.HandleDisconnectTimeoutAsync(participant.LobbyId, participant.UserId),
+                        TimeSpan.FromSeconds(3));
+        
+                    participant.DisconnectJobId = jobId;
+                }
+                else
+                {
+                    participant.DisconnectJobId = null;
+                }
+                await context.SaveChangesAsync();
+                
+                if (participant.Lobby!.State != LobbyState.Waiting)
+                {
+                    await lobbyNotifier.ParticipantDisconnectedAsync(participant.LobbyId, participant.UserId);
+                }
             }
         }
     }
@@ -258,9 +262,11 @@ public class LobbyService(IApplicationDbContext context,
             .AsQueryable();
 
         query = query.Where(l =>
-            (userId.HasValue && l.State != LobbyState.Ended && l.Participants.Any(p => p.UserId == userId.Value))
+            (userId.HasValue && l.State != LobbyState.Ended && l.Participants
+                .Any(p => p.UserId == userId.Value && !p.IsKicked))
             ||
-            (l.State == LobbyState.Waiting && l.Participants.Count < l.ParticipantLimit)
+            (l.State == LobbyState.Waiting && l.Participants.Count < l.ParticipantLimit &&
+             (!userId.HasValue || l.Participants.All(p => p.UserId != userId.Value || !p.IsKicked)))
         );
 
 
@@ -273,7 +279,8 @@ public class LobbyService(IApplicationDbContext context,
         {
             for (int i = 0; i < lobbies.Count; i++)
             {
-                dtos[i].IsJoined = lobbies[i].Participants.Any(p => p.UserId == userId.Value);
+                dtos[i].IsJoined = lobbies[i].Participants
+                    .Any(p => p.UserId == userId.Value && !p.IsKicked);
             }
         }
 
@@ -292,7 +299,7 @@ public class LobbyService(IApplicationDbContext context,
             .Include(l => l.Genre)
             .Include(l => l.Owner)
             .Include(l => l.Participants)
-            .Where(l => l.Participants.Any(p => p.UserId == userId))
+            .Where(l => l.Participants.Any(p => p.UserId == userId && !p.IsKicked))
             .Where(l => l.EndedAt.Date == utcDate)
             .ToListAsync();
 
@@ -322,7 +329,7 @@ public class LobbyService(IApplicationDbContext context,
             ?? throw new NotFoundException("Lobby not found");
         if (lobby.OwnerId != userId)
             throw new BadRequestException("You are not the owner of this lobby");
-        if (lobby.Participants.Count < 2)
+        if (lobby.Participants.Count(p => !p.IsKicked) < 2)
             throw new BadRequestException("Lobby must have at least 2 participants");
         if (lobby.State != LobbyState.Waiting)
             return;
@@ -367,18 +374,14 @@ public class LobbyService(IApplicationDbContext context,
             .FirstOrDefault(p => p.UserId == targetUserId) ??
                 throw new NotFoundException("User not found in lobby");
 
-        if (lobby.State == LobbyState.Waiting)
+        participant.IsKicked = true;
+        await context.SaveChangesAsync();
+
+        if (!string.IsNullOrEmpty(participant.ConnectionId))
         {
-            await HandleNotStartedLeaveAsync(lobby, participant);
-            await lobbyNotifier.ParticipantLeftAsync(lobby.Id, targetUserId);
+            await lobbyNotifier.KickedReceivedAsync(participant.ConnectionId);
         }
-        else
-        {
-            participant.IsConnected = false;
-            participant.ConnectionId = null;
-            await context.SaveChangesAsync();
-            await lobbyNotifier.ParticipantLeftAsync(lobby.Id, targetUserId);
-        }
+        await lobbyNotifier.ParticipantLeftAsync(lobby.Id, targetUserId);
     }
 
     public async Task TransitionToVotingAsync(Guid lobbyId)
@@ -391,7 +394,9 @@ public class LobbyService(IApplicationDbContext context,
         if (lobby == null)
             return;
 
-        var submissions = lobby.Participants.SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> {
+        var submissions = lobby.Participants
+            .Where(p => !p.IsKicked)
+            .SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> {
             new() {
                 Id = s.Id,
                 Value = storage.GeneratePresignedUrl($"{s.Value}", TimeSpan.FromHours(1)),
@@ -407,6 +412,7 @@ public class LobbyService(IApplicationDbContext context,
         }
         
         var votingTime = TimeSpan.FromSeconds(lobby.Participants
+            .Where(p => !p.IsKicked)
             .SelectMany(s => s.Submissions)
             .Sum(s => s.DurationSeconds)) + TimeSpan.FromMinutes(1);
         var jobId = backgroundJobClient.Schedule<ILobbyService>(
@@ -427,7 +433,9 @@ public class LobbyService(IApplicationDbContext context,
         
         var scores = submissions.SelectMany(s => s.Scores).ToList();
         
-        var expectedVotes = lobby.Participants.Sum(participant =>
+        var expectedVotes = lobby.Participants
+            .Where(p => !p.IsKicked)
+            .Sum(participant =>
             submissions.Count(s => s.ParticipationId != participant.Id));
         if (scores.Count != expectedVotes)
             return;
@@ -461,7 +469,7 @@ public class LobbyService(IApplicationDbContext context,
 
         var ratingChanges = new List<RatingChangeDto>();
         
-        foreach (var participant in lobby.Participants)
+        foreach (var participant in lobby.Participants.Where(p => !p.IsKicked))
         {
             if (participant.User != null && ratingResults.TryGetValue(participant.UserId, out var result))
             {
@@ -487,12 +495,14 @@ public class LobbyService(IApplicationDbContext context,
         }
         await context.SaveChangesAsync();
         
-        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission.Id, ratingChanges); 
+        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission?.Id, ratingChanges); 
     }
     
     private Submission? GetWinnerSubmission(Lobby lobby)
     {
-        var submissions = lobby.Participants.SelectMany(p => p.Submissions).ToList();
+        var submissions = lobby.Participants
+            .Where(p => !p.IsKicked)
+            .SelectMany(p => p.Submissions).ToList();
         if (!submissions.Any(s => s.Scores.Any()))
             return null;
 
@@ -518,7 +528,7 @@ public class LobbyService(IApplicationDbContext context,
                 .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
         var participant = lobby.Participants
-            .FirstOrDefault(p => p.UserId == userId) ??
+            .FirstOrDefault(p => p.UserId == userId && !p.IsKicked) ??
                           throw new NotFoundException("User not found in lobby");
         
         if (string.IsNullOrWhiteSpace(content))
