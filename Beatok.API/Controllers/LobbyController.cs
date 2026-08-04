@@ -76,15 +76,15 @@ namespace Beatok.API.Controllers
 
         [Authorize]
         [HttpPost("{id:guid}/scores")]
-        public async Task<IActionResult> Vote([FromRoute] Guid id, CreateScoreDto dto)
+        public async Task<ActionResult<Guid>> Vote([FromRoute] Guid id, CreateScoreDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId is null)
             {
                 return Unauthorized();
             }
-            await scoreService.CreateAsync(Guid.Parse(userId), id, dto);
-            return Ok();
+            var scoreId = await scoreService.CreateAsync(Guid.Parse(userId), id, dto);
+            return Ok(scoreId);
         }
     }
 }
