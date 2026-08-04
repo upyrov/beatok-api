@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Comment;
 using Beatok.Application.DTOs.Lobby;
@@ -58,9 +57,9 @@ namespace Beatok.API.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<UserDto>> GetById([FromRoute] Guid id)
+        public async Task<ActionResult<ProfileDto>> GetById([FromRoute] Guid id, [FromQuery] int? year)
         {
-            return Ok(await userService.GetUserByIdAsync(id));
+            return Ok(await userService.GetByIdAsync(id, year));
         }
 
         [HttpPatch]
@@ -72,13 +71,12 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [HttpGet("{id:guid}/history")]
-        public async Task<ActionResult<PageResult<LobbyDto>>> GetHistory(
-           [FromRoute] Guid id, [FromQuery] PaginationParams paginationParams)
+        [HttpGet("{id:guid}/activity")]
+        public async Task<ActionResult<IEnumerable<LobbyDto>>> GetHistory([FromRoute] Guid id, 
+            [FromQuery] DateTime date)
         {
-            var pageResult = await lobbyService
-                .GetAllByUserId(id, paginationParams.Page, paginationParams.PageSize);
-            return Ok(pageResult);
+            var result = await lobbyService.GetByUserIdAsync(id, date);
+            return Ok(result);
         }
 
         [HttpPost("{id:guid}/comments")]

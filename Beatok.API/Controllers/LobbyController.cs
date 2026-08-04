@@ -35,13 +35,6 @@ namespace Beatok.API.Controllers
             return Ok(await lobbyService.GetAllAsync(filter, userId));
         }
 
-        [HttpGet("history/{id:guid}")]
-        public Task<ActionResult<PageResult<LobbyDto>>> GetAllByUserId([FromRoute] Guid id, [FromQuery] int page, [FromQuery] int pageSize)
-        {
-            return lobbyService.GetAllByUserId(id, page, pageSize)
-                .ContinueWith<ActionResult<PageResult<LobbyDto>>>(t => Ok(t.Result));
-        }
-
         [Authorize]
         [HttpPatch("{id:guid}/start")]
         public async Task<IActionResult> Start([FromRoute] Guid id)

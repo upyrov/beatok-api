@@ -1,5 +1,3 @@
-using Beatok.Domain.Entities;
-
 namespace Beatok.Application.DTOs.User;
 
 public record UserDto

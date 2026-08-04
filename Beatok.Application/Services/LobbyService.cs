@@ -12,6 +12,7 @@ using Beatok.Domain.Entities;
 using FluentValidation;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Beatok.Application.Services;
 
@@ -279,32 +280,23 @@ public class LobbyService(IApplicationDbContext context,
         return dtos;
     }
 
-    public Task<PageResult<LobbyDto>> GetAllByUserId(Guid userId, int page, int pageSize)
+    public async Task<List<LobbyDto>> GetByUserIdAsync(Guid userId, DateTime date)
     {
-        var user = context.Users.FirstOrDefault(u => u.Id == userId)
-            ?? throw new NotFoundException("User not found");
+        var userExists = await context.Users.AnyAsync(u => u.Id == userId);
+        if (!userExists)
+            throw new UserNotFoundException();
 
-        var query = context.Lobbies
+        var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
+        var lobbies = await context.Lobbies
+            .AsNoTracking()
             .Include(l => l.Genre)
             .Include(l => l.Owner)
             .Include(l => l.Participants)
             .Where(l => l.Participants.Any(p => p.UserId == userId))
-            .AsQueryable();
+            .Where(l => l.EndedAt.Date == utcDate)
+            .ToListAsync();
 
-        var totalCount = query.Count();
-        var lobbies = query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
-
-        var dtos = mapper.Map<List<LobbyDto>>(lobbies);
-        return Task.FromResult(new PageResult<LobbyDto>
-        {
-            Items = dtos,
-            TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize
-        });
+        return mapper.Map<List<LobbyDto>>(lobbies);
     }
 
     private IQueryable<Lobby> ApplyFilter(IQueryable<Lobby> query, LobbyFilterDto filter)
