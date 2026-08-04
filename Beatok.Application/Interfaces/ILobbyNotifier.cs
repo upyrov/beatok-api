@@ -12,6 +12,7 @@ public interface ILobbyNotifier
     Task ParticipantConnectedAsync(Guid lobbyId, Guid userId);
     Task ParticipantLeftAsync(Guid lobbyId, Guid userId);
     Task ParticipantDisconnectedAsync(Guid lobbyId, Guid userId);
+    Task KickedReceivedAsync(string connectionId);
     Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId);
     Task MessageReceivedAsync(Guid lobbyId, Guid userId, string content);
     Task StartedAsync(Guid lobbyId, ICollection<SoundWithCategory> sounds);

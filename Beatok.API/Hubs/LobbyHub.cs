@@ -17,6 +17,7 @@ namespace Beatok.API.Hubs
         Task ParticipantJoined(ParticipationDto participant);
         Task ParticipantConnected(Guid userId);
         Task ParticipantLeft(Guid userId);
+        Task KickedReceived();
         Task ParticipantDisconnected(Guid userId);
         Task OwnerChanged(Guid ownerId);
         Task MessageReceived(Guid senderId, string content);

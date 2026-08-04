@@ -4,6 +4,7 @@ public class Participation
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public bool IsConnected { get; set; } = true;
+    public bool IsKicked { get; set; } = false;
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
     public string? ConnectionId { get; set; }
     public string? DisconnectJobId { get; set; }

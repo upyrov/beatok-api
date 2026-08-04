@@ -35,7 +35,7 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
             ?? throw new NotFoundException("Submission not found");
 
         var participation = lobby.Participants
-            .FirstOrDefault(p => p.UserId == userId) ?? throw new BadRequestException("User is not a participant in this lobby");
+            .FirstOrDefault(p => p.UserId == userId && !p.IsKicked) ?? throw new BadRequestException("User is not a participant in this lobby");
         if (submission.Participant?.UserId == userId)
             throw new BadRequestException("User cannot vote for their own track");
         if (submission.Participant!.LobbyId != lobbyId)

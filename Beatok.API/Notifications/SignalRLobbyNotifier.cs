@@ -53,6 +53,11 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .ParticipantDisconnected(userId);
     }
 
+    public async Task KickedReceivedAsync(string connectionId)
+    {
+        await hubContext.Clients.Client(connectionId).KickedReceived();
+    }
+    
     public async Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId)
     {
         await hubContext.Clients
