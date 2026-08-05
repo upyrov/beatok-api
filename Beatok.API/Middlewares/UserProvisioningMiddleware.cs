@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Beatok.Application.Interfaces.Services;
 
 namespace Beatok.API.Middlewares;
@@ -8,7 +9,7 @@ public class UserProvisioningMiddleware(RequestDelegate next)
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var firebaseUid = context.User.FindFirst("uid")?.Value;
+            var firebaseUid = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (!string.IsNullOrEmpty(firebaseUid))
             {

@@ -1,8 +1,5 @@
-using System.Text;
 using Beatok.Domain.Entities;
-using Beatok.Infrastructure.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Beatok.API.Extensions;
 

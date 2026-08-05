@@ -35,6 +35,9 @@ builder.Services.AddScoped<ILobbyNotifier, SignalRLobbyNotifier>();
 builder.Services.Configure<FirebaseOptions>(
     builder.Configuration.GetSection("FirebaseOptions"));
 
+var firebaseOptions = builder.Configuration.GetSection("FirebaseOptions").Get<FirebaseOptions>();
+builder.Services.AddApiAuthentication(firebaseOptions!);
+
 builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
