@@ -12,11 +12,7 @@ public class AnonymousActivityMiddleware(RequestDelegate next)
                                        c.Value == "true"))
         {
             var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (Guid.TryParse(userId, out var id))
-            {
-                await userService.UpdateLastActiveAtAsync(id);
-            }
+            await userService.UpdateLastActiveAtAsync(userId);
         }
         await next(context);
     }

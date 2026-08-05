@@ -7,8 +7,6 @@ public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
     DbSet<Genre> Genres { get; }
-    DbSet<RefreshToken> RefreshTokens { get; }
-      
     DbSet<Kit> Kits { get; }
     DbSet<Category> Categories { get; }
     DbSet<Sound> Sounds { get; }

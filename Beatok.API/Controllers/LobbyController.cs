@@ -24,7 +24,7 @@ namespace Beatok.API.Controllers
             {
                 return Unauthorized();
             }
-            var lobbyId = await lobbyService.CreateAsync(dto, Guid.Parse(userId));
+            var lobbyId = await lobbyService.CreateAsync(dto, userId);
             return Ok(lobbyId);
         }
 
@@ -44,20 +44,20 @@ namespace Beatok.API.Controllers
             {
                 return Unauthorized();
             }
-            await lobbyService.StartAsync(id, Guid.Parse(userId));
+            await lobbyService.StartAsync(id, userId);
             return Ok();
         }
 
         [Authorize]
         [HttpDelete("{id:guid}/participants/{targetUserId:guid}")]
-        public async Task<IActionResult> Kick([FromRoute] Guid id, [FromRoute] Guid targetUserId)
+        public async Task<IActionResult> Kick([FromRoute] Guid id, [FromRoute] string targetUserId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId is null)
             {
                 return Unauthorized();
             }
-            await lobbyService.KickAsync(id, Guid.Parse(userId), targetUserId);
+            await lobbyService.KickAsync(id, userId, targetUserId);
             return Ok();
         }
 
@@ -70,7 +70,7 @@ namespace Beatok.API.Controllers
             {
                 return Unauthorized();
             }
-            await scoreService.UpdateValueAsync(Guid.Parse(userId), id, scoreId, dto);
+            await scoreService.UpdateValueAsync(userId, id, scoreId, dto);
             return Ok();
         }
 
@@ -83,7 +83,7 @@ namespace Beatok.API.Controllers
             {
                 return Unauthorized();
             }
-            var scoreId = await scoreService.CreateAsync(Guid.Parse(userId), id, dto);
+            var scoreId = await scoreService.CreateAsync(userId, id, dto);
             return Ok(scoreId);
         }
     }

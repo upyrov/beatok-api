@@ -53,12 +53,6 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await DatabaseInitializer.SeedAsync(services);
-}
-
 app.UseExceptionHandler();
 
 app.UseHttpsRedirection();

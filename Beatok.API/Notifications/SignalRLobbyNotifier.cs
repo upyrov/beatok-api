@@ -32,21 +32,21 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .VotingStarted(votingTime, submissions);
     }
 
-    public async Task ParticipantConnectedAsync(Guid lobbyId, Guid userId)
+    public async Task ParticipantConnectedAsync(Guid lobbyId, string userId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
             .ParticipantConnected(userId);
     }
 
-    public async Task ParticipantLeftAsync(Guid lobbyId, Guid userId)
+    public async Task ParticipantLeftAsync(Guid lobbyId, string userId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
             .ParticipantLeft(userId);   
     }
 
-    public async Task ParticipantDisconnectedAsync(Guid lobbyId, Guid userId)
+    public async Task ParticipantDisconnectedAsync(Guid lobbyId, string userId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
@@ -58,7 +58,7 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
         await hubContext.Clients.Client(connectionId).KickedReceived();
     }
     
-    public async Task OwnerChangedAsync(Guid lobbyId, Guid newOwnerId)
+    public async Task OwnerChangedAsync(Guid lobbyId, string newOwnerId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
@@ -72,7 +72,7 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .Ended(winningSubmissionId, ratingChanges);
     }
 
-    public async Task MessageReceivedAsync(Guid lobbyId, Guid userId, string content)
+    public async Task MessageReceivedAsync(Guid lobbyId, string userId, string content)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())

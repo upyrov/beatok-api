@@ -15,7 +15,7 @@ public static class DependencyInjection
         
         services.AddAutoMapper(cfg => {}, typeof(UserProfile));
         
-        services.AddScoped<IAuthService, AuthService>();
+        // services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IGenreService, GenreService>();
         services.AddScoped<IKitService, KitService>();

@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreDto> createValidator, 
     IValidator<ScoreUpdateDto> updateValidator, ILobbyService lobbyService) : IScoreService
 {
-    public async Task<Guid> CreateAsync(Guid userId, Guid lobbyId, CreateScoreDto dto)
+    public async Task<Guid> CreateAsync(string userId, Guid lobbyId, CreateScoreDto dto)
     {
         var fluentValidation = await createValidator.ValidateAsync(dto);
         if (!fluentValidation.IsValid)
@@ -57,7 +57,7 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
         return score.Id;
     }
 
-    public async Task UpdateValueAsync(Guid userId, Guid lobbyId, Guid scoreId, ScoreUpdateDto dto)
+    public async Task UpdateValueAsync(string userId, Guid lobbyId, Guid scoreId, ScoreUpdateDto dto)
     {
         var fluentValidation = await updateValidator.ValidateAsync(dto);
         if (!fluentValidation.IsValid)
