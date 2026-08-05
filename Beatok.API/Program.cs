@@ -6,18 +6,13 @@ using Beatok.API.Notifications;
 using Beatok.Application;
 using Beatok.Application.Interfaces;
 using Beatok.Infrastructure;
-using Beatok.Infrastructure.Authentication;
 using Hangfire;
-using Beatok.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-
-var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
-builder.Services.AddApiAuthentication(jwtOptions!);
 
 builder.Services.AddCors(options =>
 {
@@ -36,6 +31,9 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<ILobbyNotifier, SignalRLobbyNotifier>();
+
+builder.Services.Configure<FirebaseOptions>(
+    builder.Configuration.GetSection("FirebaseOptions"));
 
 builder.Services.AddMemoryCache();
 
@@ -59,11 +57,12 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
-app.UseMiddleware<ImplicitAnonymousMiddleware>();
+// app.UseMiddleware<ImplicitAnonymousMiddleware>();
 
 app.UseAuthentication();
 
-app.UseMiddleware<AnonymousActivityMiddleware>();
+app.UseMiddleware<UserProvisioningMiddleware>();
+// app.UseMiddleware<AnonymousActivityMiddleware>();
 
 app.UseAuthorization();
 

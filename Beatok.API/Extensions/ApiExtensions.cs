@@ -9,30 +9,19 @@ namespace Beatok.API.Extensions;
 public static class ApiExtensions
 {
     public static void AddApiAuthentication(this IServiceCollection services,
-        JwtOptions jwtOptions)
+        FirebaseOptions firebaseOptions)
     {
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
+                options.Authority = $"https://securetoken.google.com/{firebaseOptions.ProjectId}";
                 options.TokenValidationParameters = new()
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
-                };
-
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        context.Token = context.Request.Cookies["jwt"];
-
-                        return Task.CompletedTask;
-                    }
+                    ValidAudience = $"{firebaseOptions.ProjectId}",
+                    ValidIssuer = $"https://securetoken.google.com/{firebaseOptions.ProjectId}"            
                 };
             });
 

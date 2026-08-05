@@ -4,6 +4,7 @@ using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
+using Beatok.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
@@ -11,6 +12,23 @@ namespace Beatok.Application.Services;
 public class UserService(IApplicationDbContext context, IMapper mapper, 
     IStorage storage): IUserService
 {
+    public async Task CreateAsync(string userId, string name, bool isAnonymous, string email)
+    {
+        await context.Users.AddAsync(new User
+        {
+            Id = userId,
+            Name = name,
+            IsAnonymous = isAnonymous,
+            Email = email
+        });
+        await context.SaveChangesAsync();
+    }
+
+    public async Task<bool> ExistsAsync(string userId)
+    {
+        return await context.Users.AnyAsync(u => u.Id == userId);
+    }
+    
     public PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
         if (!fileExtension.StartsWith('.'))
