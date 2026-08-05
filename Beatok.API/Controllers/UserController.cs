@@ -56,7 +56,7 @@ namespace Beatok.API.Controllers
             return Ok(await userService.GetMeAsync(userId));
         }
 
-        [HttpGet("{id:guid}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<ProfileDto>> GetById([FromRoute] string id, [FromQuery] int? year)
         {
             return Ok(await userService.GetByIdAsync(id, year));
@@ -71,7 +71,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [HttpGet("{id:guid}/activity")]
+        [HttpGet("{id}/activity")]
         public async Task<ActionResult<IEnumerable<LobbyDto>>> GetHistory([FromRoute] string id, 
             [FromQuery] DateTime date)
         {
@@ -79,7 +79,7 @@ namespace Beatok.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("{id:guid}/comments")]
+        [HttpPost("{id}/comments")]
         [Authorize]
         public async Task<IActionResult> AddComment([FromRoute] string id, [FromBody] CreateCommentDto dto)
         {
@@ -88,7 +88,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [HttpGet("{id:guid}/comments")]
+        [HttpGet("{id}/comments")]
         public async Task<ActionResult<PageResult<CommentDto>>> GetComments(
             [FromRoute] string id, [FromQuery] PaginationParams paginationParams)
         {

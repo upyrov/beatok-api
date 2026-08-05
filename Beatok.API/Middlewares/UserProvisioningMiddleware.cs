@@ -17,9 +17,9 @@ public class UserProvisioningMiddleware(RequestDelegate next)
 
                 if (!userExists)
                 {
-                    var email = context.User.FindFirst("email")?.Value ?? string.Empty;
-                    var name = context.User.FindFirst("displayName")?.Value ?? string.Empty;
-                    var isAnonymous = context.User.HasClaim(c => c.Type == "IsAnonymous" && c.Value == "true");
+                    var email = context.User.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+                    var name = context.User.FindFirst("name")?.Value ?? string.Empty;
+                    bool isAnonymous = bool.Parse(context.User.FindFirst(ClaimTypes.Anonymous)?.Value ?? "false");
 
                     await userService.CreateAsync(firebaseUid, name, isAnonymous, email);
                 }
