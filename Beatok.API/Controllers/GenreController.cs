@@ -1,8 +1,5 @@
 using Beatok.Application.DTOs.Genre;
-using Beatok.Application.DTOs.Sound;
 using Beatok.Application.Interfaces.Services;
-using Beatok.Application.Services;
-using Beatok.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +9,7 @@ namespace Beatok.API.Controllers
     [ApiController]
     public class GenreController(IGenreService genreService) : ControllerBase
     {
-        [Authorize(Roles = nameof(UserRole.Administrator))]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateGenreDto dto)
         {
@@ -33,7 +30,7 @@ namespace Beatok.API.Controllers
             return Ok();
         }
 
-        [Authorize(Roles = nameof(UserRole.Administrator))]
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
