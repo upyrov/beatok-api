@@ -30,7 +30,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
         };
     }
 
-    public async Task CreateAsync(CreateSubmissionDto dto, Guid userId)
+    public async Task CreateAsync(CreateSubmissionDto dto, string userId)
     {
         var fluentValidationResult = await createValidator.ValidateAsync(dto);
 
@@ -85,7 +85,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
         }
     }
 
-    public async Task UpdateValueAsync(Guid id, SubmissionUpdateDto dto, Guid userId)
+    public async Task UpdateValueAsync(Guid id, SubmissionUpdateDto dto, string userId)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)

@@ -1,5 +1,4 @@
 using AutoMapper;
-using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
@@ -11,6 +10,11 @@ namespace Beatok.Application.Services;
 public class UserService(IApplicationDbContext context, IMapper mapper, 
     IStorage storage): IUserService
 {
+    public async Task EnsureExistsAsync(string userId, string name, bool isAnonymous)
+    {
+        await context.EnsureUserExistsAsync(userId, name, isAnonymous);
+    }
+    
     public PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
         if (!fileExtension.StartsWith('.'))
@@ -28,7 +32,7 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
         };
     }
     
-    public async Task UpdateLastActiveAtAsync(Guid userId)
+    public async Task UpdateLastActiveAtAsync(string userId)
     {
         await context.Users
             .Where(u => u.Id == userId)
@@ -36,7 +40,7 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
                 s.SetProperty(u => u.LastActiveAt, DateTime.UtcNow));
     }
 
-    public async Task<ProfileDto> GetByIdAsync(Guid userId, int? year = null)
+    public async Task<ProfileDto> GetByIdAsync(string userId, int? year = null)
     {
         var user = await context.Users
             .AsNoTracking()
@@ -96,14 +100,14 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
         return profile;
     }
 
-public async Task<MeDto> GetMeAsync(Guid userId)
+public async Task<MeDto> GetMeAsync(string userId)
     {
         var user = await context.Users.FindAsync(userId)
             ?? throw new UserNotFoundException();
         return mapper.Map<MeDto>(user);
     }
 
-    public async Task UpdateAsync(Guid userId, UserUpdateDto dto)
+    public async Task UpdateAsync(string userId, UserUpdateDto dto)
     {
         var user = await context.Users.FindAsync(userId)
             ?? throw new UserNotFoundException();

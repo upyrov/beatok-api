@@ -1,7 +1,5 @@
 ﻿using Beatok.Application.DTOs.Sound;
-using Beatok.Application.DTOs.Submission;
 using Beatok.Application.Interfaces.Services;
-using Beatok.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +8,6 @@ namespace Beatok.API.Controllers
     [Route("sounds")]
     [ApiController]
     [Authorize]
-    [Authorize(Roles = nameof(UserRole.Administrator))]
     public class SoundController(ISoundService soundService) : ControllerBase
     {
         private static readonly string[] AllowedExtensions = [".mp3", ".wav", ".flac", ".ogg", ".m4a", ".aac"];

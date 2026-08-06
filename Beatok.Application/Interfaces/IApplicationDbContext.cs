@@ -7,8 +7,6 @@ public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
     DbSet<Genre> Genres { get; }
-    DbSet<RefreshToken> RefreshTokens { get; }
-      
     DbSet<Kit> Kits { get; }
     DbSet<Category> Categories { get; }
     DbSet<Sound> Sounds { get; }
@@ -19,6 +17,8 @@ public interface IApplicationDbContext
     
     DbSet<Score> Scores { get; }
     DbSet<Comment> Comments { get; }
+    
+    Task EnsureUserExistsAsync(string userId, string name, bool isAnonymous);
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

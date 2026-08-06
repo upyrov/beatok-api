@@ -13,16 +13,6 @@ public class UserEntityTypeConfiguration: IEntityTypeConfiguration<User>
         builder.Property(x => x.Name)
             .IsRequired()
             .HasMaxLength(100);
-        
-        builder.Property(x => x.Email)
-            .IsRequired(false)
-            .HasMaxLength(255);
-        
-        builder.Property(x => x.PasswordHash)
-            .IsRequired(false);
-
-        builder.HasIndex(x => x.Email)
-            .IsUnique();
 
         builder.Property(x => x.IsAnonymous)
             .IsRequired();

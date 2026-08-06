@@ -6,17 +6,17 @@ namespace Beatok.Application.Interfaces.Services;
 
 public interface ILobbyService
 {
-    Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId);
+    Task<Guid> CreateAsync(CreateLobbyDto dto, string ownerId);
     Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter, string? userIdStr);
-    Task<List<LobbyDto>> GetByUserIdAsync(Guid userId, DateTime date);
-    Task StartAsync(Guid lobbyId, Guid userId);
-    Task KickAsync(Guid lobbyId, Guid userId, Guid targetUserId);
+    Task<List<LobbyDto>> GetByUserIdAsync(string userId, DateTime date);
+    Task StartAsync(Guid lobbyId, string userId);
+    Task KickAsync(Guid lobbyId, string userId, string targetUserId);
     Task TransitionToVotingAsync(Guid lobbyId);
     Task TransitionToEndAsync(Guid lobbyId);
-    Task<DetailedLobbyDto> JoinAsync(Guid lobbyId, Guid userId, string connectionId);
-    Task LeaveAsync(Guid lobbyId, Guid userId);
+    Task<DetailedLobbyDto> JoinAsync(Guid lobbyId, string userId, string connectionId);
+    Task LeaveAsync(Guid lobbyId, string userId);
     Task DisconnectAsync(string connectionId);
-    Task HandleDisconnectTimeoutAsync(Guid lobbyId, Guid userId);
+    Task HandleDisconnectTimeoutAsync(Guid lobbyId, string userId);
     Task TryFinishVotingAsync(Lobby lobby);
-    Task SendMessageAsync(Guid lobbyId, Guid userId, string content);
+    Task SendMessageAsync(Guid lobbyId, string userId, string content);
 }

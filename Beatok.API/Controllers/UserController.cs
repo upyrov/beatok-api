@@ -53,11 +53,11 @@ namespace Beatok.API.Controllers
         public async Task<ActionResult<MeDto>> GetMe()
         {
             var userId = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-            return Ok(await userService.GetMeAsync(Guid.Parse(userId)));
+            return Ok(await userService.GetMeAsync(userId));
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<ActionResult<ProfileDto>> GetById([FromRoute] Guid id, [FromQuery] int? year)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProfileDto>> GetById([FromRoute] string id, [FromQuery] int? year)
         {
             return Ok(await userService.GetByIdAsync(id, year));
         }
@@ -67,30 +67,30 @@ namespace Beatok.API.Controllers
         public async Task<IActionResult> Update([FromBody] UserUpdateDto dto)
         {
             var userId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-            await userService.UpdateAsync(Guid.Parse(userId), dto);
+            await userService.UpdateAsync(userId, dto);
             return Ok();
         }
 
-        [HttpGet("{id:guid}/activity")]
-        public async Task<ActionResult<IEnumerable<LobbyDto>>> GetHistory([FromRoute] Guid id, 
+        [HttpGet("{id}/activity")]
+        public async Task<ActionResult<IEnumerable<LobbyDto>>> GetHistory([FromRoute] string id, 
             [FromQuery] DateTime date)
         {
             var result = await lobbyService.GetByUserIdAsync(id, date);
             return Ok(result);
         }
 
-        [HttpPost("{id:guid}/comments")]
+        [HttpPost("{id}/comments")]
         [Authorize]
-        public async Task<IActionResult> AddComment([FromRoute] Guid id, [FromBody] CreateCommentDto dto)
+        public async Task<IActionResult> AddComment([FromRoute] string id, [FromBody] CreateCommentDto dto)
         {
             var authorId =  User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-            await commentService.CreateAsync(Guid.Parse(authorId), id, dto);
+            await commentService.CreateAsync(authorId, id, dto);
             return Ok();
         }
 
-        [HttpGet("{id:guid}/comments")]
+        [HttpGet("{id}/comments")]
         public async Task<ActionResult<PageResult<CommentDto>>> GetComments(
-            [FromRoute] Guid id, [FromQuery] PaginationParams paginationParams)
+            [FromRoute] string id, [FromQuery] PaginationParams paginationParams)
         {
             var pageResult = await commentService
                 .GetCommentsAsync(id, paginationParams.Page, paginationParams.PageSize);

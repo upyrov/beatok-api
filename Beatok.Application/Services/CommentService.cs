@@ -13,7 +13,7 @@ namespace Beatok.Application.Services;
 public class CommentService(IApplicationDbContext context, IValidator<CreateCommentDto> validator,
     IMapper mapper): ICommentService
 {
-    public async Task CreateAsync(Guid authorId, Guid targetUserId, CreateCommentDto dto)
+    public async Task CreateAsync(string authorId, string targetUserId, CreateCommentDto dto)
     {
         var fluentValidation = await validator.ValidateAsync(dto);
         if (!fluentValidation.IsValid)
@@ -36,7 +36,7 @@ public class CommentService(IApplicationDbContext context, IValidator<CreateComm
         await context.SaveChangesAsync();
     }
 
-    public async Task<PageResult<CommentDto>> GetCommentsAsync(Guid targetUserId, int page, int pageSize)
+    public async Task<PageResult<CommentDto>> GetCommentsAsync(string targetUserId, int page, int pageSize)
     {
         if (!await context.Users.AnyAsync(u => u.Id == targetUserId))
             throw new NotFoundException("Target user not found");

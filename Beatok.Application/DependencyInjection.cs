@@ -11,11 +11,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssembly(typeof(UserSignupDtoValidator).Assembly);
+        services.AddValidatorsFromAssembly(typeof(CreateLobbyDtoValidator).Assembly);
         
         services.AddAutoMapper(cfg => {}, typeof(UserProfile));
         
-        services.AddScoped<IAuthService, AuthService>();
+        // services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IGenreService, GenreService>();
         services.AddScoped<IKitService, KitService>();
