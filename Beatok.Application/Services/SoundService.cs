@@ -22,8 +22,8 @@ public class SoundService(IApplicationDbContext context,
             fileExtension = $".{fileExtension}";
         }
 
-        var fileKey = $"sounds/{Guid.NewGuid()}{fileExtension}";
-        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15), contentType);
+        var fileKey = $"{Guid.NewGuid()}{fileExtension}";
+        var uploadUrl = storage.GeneratePresignedUploadUrl($"sounds/{fileKey}", TimeSpan.FromMinutes(15), contentType);
 
         return new SoundUploadDto
         {
@@ -55,7 +55,7 @@ public class SoundService(IApplicationDbContext context,
             .ToListAsync();
         foreach (var sound in sounds)
         {
-            sound.Value = storage.GeneratePresignedUrl(sound.Value, TimeSpan.FromHours(1));
+            sound.Value = storage.GeneratePresignedUrl($"sounds/{sound.Value}", TimeSpan.FromHours(1));
         }
         return mapper.Map<IEnumerable<SoundDto>>(sounds);
     }

@@ -125,12 +125,12 @@ public class LobbyService(IApplicationDbContext context,
 
         foreach (var sound in lobbyWithParticipants.Sounds)
         {
-            sound.Value = storage.GeneratePresignedUrl(sound.Value, TimeSpan.FromHours(1));
+            sound.Value = storage.GeneratePresignedUrl($"sounds/{sound.Value}", TimeSpan.FromHours(1));
         }
 
         foreach (var submission in lobbyWithParticipants.Submissions)
         {
-            submission.Value = storage.GeneratePresignedUrl(submission.Value, TimeSpan.FromHours(1));
+            submission.Value = storage.GeneratePresignedUrl($"submissions/{submission.Value}", TimeSpan.FromHours(1));
         }
 
         return mapper.Map<DetailedLobbyDto>(lobbyWithParticipants);
@@ -344,7 +344,7 @@ public class LobbyService(IApplicationDbContext context,
         var soundsDto = sounds.Select(s => new SoundWithCategory
         {
             Id = s.Id,
-            Value = storage.GeneratePresignedUrl(s.Value, TimeSpan.FromHours(1)),
+            Value = storage.GeneratePresignedUrl($"sounds/{s.Value}", TimeSpan.FromHours(1)),
             Category = new CategoryDto
             {
                 Id = s.CategoryId,
@@ -399,7 +399,7 @@ public class LobbyService(IApplicationDbContext context,
             .SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> {
             new() {
                 Id = s.Id,
-                Value = storage.GeneratePresignedUrl($"{s.Value}", TimeSpan.FromHours(1)),
+                Value = storage.GeneratePresignedUrl($"submissions/{s.Value}", TimeSpan.FromHours(1)),
                 LobbyId = lobby.Id,
                 ParticipationId = s.ParticipationId
             }

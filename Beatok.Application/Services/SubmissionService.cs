@@ -20,8 +20,8 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
             fileExtension = $".{fileExtension}";
         }
 
-        var fileKey = $"submissions/{Guid.NewGuid()}{fileExtension}";
-        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15), contentType);
+        var fileKey = $"{Guid.NewGuid()}{fileExtension}";
+        var uploadUrl = storage.GeneratePresignedUploadUrl($"submissions/{fileKey}", TimeSpan.FromMinutes(15), contentType);
 
         return new SubmissionUploadDto
         {

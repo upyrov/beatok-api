@@ -10,6 +10,6 @@ public class PresignedUrlResolver<T>(IStorage storage): IValueResolver<User, T, 
     {
         return source.Picture is null 
             ? null
-            : storage.GeneratePresignedUrl(source.Picture, TimeSpan.FromDays(1));
+            : storage.GeneratePresignedUrl($"pictures/{source.Picture}", TimeSpan.FromDays(1));
     }
 }

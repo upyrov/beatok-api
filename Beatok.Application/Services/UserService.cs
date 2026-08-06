@@ -18,8 +18,8 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
             fileExtension = $".{fileExtension}";
         }
 
-        var fileKey = $"pictures/{Guid.NewGuid()}{fileExtension}";
-        var uploadUrl = storage.GeneratePresignedUploadUrl(fileKey, TimeSpan.FromMinutes(15), contentType);
+        var fileKey = $"{Guid.NewGuid()}{fileExtension}";
+        var uploadUrl = storage.GeneratePresignedUploadUrl($"pictures/{fileKey}", TimeSpan.FromMinutes(15), contentType);
 
         return new PictureUploadDto
         {
