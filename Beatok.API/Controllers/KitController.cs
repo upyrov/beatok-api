@@ -24,7 +24,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpPatch("{id:guid}")]
-        public async Task<IActionResult> UpdateName([FromRoute] Guid id, [FromBody] KitUpdateDto dto)
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] KitUpdateDto dto)
         {
             await kitService.UpdateAsync(id, dto);
             return Ok();
