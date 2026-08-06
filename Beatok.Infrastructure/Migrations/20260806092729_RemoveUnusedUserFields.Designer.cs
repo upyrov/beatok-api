@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Beatok.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260727173809_MakeTokenHashNullable")]
-    partial class MakeTokenHashNullable
+    [Migration("20260806092729_RemoveUnusedUserFields")]
+    partial class RemoveUnusedUserFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -52,8 +52,9 @@ namespace Beatok.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("AuthorId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -63,8 +64,9 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("TargetUserId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("TargetUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -146,8 +148,9 @@ namespace Beatok.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<short>("ParticipantLimit")
                         .HasColumnType("smallint");
@@ -163,6 +166,12 @@ namespace Beatok.Infrastructure.Migrations
 
                     b.Property<DateTime>("VotingStartedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan?>("VotingTime")
+                        .HasColumnType("interval");
+
+                    b.Property<Guid?>("WinningSubmissionId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -182,7 +191,13 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<string>("ConnectionId")
                         .HasColumnType("text");
 
+                    b.Property<string>("DisconnectJobId")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsConnected")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsKicked")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("JoinedAt")
@@ -191,8 +206,9 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<Guid>("LobbyId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -203,34 +219,6 @@ namespace Beatok.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Participation");
-                });
-
-            modelBuilder.Entity("Beatok.Domain.Entities.RefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("Expires")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("TokenHash")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Expires");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.Score", b =>
@@ -245,10 +233,10 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<Guid>("LobbyId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("SubmissionId")
+                    b.Property<Guid>("ParticipationId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("SubmissionId")
                         .HasColumnType("uuid");
 
                     b.Property<short>("Value")
@@ -258,9 +246,9 @@ namespace Beatok.Infrastructure.Migrations
 
                     b.HasIndex("LobbyId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ParticipationId");
 
-                    b.HasIndex("SubmissionId", "UserId")
+                    b.HasIndex("SubmissionId", "ParticipationId")
                         .IsUnique();
 
                     b.ToTable("Scores");
@@ -295,7 +283,10 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("ParticipantId")
+                    b.Property<Guid>("LobbyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ParticipationId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Value")
@@ -304,20 +295,17 @@ namespace Beatok.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParticipantId");
+                    b.HasIndex("LobbyId");
+
+                    b.HasIndex("ParticipationId");
 
                     b.ToTable("Submissions");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.User", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsAnonymous")
                         .HasColumnType("boolean");
@@ -325,26 +313,41 @@ namespace Beatok.Infrastructure.Migrations
                     b.Property<DateTime?>("LastActiveAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<double>("Mu")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
-
                     b.Property<string>("Picture")
                         .HasColumnType("text");
 
-                    b.Property<int>("Role")
+                    b.Property<int>("Rating")
                         .HasColumnType("integer");
+
+                    b.Property<double>("Sigma")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("LobbySound", b =>
+                {
+                    b.Property<Guid>("LobbyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SoundsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("LobbyId", "SoundsId");
+
+                    b.HasIndex("SoundsId");
+
+                    b.ToTable("LobbySound");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.Category", b =>
@@ -434,22 +437,17 @@ namespace Beatok.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Beatok.Domain.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("Beatok.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Beatok.Domain.Entities.Score", b =>
                 {
                     b.HasOne("Beatok.Domain.Entities.Lobby", "Lobby")
                         .WithMany()
                         .HasForeignKey("LobbyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Beatok.Domain.Entities.Participation", "Participant")
+                        .WithMany("Scores")
+                        .HasForeignKey("ParticipationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -459,17 +457,11 @@ namespace Beatok.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Beatok.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Lobby");
 
-                    b.Navigation("Submission");
+                    b.Navigation("Participant");
 
-                    b.Navigation("User");
+                    b.Navigation("Submission");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.Sound", b =>
@@ -485,13 +477,36 @@ namespace Beatok.Infrastructure.Migrations
 
             modelBuilder.Entity("Beatok.Domain.Entities.Submission", b =>
                 {
-                    b.HasOne("Beatok.Domain.Entities.Participation", "Participant")
+                    b.HasOne("Beatok.Domain.Entities.Lobby", "Lobby")
                         .WithMany("Submissions")
-                        .HasForeignKey("ParticipantId")
+                        .HasForeignKey("LobbyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Beatok.Domain.Entities.Participation", "Participant")
+                        .WithMany("Submissions")
+                        .HasForeignKey("ParticipationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lobby");
+
                     b.Navigation("Participant");
+                });
+
+            modelBuilder.Entity("LobbySound", b =>
+                {
+                    b.HasOne("Beatok.Domain.Entities.Lobby", null)
+                        .WithMany()
+                        .HasForeignKey("LobbyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Beatok.Domain.Entities.Sound", null)
+                        .WithMany()
+                        .HasForeignKey("SoundsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.Category", b =>
@@ -507,10 +522,14 @@ namespace Beatok.Infrastructure.Migrations
             modelBuilder.Entity("Beatok.Domain.Entities.Lobby", b =>
                 {
                     b.Navigation("Participants");
+
+                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("Beatok.Domain.Entities.Participation", b =>
                 {
+                    b.Navigation("Scores");
+
                     b.Navigation("Submissions");
                 });
 

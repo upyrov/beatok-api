@@ -5,8 +5,9 @@ namespace Beatok.Application.Interfaces.Services;
 public interface IUserService
 {
     PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType);
-    Task UpdateLastActiveAtAsync(Guid userId);
-    Task<ProfileDto> GetByIdAsync(Guid userId, int? year = null);
-    Task<MeDto> GetMeAsync(Guid userId);
-    Task UpdateAsync(Guid userId, UserUpdateDto dto);
+    Task EnsureExistsAsync(string userId, string name, bool isAnonymous);
+    Task UpdateLastActiveAtAsync(string userId);
+    Task<ProfileDto> GetByIdAsync(string userId, int? year = null);
+    Task<MeDto> GetMeAsync(string userId);
+    Task UpdateAsync(string userId, UserUpdateDto dto);
 }

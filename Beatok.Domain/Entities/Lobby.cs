@@ -25,7 +25,7 @@ public class Lobby
 
     public Guid GenreId { get; set; }
     public Genre? Genre { get; set; }
-    public Guid OwnerId { get; set; }
+    public required string OwnerId { get; set; }
     public User? Owner { get; set; }
     public ICollection<Participation> Participants { get; set; } = [];
     public ICollection<Sound> Sounds { get; set; } = [];

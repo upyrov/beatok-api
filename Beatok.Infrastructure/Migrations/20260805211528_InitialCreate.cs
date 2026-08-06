@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Beatok.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialClean : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,13 +39,17 @@ namespace Beatok.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     PasswordHash = table.Column<string>(type: "text", nullable: true),
                     IsAnonymous = table.Column<bool>(type: "boolean", nullable: false),
+                    Picture = table.Column<string>(type: "text", nullable: true),
                     Role = table.Column<int>(type: "integer", nullable: false),
-                    LastActiveAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    LastActiveAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Mu = table.Column<double>(type: "double precision", nullable: false),
+                    Sigma = table.Column<double>(type: "double precision", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -96,18 +100,50 @@ namespace Beatok.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Comments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AuthorId = table.Column<string>(type: "text", nullable: false),
+                    TargetUserId = table.Column<string>(type: "text", nullable: false),
+                    Content = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Comments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Comments_Users_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Comments_Users_TargetUserId",
+                        column: x => x.TargetUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Lobbies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    GenreId = table.Column<Guid>(type: "uuid", nullable: false),
                     ParticipantLimit = table.Column<short>(type: "smallint", nullable: false),
-                    Phase = table.Column<int>(type: "integer", nullable: false),
-                    JobId = table.Column<string>(type: "text", nullable: false),
+                    JobId = table.Column<string>(type: "text", nullable: true),
+                    SubmissionTime = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    VotingTime = table.Column<TimeSpan>(type: "interval", nullable: true),
+                    State = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    SubmissionTimeLimit = table.Column<TimeSpan>(type: "interval", nullable: false),
-                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false)
+                    SubmissionStartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    VotingStartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    GenreId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OwnerId = table.Column<string>(type: "text", nullable: false),
+                    WinningSubmissionId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -124,26 +160,6 @@ namespace Beatok.Infrastructure.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RefreshTokens",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TokenHash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_RefreshTokens_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -171,9 +187,11 @@ namespace Beatok.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     IsConnected = table.Column<bool>(type: "boolean", nullable: false),
+                    IsKicked = table.Column<bool>(type: "boolean", nullable: false),
                     JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     ConnectionId = table.Column<string>(type: "text", nullable: true),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DisconnectJobId = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: false),
                     LobbyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -194,20 +212,51 @@ namespace Beatok.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "LobbySound",
+                columns: table => new
+                {
+                    LobbyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SoundsId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LobbySound", x => new { x.LobbyId, x.SoundsId });
+                    table.ForeignKey(
+                        name: "FK_LobbySound_Lobbies_LobbyId",
+                        column: x => x.LobbyId,
+                        principalTable: "Lobbies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LobbySound_Sounds_SoundsId",
+                        column: x => x.SoundsId,
+                        principalTable: "Sounds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Submissions",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Value = table.Column<string>(type: "text", nullable: false),
                     DurationSeconds = table.Column<int>(type: "integer", nullable: false),
-                    ParticipantId = table.Column<Guid>(type: "uuid", nullable: false)
+                    ParticipationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LobbyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Submissions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Submissions_Participation_ParticipantId",
-                        column: x => x.ParticipantId,
+                        name: "FK_Submissions_Lobbies_LobbyId",
+                        column: x => x.LobbyId,
+                        principalTable: "Lobbies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Submissions_Participation_ParticipationId",
+                        column: x => x.ParticipationId,
                         principalTable: "Participation",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -221,7 +270,7 @@ namespace Beatok.Infrastructure.Migrations
                     Value = table.Column<short>(type: "smallint", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LobbyId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ParticipationId = table.Column<Guid>(type: "uuid", nullable: false),
                     SubmissionId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -234,15 +283,15 @@ namespace Beatok.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Scores_Submissions_SubmissionId",
-                        column: x => x.SubmissionId,
-                        principalTable: "Submissions",
+                        name: "FK_Scores_Participation_ParticipationId",
+                        column: x => x.ParticipationId,
+                        principalTable: "Participation",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Scores_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
+                        name: "FK_Scores_Submissions_SubmissionId",
+                        column: x => x.SubmissionId,
+                        principalTable: "Submissions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -251,6 +300,16 @@ namespace Beatok.Infrastructure.Migrations
                 name: "IX_Categories_KitId",
                 table: "Categories",
                 column: "KitId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_AuthorId",
+                table: "Comments",
+                column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_TargetUserId",
+                table: "Comments",
+                column: "TargetUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GenreKit_KitId_GenreId",
@@ -269,6 +328,11 @@ namespace Beatok.Infrastructure.Migrations
                 column: "OwnerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LobbySound_SoundsId",
+                table: "LobbySound",
+                column: "SoundsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Participation_ConnectionId",
                 table: "Participation",
                 column: "ConnectionId");
@@ -284,36 +348,20 @@ namespace Beatok.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RefreshTokens_Expires",
-                table: "RefreshTokens",
-                column: "Expires");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RefreshTokens_TokenHash",
-                table: "RefreshTokens",
-                column: "TokenHash",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RefreshTokens_UserId",
-                table: "RefreshTokens",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Scores_LobbyId",
                 table: "Scores",
                 column: "LobbyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Scores_SubmissionId_UserId",
+                name: "IX_Scores_ParticipationId",
                 table: "Scores",
-                columns: new[] { "SubmissionId", "UserId" },
-                unique: true);
+                column: "ParticipationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Scores_UserId",
+                name: "IX_Scores_SubmissionId_ParticipationId",
                 table: "Scores",
-                column: "UserId");
+                columns: new[] { "SubmissionId", "ParticipationId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sounds_CategoryId",
@@ -321,9 +369,14 @@ namespace Beatok.Infrastructure.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Submissions_ParticipantId",
+                name: "IX_Submissions_LobbyId",
                 table: "Submissions",
-                column: "ParticipantId");
+                column: "LobbyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Submissions_ParticipationId",
+                table: "Submissions",
+                column: "ParticipationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
@@ -336,10 +389,13 @@ namespace Beatok.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Comments");
+
+            migrationBuilder.DropTable(
                 name: "GenreKit");
 
             migrationBuilder.DropTable(
-                name: "RefreshTokens");
+                name: "LobbySound");
 
             migrationBuilder.DropTable(
                 name: "Scores");

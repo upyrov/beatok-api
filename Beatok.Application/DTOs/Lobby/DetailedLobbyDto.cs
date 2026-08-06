@@ -20,7 +20,7 @@ public record DetailedLobbyDto
     public DateTime EndedAt { get; set; }
 
     public required GenreDto Genre { get; set; }
-    public Guid OwnerId { get; set; }
+    public required string OwnerId { get; set; }
     public IEnumerable<ParticipationDto> Participants { get; set; } = [];
     public IEnumerable<SoundWithCategory> Sounds { get; set; } = [];
     public IEnumerable<SubmissionDto> Submissions { get; set; } = [];

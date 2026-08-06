@@ -20,7 +20,7 @@ public class LobbyService(IApplicationDbContext context,
     ILobbyNotifier lobbyNotifier, IStorage storage, IKitService kitService,
     IMapper mapper, IMmrService mmrService) : ILobbyService
 {
-    public async Task<Guid> CreateAsync(CreateLobbyDto dto, Guid ownerId)
+    public async Task<Guid> CreateAsync(CreateLobbyDto dto, string ownerId)
     {
         var fluentValidation = await validator.ValidateAsync(dto);
         if (!fluentValidation.IsValid)
@@ -52,7 +52,7 @@ public class LobbyService(IApplicationDbContext context,
         return lobby.Id;
     }
 
-    public async Task<DetailedLobbyDto> JoinAsync(Guid lobbyId, Guid userId, string connectionId)
+    public async Task<DetailedLobbyDto> JoinAsync(Guid lobbyId, string userId, string connectionId)
     {
         var lobby = await context.Lobbies
                         .Include(l => l.Participants)
@@ -148,7 +148,7 @@ public class LobbyService(IApplicationDbContext context,
         await lobbyNotifier.ParticipantConnectedAsync(participant.LobbyId, participant.UserId);
     }
 
-    public async Task LeaveAsync(Guid lobbyId, Guid userId)
+    public async Task LeaveAsync(Guid lobbyId, string userId)
     {
         var lobby = await context.Lobbies
                         .Include(l => l.Participants)
@@ -234,7 +234,7 @@ public class LobbyService(IApplicationDbContext context,
         }
     }
     
-    public async Task HandleDisconnectTimeoutAsync(Guid lobbyId, Guid userId)
+    public async Task HandleDisconnectTimeoutAsync(Guid lobbyId, string userId)
     {
         var lobby = await context.Lobbies
             .Include(l => l.Participants)
@@ -251,10 +251,8 @@ public class LobbyService(IApplicationDbContext context,
         }
     }
 
-    public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter, string? userIdStr)
+    public async Task<IEnumerable<LobbyDto>> GetAllAsync(LobbyFilterDto filter, string? userId)
     {
-        Guid? userId = Guid.TryParse(userIdStr, out var parsedId) ? parsedId : null;
-
         var query = context.Lobbies
             .Include(l => l.Genre)
             .Include(l => l.Owner)
@@ -262,11 +260,11 @@ public class LobbyService(IApplicationDbContext context,
             .AsQueryable();
 
         query = query.Where(l =>
-            (userId.HasValue && l.State != LobbyState.Ended && l.Participants
-                .Any(p => p.UserId == userId.Value && !p.IsKicked))
+            (userId != null && l.State != LobbyState.Ended && l.Participants
+                .Any(p => p.UserId == userId && !p.IsKicked))
             ||
             (l.State == LobbyState.Waiting && l.Participants.Count < l.ParticipantLimit &&
-             (!userId.HasValue || l.Participants.All(p => p.UserId != userId.Value || !p.IsKicked)))
+             (userId == null || l.Participants.All(p => p.UserId != userId || !p.IsKicked)))
         );
 
 
@@ -275,19 +273,19 @@ public class LobbyService(IApplicationDbContext context,
 
         var dtos = mapper.Map<List<LobbyDto>>(lobbies);
 
-        if (userId.HasValue)
+        if (userId != null)
         {
             for (int i = 0; i < lobbies.Count; i++)
             {
                 dtos[i].IsJoined = lobbies[i].Participants
-                    .Any(p => p.UserId == userId.Value && !p.IsKicked);
+                    .Any(p => p.UserId == userId && !p.IsKicked);
             }
         }
 
         return dtos;
     }
 
-    public async Task<List<LobbyDto>> GetByUserIdAsync(Guid userId, DateTime date)
+    public async Task<List<LobbyDto>> GetByUserIdAsync(string userId, DateTime date)
     {
         var userExists = await context.Users.AnyAsync(u => u.Id == userId);
         if (!userExists)
@@ -321,7 +319,7 @@ public class LobbyService(IApplicationDbContext context,
         return query;
     }
 
-    public async Task StartAsync(Guid lobbyId, Guid userId)
+    public async Task StartAsync(Guid lobbyId, string userId)
     {
         var lobby = await context.Lobbies
                 .Include(l => l.Participants)
@@ -362,7 +360,7 @@ public class LobbyService(IApplicationDbContext context,
         await context.SaveChangesAsync();
     }
 
-    public async Task KickAsync(Guid lobbyId, Guid userId, Guid targetUserId)
+    public async Task KickAsync(Guid lobbyId, string userId, string targetUserId)
     {
         var lobby = await context.Lobbies
                 .Include(l => l.Participants)
@@ -521,7 +519,7 @@ public class LobbyService(IApplicationDbContext context,
         return winner.Submission;
     }
 
-    public async Task SendMessageAsync(Guid lobbyId, Guid userId, string content)
+    public async Task SendMessageAsync(Guid lobbyId, string userId, string content)
     {
         var lobby = await context.Lobbies
                 .Include(l => l.Participants)

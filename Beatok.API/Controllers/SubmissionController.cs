@@ -52,7 +52,7 @@ namespace Beatok.API.Controllers
             {
                 return Unauthorized();
             }
-            await submissionService.CreateAsync(dto, Guid.Parse(userId));
+            await submissionService.CreateAsync(dto, userId);
             return Ok();
         }
 
@@ -64,7 +64,7 @@ namespace Beatok.API.Controllers
             {
                 return Unauthorized();
             }
-            await submissionService.UpdateValueAsync(id, dto, Guid.Parse(userId));
+            await submissionService.UpdateValueAsync(id, dto, userId);
             return Ok();
         }
 

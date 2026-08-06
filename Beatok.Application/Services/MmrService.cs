@@ -7,11 +7,11 @@ namespace Beatok.Application.Services;
 
 public class MmrService: IMmrService
 {
-    public Dictionary<Guid, (double NewMu, double NewSigma, double RatingChange)> CalculateRatings(Lobby lobby)
+    public Dictionary<string, (double NewMu, double NewSigma, double RatingChange)> CalculateRatings(Lobby lobby)
     { 
         var participants = lobby.Participants.ToList();
         if (participants.Count <= 1)
-            return new Dictionary<Guid, (double, double, double)>();
+            return new Dictionary<string, (double, double, double)>();
 
         var rankedParticipants = participants
             .Select(p => new
@@ -38,7 +38,7 @@ public class MmrService: IMmrService
 
         List<ITeam> updatedTeams = model.Rate(teams).ToList();
 
-        var results = new Dictionary<Guid, (double NewMu, double NewSigma, double RatingChange)>();
+        var results = new Dictionary<string, (double NewMu, double NewSigma, double RatingChange)>();
 
         for (int i = 0; i < rankedParticipants.Count; i++)
         {
