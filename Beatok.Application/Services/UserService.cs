@@ -12,7 +12,21 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
 {
     public async Task EnsureExistsAsync(string userId, string name, bool isAnonymous)
     {
-        await context.EnsureUserExistsAsync(userId, name, isAnonymous);
+        var user = await context.Users.FindAsync(userId);
+
+        if (user == null)
+        {
+            await context.EnsureUserExistsAsync(userId, name, isAnonymous);
+            return;
+        }
+
+        if (user.IsAnonymous && !isAnonymous)
+        {
+            user.IsAnonymous = false;
+            user.Name = name;
+
+            await context.SaveChangesAsync();
+        }
     }
     
     public PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType)

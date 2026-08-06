@@ -8,8 +8,8 @@ public class AnonymousActivityMiddleware(RequestDelegate next)
     public async Task InvokeAsync(HttpContext context, IUserService userService)
     {
         if (context.User.Identity?.IsAuthenticated == true &&
-            context.User.HasClaim(c => c.Type == "isAnonymous" &&
-                                       c.Value == "true"))
+            context.User.HasClaim(c => c.Type == "provider_id" &&
+                                       c.Value == "anonymous"))
         {
             var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId != null)
