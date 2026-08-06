@@ -18,5 +18,7 @@ public interface IApplicationDbContext
     DbSet<Score> Scores { get; }
     DbSet<Comment> Comments { get; }
     
+    Task EnsureUserExistsAsync(string userId, string name, bool isAnonymous);
+    
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

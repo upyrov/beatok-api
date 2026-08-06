@@ -60,12 +60,10 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 
-// app.UseMiddleware<ImplicitAnonymousMiddleware>();
-
 app.UseAuthentication();
 
 app.UseMiddleware<UserProvisioningMiddleware>();
-// app.UseMiddleware<AnonymousActivityMiddleware>();
+app.UseMiddleware<AnonymousActivityMiddleware>();
 
 app.UseAuthorization();
 

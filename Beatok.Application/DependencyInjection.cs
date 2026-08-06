@@ -11,7 +11,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssembly(typeof(UserSignupDtoValidator).Assembly);
+        services.AddValidatorsFromAssembly(typeof(CreateLobbyDtoValidator).Assembly);
         
         services.AddAutoMapper(cfg => {}, typeof(UserProfile));
         

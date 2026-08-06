@@ -19,6 +19,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Submission> Submissions { get; set; }
     public DbSet<Score> Scores { get; set; }
     public DbSet<Comment> Comments { get; set; }
+    
+    private const double Mu = 25.0;
+    private const double Sigma = 8.333;
+    private const double Rating = 0;
+    
+    public async Task EnsureUserExistsAsync(string userId, string name, bool isAnonymous)
+    {
+        DateTime? lastActiveAt = isAnonymous ? DateTime.UtcNow : null;
+        
+        await Database.ExecuteSqlInterpolatedAsync($""" 
+                                                              INSERT INTO "Users"
+                                                                  ("Id", "Name", "IsAnonymous", "LastActiveAt", "Mu", "Sigma", "Rating")
+                                                              VALUES
+                                                                  ({userId}, {name}, {isAnonymous}, {lastActiveAt}, {Mu}, {Sigma}, {Rating})
+                                                              ON CONFLICT ("Id") DO NOTHING;
+                                                              """);
+    } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

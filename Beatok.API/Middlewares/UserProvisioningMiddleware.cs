@@ -10,20 +10,9 @@ public class UserProvisioningMiddleware(RequestDelegate next)
         if (context.User.Identity?.IsAuthenticated == true)
         {
             var firebaseUid = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!string.IsNullOrEmpty(firebaseUid))
-            {
-                var userExists = await userService.ExistsAsync(firebaseUid);
-
-                if (!userExists)
-                {
-                    var email = context.User.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
-                    var name = context.User.FindFirst("name")?.Value ?? string.Empty;
-                    bool isAnonymous = bool.Parse(context.User.FindFirst(ClaimTypes.Anonymous)?.Value ?? "false");
-
-                    await userService.CreateAsync(firebaseUid, name, isAnonymous, email);
-                }
-            }
+            var name = context.User.FindFirst("name")?.Value ?? string.Empty;
+            bool isAnonymous = bool.Parse(context.User.FindFirst("isAnonymous")?.Value ?? "false"); 
+            await userService.EnsureExistsAsync(firebaseUid, name, isAnonymous);
         }
         await next(context);
     }

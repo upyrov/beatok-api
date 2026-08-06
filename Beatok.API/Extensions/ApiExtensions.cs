@@ -1,4 +1,3 @@
-using Beatok.Domain.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Beatok.API.Extensions;
@@ -22,8 +21,6 @@ public static class ApiExtensions
                 };
             });
 
-        services.AddAuthorization(options =>
-            options.AddPolicy("OnlyAdmin", policy =>
-                policy.RequireRole(nameof(UserRole.Administrator))));
+        services.AddAuthorization();
     }
 }

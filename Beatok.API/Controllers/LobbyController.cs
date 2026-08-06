@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Beatok.API.Attributes;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Score;
@@ -15,7 +14,6 @@ namespace Beatok.API.Controllers
         IScoreService scoreService) : ControllerBase
     {
         [Authorize]
-        [AnonymousAuthorize]
         [HttpPost]
         public async Task<ActionResult<Guid>> Create([FromBody] CreateLobbyDto dto)
         {

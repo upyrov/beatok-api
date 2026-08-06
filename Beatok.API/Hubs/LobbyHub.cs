@@ -1,11 +1,9 @@
-﻿using Beatok.API.Attributes;
-using Beatok.Application.DTOs;
+﻿using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
-using Beatok.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
@@ -27,7 +25,6 @@ namespace Beatok.API.Hubs
     }
 
     [Authorize]
-    [AnonymousAuthorize]
     public class LobbyHub(ILobbyService lobbyService) : Hub<ILobbyClient>
     {
         public async Task<DetailedLobbyDto> Join(string lobbyId)
