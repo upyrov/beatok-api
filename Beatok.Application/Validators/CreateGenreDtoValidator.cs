@@ -9,7 +9,6 @@ public class CreateGenreDtoValidator: AbstractValidator<CreateGenreDto>
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required")
-            .MaximumLength(100).WithMessage("Name must be less than 100 characters")
-            .Matches(@"^[a-zA-Z0-9\s]+$").WithMessage("Name must contain only letters, numbers, and spaces");
+            .MaximumLength(100).WithMessage("Name must be less than 100 characters");
     }
 }
