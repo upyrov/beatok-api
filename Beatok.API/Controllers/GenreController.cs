@@ -7,10 +7,10 @@ namespace Beatok.API.Controllers
 {
     [Route("genres")]
     [ApiController]
-    [Admin]
     public class GenreController(IGenreService genreService) : ControllerBase
     {
         [HttpPost]
+        [Admin]
         public async Task<IActionResult> Create([FromBody] CreateGenreDto dto)
         {
             await genreService.CreateAsync(dto);
@@ -24,6 +24,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpPatch("{id:guid}")]
+        [Admin]
         public async Task<IActionResult> UpdateName([FromRoute] Guid id, [FromBody] GenreUpdateDto dto)
         {
             await genreService.UpdateNameAsync(id, dto);
@@ -31,6 +32,7 @@ namespace Beatok.API.Controllers
         }
         
         [HttpDelete("{id:guid}")]
+        [Admin]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             await genreService.DeleteAsync(id);
