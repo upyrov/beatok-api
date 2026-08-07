@@ -9,6 +9,7 @@ using Beatok.Infrastructure;
 using Hangfire;
 using Scalar.AspNetCore;
 using System.Threading.RateLimiting;
+using Beatok.API.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,8 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddScoped<AdminAuthorizationFilter>();
 
 builder.Services.AddScoped<ILobbyNotifier, SignalRLobbyNotifier>();
 

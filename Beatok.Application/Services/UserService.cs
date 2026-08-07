@@ -3,6 +3,7 @@ using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
+using Beatok.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
@@ -27,6 +28,12 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
 
             await context.SaveChangesAsync();
         }
+    }
+
+    public async Task<bool> IsAdminAsync(string userId)
+    {
+        return await context.Users
+            .AnyAsync(u => u.Id == userId && u.Role == UserRole.Administrator);
     }
     
     public PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType)

@@ -1,14 +1,13 @@
-﻿using Beatok.Application.DTOs.Category;
+﻿using Beatok.API.Attributes;
+using Beatok.Application.DTOs.Category;
 using Beatok.Application.Interfaces.Services;
-using Beatok.Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Beatok.API.Controllers
 {
     [Route("categories")]
     [ApiController]
-    [Authorize(Roles = nameof(UserRole.Administrator))]
+    [Admin]
     public class CategoryController(ICategoryService categoryService) : ControllerBase
     {
         [HttpPost]

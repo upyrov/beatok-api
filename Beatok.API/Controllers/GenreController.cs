@@ -1,15 +1,15 @@
+using Beatok.API.Attributes;
 using Beatok.Application.DTOs.Genre;
 using Beatok.Application.Interfaces.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Beatok.API.Controllers
 {
     [Route("genres")]
     [ApiController]
+    [Admin]
     public class GenreController(IGenreService genreService) : ControllerBase
     {
-        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateGenreDto dto)
         {
@@ -29,8 +29,7 @@ namespace Beatok.API.Controllers
             await genreService.UpdateNameAsync(id, dto);
             return Ok();
         }
-
-        [Authorize]
+        
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {

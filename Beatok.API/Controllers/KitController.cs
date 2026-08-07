@@ -1,13 +1,13 @@
-﻿using Beatok.Application.DTOs.Kit;
+﻿using Beatok.API.Attributes;
+using Beatok.Application.DTOs.Kit;
 using Beatok.Application.Interfaces.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Beatok.API.Controllers
 {
     [Route("kits")]
     [ApiController]
-    [Authorize]
+    [Admin]
     public class KitController(IKitService kitService) : ControllerBase
     {
         [HttpPost]
