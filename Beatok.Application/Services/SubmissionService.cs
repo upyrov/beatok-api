@@ -109,6 +109,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
             throw new InvalidOperationException("Lobby is not in submission phase");
         }
 
+        await storage.DeleteFileAsync($"submissions/{submission.Value}");
         submission.Value = dto.Value;
         await context.SaveChangesAsync();
     }
@@ -125,6 +126,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
             throw new InvalidOperationException("Lobby is not in submission phase");
         }
 
+        await storage.DeleteFileAsync($"submissions/{submission.Value}");
         context.Submissions.Remove(submission);
         await context.SaveChangesAsync();
     }

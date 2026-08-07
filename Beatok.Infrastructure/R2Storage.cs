@@ -33,4 +33,13 @@ public class R2Storage(IAmazonS3 s3Client): IStorage
 
         return s3Client.GetPreSignedURL(request);
     }
+
+    public async Task DeleteFileAsync(string key)
+    {
+        await s3Client.DeleteObjectAsync(new DeleteObjectRequest
+        {
+            BucketName = "beatok",
+            Key = key
+        });
+    }
 }

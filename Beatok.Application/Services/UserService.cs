@@ -138,6 +138,7 @@ public async Task<MeDto> GetMeAsync(string userId)
         }
         if (dto.Picture is not null)
         {
+            await storage.DeleteFileAsync($"pictures/{user.Picture}");
             user.Picture = dto.Picture;
         }
         await context.SaveChangesAsync();

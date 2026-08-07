@@ -71,6 +71,7 @@ public class SoundService(IApplicationDbContext context,
         var sound = await context.Sounds.FindAsync(id)
             ?? throw new NotFoundException("Sound not found");
 
+        await storage.DeleteFileAsync($"sounds/{sound.Value}");
         sound.Value = dto.Value;
         await context.SaveChangesAsync();
     }
@@ -80,6 +81,7 @@ public class SoundService(IApplicationDbContext context,
         var sound = await context.Sounds.FindAsync(id)
             ?? throw new NotFoundException("Sound not found");
 
+        await storage.DeleteFileAsync($"sounds/{sound.Value}");
         context.Sounds.Remove(sound);
         await context.SaveChangesAsync();
     }
