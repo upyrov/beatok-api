@@ -13,6 +13,7 @@ public class User
     public bool IsAnonymous { get; set; } 
     public string? Picture {  get; set; }
     public DateTime? LastActiveAt { get; set; }
+    public UserRole Role { get; set; } = UserRole.Player;
     public double Mu { get; set; } = 25.0;
     public double Sigma { get; set; } = 8.333;
     public int Rating { get; set; } = 0;
