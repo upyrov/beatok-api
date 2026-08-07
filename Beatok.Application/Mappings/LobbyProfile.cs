@@ -14,6 +14,6 @@ public class LobbyProfile: Profile
 
         CreateMap<Lobby, LobbyDto>()
             .ForMember(dest => dest.ParticipantCount, opt
-                => opt.MapFrom(src => src.Participants.Count(p => !p.IsKicked)));
+                => opt.MapFrom(src => src.Participants.Count(p => !p.IsKicked && p.IsConnected)));
     }
 }
