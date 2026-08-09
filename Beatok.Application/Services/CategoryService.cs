@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 
 public class CategoryService(IApplicationDbContext context,
     IValidator<CreateCategoryDto> createValidator, IValidator<CategoryUpdateDto> updateValidator, 
-    IMapper mapper)
+    IStorage storage, IMapper mapper)
     : ICategoryService
 {
     public async Task CreateAsync(CreateCategoryDto dto)
@@ -61,9 +61,16 @@ public class CategoryService(IApplicationDbContext context,
 
     public async Task DeleteAsync(Guid id)
     {
-        var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == id)
+        var category = await context.Categories
+                           .Include(c => c.Sounds)
+                           .FirstOrDefaultAsync(c => c.Id == id)
             ?? throw new NotFoundException("Category not found");
 
+        foreach (var sound in category.Sounds)
+        {
+            await storage.DeleteFileAsync($"sounds/{sound.Value}");
+        }
+        
         context.Categories.Remove(category);
         await context.SaveChangesAsync();
     }

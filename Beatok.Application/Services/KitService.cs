@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 
 public class KitService(IApplicationDbContext context, 
     IValidator<CreateKitDto> createValidator, IValidator<KitUpdateDto> updateValidator,
-    IMapper mapper)
+    IMapper mapper, IStorage storage)
     : IKitService
 {
     public async Task CreateAsync(CreateKitDto dto)
@@ -91,9 +91,17 @@ public class KitService(IApplicationDbContext context,
 
     public async Task DeleteAsync(Guid id)
     {
-        var kit = await context.Kits.FindAsync(id)
+        var kit = await context.Kits
+                      .Include(k => k.Categories)
+                            .ThenInclude(c => c.Sounds)
+                      .FirstOrDefaultAsync(k => k.Id == id)
             ?? throw new NotFoundException("Kit not found");
 
+        foreach (var sound in kit.Categories.SelectMany(c => c.Sounds))
+        {
+            await storage.DeleteFileAsync($"sounds/{sound.Value}");
+        }
+        
         context.Kits.Remove(kit);
         await context.SaveChangesAsync();
     }
