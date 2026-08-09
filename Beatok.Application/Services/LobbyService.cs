@@ -343,6 +343,7 @@ public class LobbyService(IApplicationDbContext context,
         {
             Id = s.Id,
             Value = storage.GeneratePresignedUrl($"sounds/{s.Value}", TimeSpan.FromHours(1)),
+            Name = s.Name,
             Category = new CategoryDto
             {
                 Id = s.CategoryId,

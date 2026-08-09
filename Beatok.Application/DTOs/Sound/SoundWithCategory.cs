@@ -6,5 +6,6 @@ public record SoundWithCategory
 {
     public Guid Id { get; set; }
     public required string Value { get; set; }
+    public required string Name { get; set; }
     public required CategoryDto Category { get; set; }
 }
