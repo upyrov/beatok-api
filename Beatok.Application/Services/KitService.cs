@@ -54,29 +54,22 @@ public class KitService(IApplicationDbContext context,
     public async Task<Kit> GetRandomAsync(Guid genreId)
     {
         var kit = await context.Kits
-            .Where(k => k.Genres.Any(g => g.Id == genreId))
-            .OrderBy(_ => EF.Functions.Random())
-            .Select(k => new Kit
-            {
-                Id = k.Id,
-                Name = k.Name,
-
-                Categories = k.Categories
-                    .Select(c => new Category
-                    {
-                        Id = c.Id,
-                        Name = c.Name,
-                        RandomSoundsCount = c.RandomSoundsCount,
-
-                        Sounds = c.Sounds
-                            .OrderBy(_ => EF.Functions.Random())
-                            .Take(c.RandomSoundsCount)
-                            .ToList()
-                    })
-                    .ToList()
-            }).FirstOrDefaultAsync();
+                      .Where(k => k.Genres.Any(g => g.Id == genreId))
+                      .Include(k => k.Categories)
+                      .ThenInclude(c => c.Sounds)
+                      .OrderBy(_ => EF.Functions.Random())
+                      .FirstOrDefaultAsync()
+                  ?? throw new NotFoundException("Kit not found");
         
-        return kit ?? throw new NotFoundException("Kit not found");
+        foreach (var category in kit.Categories)
+        {
+            category.Sounds = category.Sounds
+                .OrderBy(_ => Guid.NewGuid())
+                .Take(category.RandomSoundsCount)
+                .ToList();
+        }
+
+        return kit;
     }
 
     public async Task UpdateAsync(Guid id, KitUpdateDto dto)
