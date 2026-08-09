@@ -64,6 +64,9 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
     public async Task<ProfileDto> GetByIdAsync(string userId, int? year = null)
     {
         var user = await context.Users
+                       .Include(u => u.Participations)
+                       .ThenInclude(p => p.Submissions)
+                       .ThenInclude(s => s.Lobby)
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new UserNotFoundException();
@@ -113,15 +116,27 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
                 Count = lobbyCounts.GetValueOrDefault(currentDate, 0)
             });
         }
+        
+        int totalGames = user.Participations
+            .Count(p => !p.IsKicked);
+        int totalWins = user.Participations.Count(p =>
+            !p.IsKicked &&
+            p.Submissions.Any(s =>
+                s.Lobby != null &&
+                s.Lobby.WinningSubmissionId == s.Id));
 
         var profile = mapper.Map<ProfileDto>(user);
         profile.Activity = activity;
         profile.AvailableYears = availableYears;
+        profile.Wins = totalWins;
+        profile.WinRate = totalGames == 0
+            ? 0
+            : (double)totalWins / totalGames * 100;
 
         return profile;
     }
 
-public async Task<MeDto> GetMeAsync(string userId)
+    public async Task<MeDto> GetMeAsync(string userId)
     {
         var user = await context.Users.FindAsync(userId)
             ?? throw new UserNotFoundException();
