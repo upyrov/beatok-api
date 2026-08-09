@@ -7,6 +7,6 @@ public interface ISoundService
     SoundUploadDto GenerateUploadUrl(string fileExtension, string contentType);
     Task CreateAsync(CreateSoundDto dto);
     Task<IEnumerable<SoundDto>> GetAllByCategoryIdAsync(Guid categoryId);
-    Task UpdateValueAsync(Guid id, SoundUpdateDto dto);
+    Task UpdateAsync(Guid id, SoundUpdateDto dto);
     Task DeleteAsync(Guid id);
 }

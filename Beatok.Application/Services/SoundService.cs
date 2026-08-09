@@ -60,7 +60,7 @@ public class SoundService(IApplicationDbContext context,
         return mapper.Map<IEnumerable<SoundDto>>(sounds);
     }
 
-    public async Task UpdateValueAsync(Guid id, SoundUpdateDto dto)
+    public async Task UpdateAsync(Guid id, SoundUpdateDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)
@@ -71,8 +71,17 @@ public class SoundService(IApplicationDbContext context,
         var sound = await context.Sounds.FindAsync(id)
             ?? throw new NotFoundException("Sound not found");
 
-        await storage.DeleteFileAsync($"sounds/{sound.Value}");
-        sound.Value = dto.Value;
+        if (!string.IsNullOrWhiteSpace(dto.Value))
+        {
+            await storage.DeleteFileAsync($"sounds/{sound.Value}");
+            sound.Value = dto.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
+            sound.Name = dto.Name;
+        }
+        
         await context.SaveChangesAsync();
     }
 
