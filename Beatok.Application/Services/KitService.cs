@@ -55,10 +55,26 @@ public class KitService(IApplicationDbContext context,
     {
         var kit = await context.Kits
             .Where(k => k.Genres.Any(g => g.Id == genreId))
-            .Include(k => k.Categories)
-            .ThenInclude(c => c.Sounds.OrderBy(s => EF.Functions.Random()).Take(1))
-            .OrderBy(k => EF.Functions.Random())
-            .FirstOrDefaultAsync();
+            .OrderBy(_ => EF.Functions.Random())
+            .Select(k => new Kit
+            {
+                Id = k.Id,
+                Name = k.Name,
+
+                Categories = k.Categories
+                    .Select(c => new Category
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        RandomSoundsCount = c.RandomSoundsCount,
+
+                        Sounds = c.Sounds
+                            .OrderBy(_ => EF.Functions.Random())
+                            .Take(c.RandomSoundsCount)
+                            .ToList()
+                    })
+                    .ToList()
+            }).FirstOrDefaultAsync();
         
         return kit ?? throw new NotFoundException("Kit not found");
     }

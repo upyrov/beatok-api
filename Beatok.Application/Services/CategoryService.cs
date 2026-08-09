@@ -42,7 +42,7 @@ public class CategoryService(IApplicationDbContext context,
         return mapper.Map<IEnumerable<CategoryDto>>(categories);
     }
 
-    public async Task UpdateNameAsync(Guid id, CategoryUpdateDto dto)
+    public async Task UpdateAsync(Guid id, CategoryUpdateDto dto)
     {
         var fluentValidationResult = await updateValidator.ValidateAsync(dto);
         if (!fluentValidationResult.IsValid)
@@ -53,10 +53,17 @@ public class CategoryService(IApplicationDbContext context,
         var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == id)
             ?? throw new NotFoundException("Category not found");
 
-        await context.Categories
-            .Where(c => c.Id == category.Id)
-            .ExecuteUpdateAsync(s =>
-                s.SetProperty(c => c.Name, dto.Name));
+        if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
+            category.Name = dto.Name;
+        }
+
+        if (dto.RandomSoundsCount != 0)
+        {
+            category.RandomSoundsCount = dto.RandomSoundsCount;
+        }
+        
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Guid id)
