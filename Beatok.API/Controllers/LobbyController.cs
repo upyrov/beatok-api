@@ -47,7 +47,7 @@ namespace Beatok.API.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{id:guid}/participants/{targetUserId:guid}")]
+        [HttpDelete("{id:guid}/participants/{targetUserId}")]
         public async Task<IActionResult> Kick([FromRoute] Guid id, [FromRoute] string targetUserId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
