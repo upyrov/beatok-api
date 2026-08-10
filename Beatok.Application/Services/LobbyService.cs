@@ -332,11 +332,13 @@ public class LobbyService(IApplicationDbContext context,
         if (lobby.State != LobbyState.Waiting)
             return;
 
-        var kit = await kitService.GetRandomAsync(lobby.GenreId);
-        var sounds = kit.Categories.
-            SelectMany(c => c.Sounds)
-            .DistinctBy(s => s.Id) 
-            .ToList();
+        var soundIds = await kitService.GetRandomSoundIdsAsync(lobby.GenreId);
+
+        var sounds = await context.Sounds
+            .Include(s => s.Category)
+            .Where(s => soundIds.Contains(s.Id))
+            .ToListAsync();
+
         lobby.Sounds = sounds;
         
         var soundsDto = sounds.Select(s => new SoundWithCategory
