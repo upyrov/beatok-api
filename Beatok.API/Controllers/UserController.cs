@@ -62,7 +62,7 @@ namespace Beatok.API.Controllers
             return Ok(await userService.GetByIdAsync(id, year));
         }
 
-        [HttpPatch]
+        [HttpPut]
         [Authorize]
         public async Task<IActionResult> Update([FromBody] UserUpdateDto dto)
         {

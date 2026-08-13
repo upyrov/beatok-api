@@ -147,15 +147,24 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
     {
         var user = await context.Users.FindAsync(userId)
             ?? throw new UserNotFoundException();
-        if (dto.Name is not null)
+        
+        if (dto.Name != user.Name && !string.IsNullOrWhiteSpace(dto.Name))
         {
             user.Name = dto.Name;
         }
-        if (dto.Picture is not null)
+
+        if (dto.Picture != user.Picture)
         {
-            await storage.DeleteFileAsync($"pictures/{user.Picture}");
-            user.Picture = dto.Picture;
+            if (!string.IsNullOrWhiteSpace(user.Picture))
+            {
+                await storage.DeleteFileAsync($"pictures/{user.Picture}");
+            }
+
+            user.Picture = string.IsNullOrWhiteSpace(dto.Picture)
+                ? null
+                : dto.Picture;
         }
+
         await context.SaveChangesAsync();
     }
 }
