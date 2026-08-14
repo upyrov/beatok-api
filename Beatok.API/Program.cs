@@ -10,6 +10,7 @@ using Hangfire;
 using Scalar.AspNetCore;
 using System.Threading.RateLimiting;
 using Beatok.API.Filters;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +47,11 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+
+builder.Services.AddSignalR(options =>
+{
+    options.AddFilter<HubExceptionFilter>();
+});
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
