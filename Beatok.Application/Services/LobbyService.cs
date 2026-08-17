@@ -533,8 +533,11 @@ public class LobbyService(IApplicationDbContext context,
     {
         var submissions = lobby.Participants
             .Where(p => !p.IsKicked)
-            .SelectMany(p => p.Submissions).ToList();
-        if (!submissions.Any(s => s.Scores.Any()))
+            .SelectMany(p => p.Submissions)
+            .Where(s => s.Scores.Any())
+            .ToList();
+        
+        if (!submissions.Any())
             return null;
 
         var totalScore = submissions.Select(s => new
