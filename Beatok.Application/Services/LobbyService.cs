@@ -133,7 +133,17 @@ public class LobbyService(IApplicationDbContext context,
             submission.Value = storage.GeneratePresignedUrl($"submissions/{submission.Value}", TimeSpan.FromHours(1));
         }
 
-        return mapper.Map<DetailedLobbyDto>(lobbyWithParticipants);
+        var currentItem = lobbyWithParticipants.State == LobbyState.Voting
+            ? await context.LobbyPlaybackItems
+                .Where(x => x.LobbyId == lobbyId && x.StartedAt != null)
+                .OrderByDescending(x => x.StartedAt)
+                .FirstOrDefaultAsync()
+            : null;
+        
+        var lobbyDto = mapper.Map<DetailedLobbyDto>(lobbyWithParticipants);
+        lobbyDto.CurrentPlaybackItem =
+            mapper.Map<LobbyPlaybackItemDto?>(currentItem);
+        return lobbyDto;       
     }
 
     private async Task RejoinAsync(Participation participant)
@@ -447,6 +457,9 @@ public class LobbyService(IApplicationDbContext context,
         }
         
         var startedAt = DateTime.UtcNow;
+        item.StartedAt = startedAt;
+        await context.SaveChangesAsync();
+        
         await lobbyNotifier.SubmissionForPlaybackAsync(lobbyId, 
             new SubmissionDto
         {

@@ -7,5 +7,6 @@ public class LobbyPlaybackItem
     public Lobby? Lobby { get; set; }
     public Guid SubmissionId { get; set; }
     public Submission? Submission { get; set; }
+    public DateTime? StartedAt { get; set; }
     public int Order { get; set; }
 }

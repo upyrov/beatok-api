@@ -25,4 +25,5 @@ public record DetailedLobbyDto
     public IEnumerable<SoundWithCategory> Sounds { get; set; } = [];
     public IEnumerable<SubmissionDto> Submissions { get; set; } = [];
     public Guid? WinningSubmissionId { get; set; }
+    public LobbyPlaybackItemDto? CurrentPlaybackItem { get; set; }
 }
