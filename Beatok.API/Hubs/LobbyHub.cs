@@ -1,12 +1,12 @@
 ﻿using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
-using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using Beatok.Application.DTOs.Submission;
 
 namespace Beatok.API.Hubs
 {
@@ -20,7 +20,8 @@ namespace Beatok.API.Hubs
         Task OwnerChanged(string ownerId);
         Task MessageReceived(string senderId, string content);
         Task Started(ICollection<SoundWithCategory> sounds);
-        Task VotingStarted(TimeSpan votingTime, ICollection<SubmissionDto> submissions);
+        Task VotingStarted();
+        Task SubmissionForPlayback(SubmissionDto submission, DateTime startedAt);
         Task Ended(Guid? winningSubmissionId, IEnumerable<RatingChangeDto> ratingChanges);
     }
 

@@ -25,13 +25,20 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .Started(sounds);
     }
 
-    public async Task VotingStartedAsync(Guid lobbyId, TimeSpan votingTime, ICollection<SubmissionDto> submissions)
+    public async Task VotingStartedAsync(Guid lobbyId)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())
-            .VotingStarted(votingTime, submissions);
+            .VotingStarted();
     }
 
+    public async Task SubmissionForPlaybackAsync(Guid lobbyId, SubmissionDto submission, DateTime startedAt)
+    {
+        await hubContext.Clients
+            .Group(lobbyId.ToString())
+            .SubmissionForPlayback(submission, startedAt);
+    }
+    
     public async Task ParticipantConnectedAsync(Guid lobbyId, string userId)
     {
         await hubContext.Clients

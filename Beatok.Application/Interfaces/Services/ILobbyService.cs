@@ -12,11 +12,12 @@ public interface ILobbyService
     Task StartAsync(Guid lobbyId, string userId);
     Task KickAsync(Guid lobbyId, string userId, string targetUserId);
     Task TransitionToVotingAsync(Guid lobbyId);
+    Task StartPlaybackAsync(Guid lobbyId);
+    Task PlayNextItemAsync(Guid lobbyId, int order);
     Task TransitionToEndAsync(Guid lobbyId);
     Task<DetailedLobbyDto> JoinAsync(Guid lobbyId, string userId, string connectionId);
     Task LeaveAsync(Guid lobbyId, string userId);
     Task DisconnectAsync(string connectionId);
     Task HandleDisconnectTimeoutAsync(Guid lobbyId, string userId);
-    Task TryFinishVotingAsync(Lobby lobby);
     Task SendMessageAsync(Guid lobbyId, string userId, string content);
 }

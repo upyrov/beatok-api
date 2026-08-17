@@ -15,7 +15,6 @@ public class Lobby
     public short ParticipantLimit { get; set; }
     public string? JobId { get; set; }
     public TimeSpan SubmissionTime { get; set; }
-    public TimeSpan? VotingTime { get; set; }
     public LobbyState State { get; set; } = LobbyState.Waiting;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

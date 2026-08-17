@@ -17,6 +17,7 @@ public interface IApplicationDbContext
     
     DbSet<Score> Scores { get; }
     DbSet<Comment> Comments { get; }
+    DbSet<LobbyPlaybackItem> LobbyPlaybackItems { get; set; }
     
     Task EnsureUserExistsAsync(string userId, string name, bool isAnonymous);
     

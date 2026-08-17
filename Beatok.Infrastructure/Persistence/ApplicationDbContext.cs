@@ -19,6 +19,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Submission> Submissions { get; set; }
     public DbSet<Score> Scores { get; set; }
     public DbSet<Comment> Comments { get; set; }
+    public DbSet<LobbyPlaybackItem> LobbyPlaybackItems { get; set; }
     
     private const double Mu = 25.0;
     private const double Sigma = 8.333;

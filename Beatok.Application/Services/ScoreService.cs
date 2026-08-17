@@ -53,7 +53,6 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
         
         await context.Scores.AddAsync(score);
         await context.SaveChangesAsync();
-        await lobbyService.TryFinishVotingAsync(lobby);
         return score.Id;
     }
 
