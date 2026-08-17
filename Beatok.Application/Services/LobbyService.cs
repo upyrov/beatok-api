@@ -475,24 +475,6 @@ public class LobbyService(IApplicationDbContext context,
             TimeSpan.FromSeconds(item.Submission!.DurationSeconds));
     }
 
-    
-    public async Task TryFinishVotingAsync(Lobby lobby)
-    {
-        var submissions = lobby.Submissions.ToList();
-        
-        var scores = submissions.SelectMany(s => s.Scores).ToList();
-        
-        var expectedVotes = lobby.Participants
-            .Where(p => !p.IsKicked)
-            .Sum(participant =>
-            submissions.Count(s => s.ParticipationId != participant.Id));
-        if (scores.Count != expectedVotes)
-            return;
-
-        backgroundJobClient.Delete(lobby.JobId);
-        await TransitionToEndAsync(lobby.Id);
-    }
-
     public async Task TransitionToEndAsync(Guid lobbyId)
     {
         var lobby = await context.Lobbies
