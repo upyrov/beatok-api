@@ -446,7 +446,7 @@ public class LobbyService(IApplicationDbContext context,
             return;
         }
         
-        var startedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var startedAt = DateTime.UtcNow;
         await lobbyNotifier.SubmissionForPlaybackAsync(lobbyId, 
             new SubmissionDto
         {

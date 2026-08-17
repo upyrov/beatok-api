@@ -16,6 +16,6 @@ public interface ILobbyNotifier
     Task MessageReceivedAsync(Guid lobbyId, string userId, string content);
     Task StartedAsync(Guid lobbyId, ICollection<SoundWithCategory> sounds);
     Task VotingStartedAsync(Guid lobbyId);
-    Task SubmissionForPlaybackAsync(Guid lobbyId, SubmissionDto submission, long startedAt);
+    Task SubmissionForPlaybackAsync(Guid lobbyId, SubmissionDto submission, DateTime startedAt);
     Task EndedAsync(Guid lobbyId, Guid? winningSubmissionId, IEnumerable<RatingChangeDto> ratingChanges);
 }

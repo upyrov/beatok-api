@@ -32,7 +32,7 @@ public class SignalRLobbyNotifier(IHubContext<LobbyHub, ILobbyClient> hubContext
             .VotingStarted();
     }
 
-    public async Task SubmissionForPlaybackAsync(Guid lobbyId, SubmissionDto submission, long startedAt)
+    public async Task SubmissionForPlaybackAsync(Guid lobbyId, SubmissionDto submission, DateTime startedAt)
     {
         await hubContext.Clients
             .Group(lobbyId.ToString())

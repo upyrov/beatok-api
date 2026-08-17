@@ -21,7 +21,7 @@ namespace Beatok.API.Hubs
         Task MessageReceived(string senderId, string content);
         Task Started(ICollection<SoundWithCategory> sounds);
         Task VotingStarted();
-        Task SubmissionForPlayback(SubmissionDto submission, long startedAt);
+        Task SubmissionForPlayback(SubmissionDto submission, DateTime startedAt);
         Task Ended(Guid? winningSubmissionId, IEnumerable<RatingChangeDto> ratingChanges);
     }
 
