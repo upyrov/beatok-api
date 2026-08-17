@@ -1,4 +1,3 @@
-using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Submission;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Sound;
@@ -16,6 +15,7 @@ public interface ILobbyNotifier
     Task OwnerChangedAsync(Guid lobbyId, string newOwnerId);
     Task MessageReceivedAsync(Guid lobbyId, string userId, string content);
     Task StartedAsync(Guid lobbyId, ICollection<SoundWithCategory> sounds);
-    Task VotingStartedAsync(Guid lobbyId, TimeSpan votingTime, ICollection<SubmissionDto> submissions);
+    Task VotingStartedAsync(Guid lobbyId);
+    Task SubmissionForPlaybackAsync(Guid lobbyId, SubmissionDto submission, long startedAt);
     Task EndedAsync(Guid lobbyId, Guid? winningSubmissionId, IEnumerable<RatingChangeDto> ratingChanges);
 }

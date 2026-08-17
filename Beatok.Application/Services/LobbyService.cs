@@ -387,47 +387,82 @@ public class LobbyService(IApplicationDbContext context,
 
     public async Task TransitionToVotingAsync(Guid lobbyId)
     {
-        var lobby = await context.Lobbies.
-            Include(l => l.Participants)
-                .ThenInclude(p => p.Submissions)
-            .Where(l => l.Id == lobbyId)
-            .FirstOrDefaultAsync();
+        var lobby = await context.Lobbies.FindAsync(lobbyId);
         if (lobby == null)
             return;
 
-        var submissions = lobby.Participants
-            .Where(p => !p.IsKicked)
-            .SelectMany(p => p.Submissions.SelectMany(s => new List<SubmissionDto> {
-            new() {
-                Id = s.Id,
-                Value = storage.GeneratePresignedUrl($"submissions/{s.Value}", TimeSpan.FromHours(1)),
-                LobbyId = lobby.Id,
-                ParticipationId = s.ParticipationId
-            }
-        })).ToList();
+        var hasSubmissions = await context.Submissions
+            .AnyAsync(s =>
+                s.LobbyId == lobbyId &&
+                !s.Participant!.IsKicked);
 
-        if (submissions.Count == 0)
+        if (!hasSubmissions)
         {
             await TransitionToEndAsync(lobby.Id);
             return;
         }
         
-        var votingTime = TimeSpan.FromSeconds(lobby.Participants
-            .Where(p => !p.IsKicked)
-            .SelectMany(s => s.Submissions)
-            .Sum(s => s.DurationSeconds)) + TimeSpan.FromMinutes(1);
-        var jobId = backgroundJobClient.Schedule<ILobbyService>(
-            s => s.TransitionToEndAsync(lobby.Id), votingTime);
-        
         lobby.State = LobbyState.Voting;
         lobby.VotingStartedAt = DateTime.UtcNow;
-        lobby.VotingTime = votingTime;
-        lobby.JobId = jobId;
         await context.SaveChangesAsync();
         
-        await lobbyNotifier.VotingStartedAsync(lobby.Id, votingTime, submissions);
+        await lobbyNotifier.VotingStartedAsync(lobby.Id);
+        await StartPlaybackAsync(lobbyId);
+    }
+    
+    public async Task StartPlaybackAsync(Guid lobbyId)
+    {
+        var submissions = await context.Submissions
+            .Where(s =>
+                s.LobbyId == lobbyId &&
+                !s.Participant!.IsKicked)
+            .ToListAsync();
+
+        for (int i = 0; i < submissions.Count; i++)
+        {
+            await context.LobbyPlaybackItems.AddAsync(new LobbyPlaybackItem
+            {
+                LobbyId = lobbyId,
+                SubmissionId = submissions[i].Id,
+                Order = i
+            });
+        }
+        await context.SaveChangesAsync();
+        
+        await PlayNextItemAsync(lobbyId, 0);
     }
 
+    public async Task PlayNextItemAsync(Guid lobbyId, int order)
+    {
+        var item = await context.LobbyPlaybackItems
+            .Include(x => x.Submission)
+            .FirstOrDefaultAsync(x =>
+                x.LobbyId == lobbyId &&
+                x.Order == order);
+        
+        if (item is null)
+        {
+            await TransitionToEndAsync(lobbyId);
+            return;
+        }
+        
+        var startedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        await lobbyNotifier.SubmissionForPlaybackAsync(lobbyId, 
+            new SubmissionDto
+        {
+            Id = item.SubmissionId,
+            LobbyId = lobbyId,
+            ParticipationId = item.Submission!.ParticipationId,
+            Value = storage.GeneratePresignedUrl($"submissions/{item.Submission.Value}", TimeSpan.FromHours(1))
+        }, 
+            startedAt);
+        
+        backgroundJobClient.Schedule<ILobbyService>(
+            s => s.PlayNextItemAsync(lobbyId, item.Order + 1),
+            TimeSpan.FromSeconds(item.Submission!.DurationSeconds));
+    }
+
+    
     public async Task TryFinishVotingAsync(Lobby lobby)
     {
         var submissions = lobby.Submissions.ToList();
