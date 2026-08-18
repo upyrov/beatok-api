@@ -96,5 +96,11 @@ namespace Beatok.API.Controllers
                 .GetCommentsAsync(id, paginationParams.Page, paginationParams.PageSize);
             return Ok(pageResult);
         }
+
+        [HttpGet("/leaderboard")]
+        public async Task<ActionResult<LeaderboardUserDto>> GetLeaderboard([FromQuery] LeaderboardQuery query)
+        {
+            return Ok(await userService.GetLeaderboardAsync(query));
+        }
     }
 }

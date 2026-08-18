@@ -1,4 +1,5 @@
 using AutoMapper;
+using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
@@ -8,8 +9,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Beatok.Application.Services;
 
-public class UserService(IApplicationDbContext context, IMapper mapper, 
-    IStorage storage): IUserService
+public class UserService(
+    IApplicationDbContext context,
+    IMapper mapper,
+    IStorage storage) : IUserService
 {
     public async Task EnsureExistsAsync(string userId, string name, bool isAnonymous)
     {
@@ -35,7 +38,7 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
         return await context.Users
             .AnyAsync(u => u.Id == userId && u.Role == UserRole.Administrator);
     }
-    
+
     public PictureUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
         if (!fileExtension.StartsWith('.'))
@@ -44,7 +47,8 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
         }
 
         var fileKey = $"{Guid.NewGuid()}{fileExtension}";
-        var uploadUrl = storage.GeneratePresignedUploadUrl($"pictures/{fileKey}", TimeSpan.FromMinutes(15), contentType);
+        var uploadUrl =
+            storage.GeneratePresignedUploadUrl($"pictures/{fileKey}", TimeSpan.FromMinutes(15), contentType);
 
         return new PictureUploadDto
         {
@@ -52,12 +56,12 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
             FileKey = fileKey
         };
     }
-    
+
     public async Task UpdateLastActiveAtAsync(string userId)
     {
         await context.Users
             .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(s => 
+            .ExecuteUpdateAsync(s =>
                 s.SetProperty(u => u.LastActiveAt, DateTime.UtcNow));
     }
 
@@ -67,9 +71,9 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
                        .Include(u => u.Participations)
                        .ThenInclude(p => p.Submissions)
                        .ThenInclude(s => s.Lobby)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userId)
-            ?? throw new UserNotFoundException();
+                       .AsNoTracking()
+                       .FirstOrDefaultAsync(u => u.Id == userId)
+                   ?? throw new UserNotFoundException();
 
         var availableYears = await context.Lobbies
             .AsNoTracking()
@@ -116,7 +120,7 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
                 Count = lobbyCounts.GetValueOrDefault(currentDate, 0)
             });
         }
-        
+
         int totalGames = user.Participations
             .Count(p => !p.IsKicked);
         int totalWins = user.Participations.Count(p =>
@@ -139,15 +143,15 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
     public async Task<MeDto> GetMeAsync(string userId)
     {
         var user = await context.Users.FindAsync(userId)
-            ?? throw new UserNotFoundException();
+                   ?? throw new UserNotFoundException();
         return mapper.Map<MeDto>(user);
     }
 
     public async Task UpdateAsync(string userId, UserUpdateDto dto)
     {
         var user = await context.Users.FindAsync(userId)
-            ?? throw new UserNotFoundException();
-        
+                   ?? throw new UserNotFoundException();
+
         if (dto.Name != user.Name && !string.IsNullOrWhiteSpace(dto.Name))
         {
             user.Name = dto.Name;
@@ -166,5 +170,42 @@ public class UserService(IApplicationDbContext context, IMapper mapper,
         }
 
         await context.SaveChangesAsync();
+    }
+
+    public async Task<List<LeaderboardUserDto>> GetLeaderboardAsync(LeaderboardQuery query)
+    {
+        var usersQuery = context.Users
+            .AsNoTracking();
+
+        usersQuery = query.SortBy.ToLowerInvariant() switch
+        {
+            "rating" => usersQuery.OrderByDescending(u => u.Rating),
+
+            "wins" => usersQuery.OrderByDescending(u =>
+                u.Participations.Count(p =>
+                    !p.IsKicked &&
+                    p.Submissions.Any(s =>
+                        s.Lobby != null &&
+                        s.Lobby.WinningSubmissionId == s.Id))),
+
+            _ => usersQuery.OrderByDescending(u => u.Rating)
+        };
+
+        return await usersQuery
+            .Take(25)
+            .Select(u => new LeaderboardUserDto
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Rating = u.Rating,
+                Wins = u.Participations.Count(p =>
+                    !p.IsKicked &&
+                    p.Submissions.Any(s =>
+                        s.Lobby != null &&
+                        s.Lobby.WinningSubmissionId == s.Id)),
+                Picture = u.Picture == null ? null : storage
+                    .GeneratePresignedUrl($"pictures/{u.Picture}", TimeSpan.FromHours(1)),
+            })
+            .ToListAsync();
     }
 }

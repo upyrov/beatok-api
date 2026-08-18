@@ -1,3 +1,4 @@
+using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.User;
 
 namespace Beatok.Application.Interfaces.Services;
@@ -11,4 +12,5 @@ public interface IUserService
     Task<ProfileDto> GetByIdAsync(string userId, int? year = null);
     Task<MeDto> GetMeAsync(string userId);
     Task UpdateAsync(string userId, UserUpdateDto dto);
+    Task<List<LeaderboardUserDto>> GetLeaderboardAsync(LeaderboardQuery query);
 }
