@@ -192,7 +192,7 @@ public class UserService(
         };
 
         return await usersQuery
-            .Take(25)
+            .Take(5)
             .Select(u => new LeaderboardUserDto
             {
                 Id = u.Id,
