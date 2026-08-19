@@ -22,6 +22,7 @@ public static class DependencyInjection
             provider.GetRequiredService<ApplicationDbContext>());
         
         services.AddHostedService<InactiveUserCleanupService>();
+        services.AddHostedService<LobbyCleanupService>();
         
         services.Configure<R2Options>(configuration.GetSection(nameof(R2Options)));
         
