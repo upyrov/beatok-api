@@ -30,7 +30,7 @@ public class LobbyCleanupService(
                     var threshold = DateTime.UtcNow - _expirationThreshold;
 
                     int deletedCount = await context.Lobbies
-                        .Where(l => l.State == LobbyState.Waiting
+                        .Where(l => l.State != LobbyState.Ended
                                     && l.CreatedAt < threshold)
                         .ExecuteDeleteAsync(stoppingToken);
                     logger.LogInformation("Deleted {DeletedCount} lobbies", deletedCount);
