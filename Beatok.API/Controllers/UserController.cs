@@ -72,7 +72,7 @@ namespace Beatok.API.Controllers
         }
 
         [HttpGet("{id}/activity")]
-        public async Task<ActionResult<IEnumerable<LobbyDto>>> GetHistory([FromRoute] string id, 
+        public async Task<ActionResult<IEnumerable<ArchivedLobbyDto>>> GetHistory([FromRoute] string id, 
             [FromQuery] DateTime date)
         {
             var result = await lobbyService.GetByUserIdAsync(id, date);

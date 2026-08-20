@@ -1,6 +1,7 @@
 using AutoMapper;
 using Beatok.Application.DTOs;
 using Beatok.Application.DTOs.Category;
+using Beatok.Application.DTOs.Genre;
 using Beatok.Application.DTOs.Lobby;
 using Beatok.Application.DTOs.Sound;
 using Beatok.Application.DTOs.Submission;
@@ -295,7 +296,7 @@ public class LobbyService(IApplicationDbContext context,
         return dtos;
     }
 
-    public async Task<List<LobbyDto>> GetByUserIdAsync(string userId, DateTime date)
+    public async Task<List<ArchivedLobbyDto>> GetByUserIdAsync(string userId, DateTime date)
     {
         var userExists = await context.Users.AnyAsync(u => u.Id == userId);
         if (!userExists)
@@ -305,13 +306,32 @@ public class LobbyService(IApplicationDbContext context,
         var lobbies = await context.Lobbies
             .AsNoTracking()
             .Include(l => l.Genre)
-            .Include(l => l.Owner)
             .Include(l => l.Participants)
+                .ThenInclude(p => p.Submissions)
             .Where(l => l.Participants.Any(p => p.UserId == userId && !p.IsKicked))
             .Where(l => l.EndedAt.Date == utcDate)
             .ToListAsync();
-
-        return mapper.Map<List<LobbyDto>>(lobbies);
+        
+        return lobbies.Select(l => new ArchivedLobbyDto
+        {
+            Id = l.Id,
+            Name = l.Name,
+            CreatedAt = l.CreatedAt,
+            SubmissionStartedAt = l.SubmissionStartedAt,
+            VotingStartedAt = l.VotingStartedAt,
+            EndedAt = l.EndedAt,
+            Genre = new GenreDto
+            {
+                Id = l.GenreId,
+                Name = l.Genre!.Name
+            },
+            IsWinner = l.Participants.Any(p =>
+                !p.IsKicked &&
+                p.UserId == userId &&
+                p.Submissions.Any(s => s.Id == l.WinningSubmissionId)),
+            ParticipantCount = l.Participants.Count(p => !p.IsKicked),
+            
+        }).ToList();
     }
 
     private IQueryable<Lobby> ApplyFilter(IQueryable<Lobby> query, LobbyFilterDto filter)
