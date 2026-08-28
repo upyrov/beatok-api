@@ -47,15 +47,15 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
 
         if (lobby.State != LobbyState.Submitting)
         {
-            throw new InvalidOperationException("Lobby is not in submission phase");
+            throw new BusinessException("Lobby is not in submission phase");
         }
 
         var participation = lobby.Participants.FirstOrDefault(p => p.UserId == userId && !p.IsKicked)
-            ?? throw new InvalidOperationException("User is not a participant in this lobby");
+            ?? throw new BusinessException("User is not a participant in this lobby");
 
         if (participation.Submissions != null && participation.Submissions.Count != 0)
         {
-            throw new InvalidOperationException("User has already submitted a track");
+            throw new BusinessException("User has already submitted a track");
         }
 
         if (dto.DurationSeconds <= 0 || dto.DurationSeconds > lobby.SubmissionTime.TotalSeconds / 2)
@@ -106,7 +106,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
 
         if (submission.Participant?.Lobby?.State != LobbyState.Submitting)
         {
-            throw new InvalidOperationException("Lobby is not in submission phase");
+            throw new BusinessException("Lobby is not in submission phase");
         }
 
         await storage.DeleteFileAsync($"submissions/{submission.Value}");
@@ -123,7 +123,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
 
         if (submission.Lobby!.State != LobbyState.Submitting)
         {
-            throw new InvalidOperationException("Lobby is not in submission phase");
+            throw new BusinessException("Lobby is not in submission phase");
         }
 
         await storage.DeleteFileAsync($"submissions/{submission.Value}");

@@ -36,7 +36,7 @@ public class LobbyService(IApplicationDbContext context,
             .Where(p => p.UserId == ownerId && p.Lobby!.State != LobbyState.Ended && !p.IsKicked)
             .CountAsync();
         if (activeLobbyCount >= 2)
-            throw new BadRequestException("User cannot join more than 2 active lobbies");
+            throw new BusinessException("User cannot join more than 2 active lobbies");
 
         var lobby = new Lobby
         {
@@ -114,11 +114,11 @@ public class LobbyService(IApplicationDbContext context,
             .CountAsync(p => p.UserId == user.Id && p.Lobby!.State != LobbyState.Ended && !p.IsKicked);
 
         if (activeLobbyCount >= 2)
-            throw new BadRequestException("User cannot join more than 2 active lobbies");
+            throw new BusinessException("User cannot join more than 2 active lobbies");
         if (lobby.State != LobbyState.Waiting)
-            throw new BadRequestException("Lobby is already started");
+            throw new BusinessException("Lobby is already started");
         if (lobby.Participants.Count >= lobby.ParticipantLimit)
-            throw new BadRequestException("Lobby is full");
+            throw new BusinessException("Lobby is full");
 
         var newParticipant = new Participation
         {
@@ -139,7 +139,7 @@ public class LobbyService(IApplicationDbContext context,
     {
         if (participant.IsKicked)
         {
-            throw new BadRequestException("You have been kicked from the lobby");
+            throw new BusinessException("You have been kicked from the lobby");
         }
             
         participant.ConnectionId = connectionId;
@@ -299,7 +299,7 @@ public class LobbyService(IApplicationDbContext context,
     {
         var userExists = await context.Users.AnyAsync(u => u.Id == userId);
         if (!userExists)
-            throw new UserNotFoundException();
+            throw new NotFoundException("User not found");
 
         var utcDate = DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
         var lobbies = await context.Lobbies
@@ -355,7 +355,7 @@ public class LobbyService(IApplicationDbContext context,
                 .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
         if (lobby.OwnerId != userId)
-            throw new BadRequestException("You are not the owner of this lobby");
+            throw new BusinessException("You are not the owner of this lobby");
         var participant = lobby.Participants
             .FirstOrDefault(p => p.UserId == targetUserId) ??
                 throw new NotFoundException("User not found in lobby");
@@ -381,9 +381,9 @@ public class LobbyService(IApplicationDbContext context,
                           throw new NotFoundException("User not found in lobby");
         
         if (string.IsNullOrWhiteSpace(content))
-            throw new BadRequestException("Message cannot be empty");
+            throw new BusinessException("Message cannot be empty");
         if (content.Length > 250)
-            throw new BadRequestException("Message cannot be longer than 250 characters");
+            throw new BusinessException("Message cannot be longer than 250 characters");
 
         await lobbyNotifier.MessageReceivedAsync(lobbyId, userId, content);
     }

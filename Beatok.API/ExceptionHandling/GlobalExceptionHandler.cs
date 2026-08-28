@@ -13,14 +13,11 @@ public class GlobalExceptionHandler: IExceptionHandler
     {
         var statusCode = exception switch
         {
-            EmailAlreadyExistsException => StatusCodes.Status409Conflict,
             ValidationException => StatusCodes.Status400BadRequest,
             InvalidCredentialException => StatusCodes.Status401Unauthorized,
-            UserNotFoundException => StatusCodes.Status401Unauthorized,
             NotFoundException => StatusCodes.Status404NotFound,
             TokenExpiredException => StatusCodes.Status401Unauthorized,
-            InvalidOperationException => StatusCodes.Status400BadRequest,
-            BadRequestException => StatusCodes.Status400BadRequest,
+            BusinessException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError
         };
         context.Response.StatusCode = statusCode;

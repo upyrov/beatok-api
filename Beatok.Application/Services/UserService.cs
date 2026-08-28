@@ -73,7 +73,7 @@ public class UserService(
                        .ThenInclude(s => s.Lobby)
                        .AsNoTracking()
                        .FirstOrDefaultAsync(u => u.Id == userId)
-                   ?? throw new UserNotFoundException();
+                   ?? throw new NotFoundException("User not found");
 
         var availableYears = await context.Lobbies
             .AsNoTracking()
@@ -143,14 +143,14 @@ public class UserService(
     public async Task<MeDto> GetMeAsync(string userId)
     {
         var user = await context.Users.FindAsync(userId)
-                   ?? throw new UserNotFoundException();
+                   ?? throw new NotFoundException("User not found");
         return mapper.Map<MeDto>(user);
     }
 
     public async Task UpdateAsync(string userId, UserUpdateDto dto)
     {
         var user = await context.Users.FindAsync(userId)
-                   ?? throw new UserNotFoundException();
+                   ?? throw new NotFoundException("User not found");
 
         if (dto.Name != user.Name && !string.IsNullOrWhiteSpace(dto.Name))
         {

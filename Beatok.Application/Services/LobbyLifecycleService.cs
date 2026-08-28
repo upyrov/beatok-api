@@ -25,9 +25,9 @@ public class LobbyLifecycleService(IApplicationDbContext context,
                         .FirstOrDefaultAsync(l => l.Id == lobbyId)
                     ?? throw new NotFoundException("Lobby not found");
         if (lobby.OwnerId != userId)
-            throw new BadRequestException("You are not the owner of this lobby");
+            throw new BusinessException("You are not the owner of this lobby");
         if (lobby.Participants.Count(p => !p.IsKicked) < 2)
-            throw new BadRequestException("Lobby must have at least 2 participants");
+            throw new BusinessException("Lobby must have at least 2 participants");
         if (lobby.State != LobbyState.Waiting)
             return;
 

@@ -42,7 +42,7 @@ public class SoundService(IApplicationDbContext context,
         }
 
         var category = await context.Categories.FindAsync(dto.CategoryId) 
-            ?? throw new BadRequestException("Category not found");
+            ?? throw new BusinessException("Category not found");
 
         await context.Sounds.AddAsync(mapper.Map<Sound>(dto));
         await context.SaveChangesAsync();

@@ -26,7 +26,7 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
             ?? throw new NotFoundException("Lobby not found");
         
         if (lobby.State != LobbyState.Voting)
-            throw new BadRequestException("Lobby is not in voting phase");
+            throw new BusinessException("Lobby is not in voting phase");
 
         var submission = await context.Submissions
             .Include(s => s.Participant)
@@ -35,13 +35,13 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
             ?? throw new NotFoundException("Submission not found");
 
         var participation = lobby.Participants
-            .FirstOrDefault(p => p.UserId == userId && !p.IsKicked) ?? throw new BadRequestException("User is not a participant in this lobby");
+            .FirstOrDefault(p => p.UserId == userId && !p.IsKicked) ?? throw new BusinessException("User is not a participant in this lobby");
         if (submission.Participant?.UserId == userId)
-            throw new BadRequestException("User cannot vote for their own track");
+            throw new BusinessException("User cannot vote for their own track");
         if (submission.Participant!.LobbyId != lobbyId)
-            throw new BadRequestException("Submission is not part of this lobby");
+            throw new BusinessException("Submission is not part of this lobby");
         if (submission.Scores.Any(s => s.ParticipationId == participation.Id)) 
-            throw new BadRequestException("User has already voted");
+            throw new BusinessException("User has already voted");
 
         var score = new Score
         {
@@ -67,16 +67,16 @@ public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreD
             ?? throw new NotFoundException("Lobby not found");
 
         if (lobby.State != LobbyState.Voting)
-            throw new BadRequestException("Lobby is not in voting phase");
+            throw new BusinessException("Lobby is not in voting phase");
 
         var score = await context.Scores.Include(s => s.Participant).FirstOrDefaultAsync(s => s.Id == scoreId)
             ?? throw new NotFoundException("Score not found");
 
         if (score.LobbyId != lobbyId)
-            throw new BadRequestException("Score is not part of this lobby");
+            throw new BusinessException("Score is not part of this lobby");
         
         if (score.Participant?.UserId != userId)
-            throw new BadRequestException("User is not the owner of this score");
+            throw new BusinessException("User is not the owner of this score");
 
         score.Value = dto.Value;
         context.Scores.Update(score);

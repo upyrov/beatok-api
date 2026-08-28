@@ -20,13 +20,13 @@ public class CommentService(IApplicationDbContext context, IValidator<CreateComm
             throw new ValidationException(fluentValidation.Errors);
         
         if (authorId == targetUserId)
-            throw new BadRequestException("You cannot comment on yourself");
+            throw new BusinessException("You cannot comment on yourself");
         
         var author = await context.Users.FindAsync(authorId);
         if (author == null)
             throw new NotFoundException("Author not found");
         if (author.IsAnonymous)
-            throw new BadRequestException("Anonymous users cannot comment");
+            throw new BusinessException("Anonymous users cannot comment");
         
         if (!await context.Users.AnyAsync(u => u.Id == targetUserId))
             throw new NotFoundException("Taget user not found");

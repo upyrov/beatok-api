@@ -16,7 +16,7 @@ public class HubExceptionFilter: IHubFilter
         {
             throw new HubException(ex.Message);
         }
-        catch (BadRequestException ex)
+        catch (BusinessException ex)
         {
             throw new HubException(ex.Message);
         }
