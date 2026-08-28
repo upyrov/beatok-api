@@ -11,7 +11,7 @@ namespace Beatok.Application.Services;
 
 public class SubmissionService(IApplicationDbContext context, IValidator<CreateSubmissionDto> createValidator,
     IValidator<SubmissionUpdateDto> updateValidator, IBackgroundJobClient backgroundJobClient,
-    IStorage storage, ILobbyService lobbyService) : ISubmissionService
+    IStorage storage, ILobbyLifecycleService lobbyLifecycleService) : ISubmissionService
 {
     public SubmissionUploadDto GenerateUploadUrl(string fileExtension, string contentType)
     {
@@ -81,7 +81,7 @@ public class SubmissionService(IApplicationDbContext context, IValidator<CreateS
         if (lobby.Participants.Where(p => p.IsConnected && !p.IsKicked).All(p => p.Submissions.Count != 0))
         {
             backgroundJobClient.Delete(lobby.JobId);
-            await lobbyService.TransitionToVotingAsync(lobby.Id);
+            await lobbyLifecycleService.TransitionToVotingAsync(lobby.Id);
         }
     }
 

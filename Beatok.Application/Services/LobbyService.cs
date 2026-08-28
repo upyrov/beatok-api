@@ -1,11 +1,7 @@
 using AutoMapper;
 using Beatok.Application.DTOs;
-using Beatok.Application.DTOs.Category;
 using Beatok.Application.DTOs.Genre;
 using Beatok.Application.DTOs.Lobby;
-using Beatok.Application.DTOs.Sound;
-using Beatok.Application.DTOs.Submission;
-using Beatok.Application.DTOs.User;
 using Beatok.Application.Exceptions;
 using Beatok.Application.Interfaces;
 using Beatok.Application.Interfaces.Services;
@@ -17,9 +13,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class LobbyService(IApplicationDbContext context,
-    IValidator<CreateLobbyDto> validator, IBackgroundJobClient backgroundJobClient,
-    ILobbyNotifier lobbyNotifier, IStorage storage, IKitService kitService,
-    IMapper mapper, IMmrService mmrService) : ILobbyService
+    IValidator<CreateLobbyDto> validator, 
+    IBackgroundJobClient backgroundJobClient,
+    ILobbyNotifier lobbyNotifier, 
+    IMapper mapper,
+    ILobbyLifecycleService lobbyLifecycleService
+    ) : ILobbyService
 {
     public async Task<Guid> CreateAsync(CreateLobbyDto dto, string ownerId)
     {
@@ -67,44 +66,16 @@ public class LobbyService(IApplicationDbContext context,
 
         if (participant is null)
         {
-            var activeLobbyCount = await context.Participation
-                .CountAsync(p => p.UserId == userId && p.Lobby!.State != LobbyState.Ended && !p.IsKicked);
-
-            if (activeLobbyCount >= 2)
-                throw new BadRequestException("User cannot join more than 2 active lobbies");
-            if (lobby.State != LobbyState.Waiting)
-                throw new BadRequestException("Lobby is already started");
-            if (lobby.Participants.Count >= lobby.ParticipantLimit)
-                throw new BadRequestException("Lobby is full");
-
-            var newParticipant = new Participation
-            {
-                LobbyId = lobbyId,
-                UserId = userId,
-                User = user,
-                ConnectionId = connectionId
-            };
-
-            lobby.Participants.Add(newParticipant);
-            await context.Participation.AddAsync(newParticipant);
-            await context.SaveChangesAsync();
-
-            await lobbyNotifier.ParticipantJoinedAsync(lobbyId, mapper.Map<ParticipationDto>(newParticipant));
+            await HandleNewParticipantAsync(lobby, user, connectionId);
         }
         else
         {
-            if (participant.IsKicked)
-            {
-                throw new BadRequestException("You have been kicked from the lobby");
-            }
-            
-            participant.ConnectionId = connectionId;
-            await RejoinAsync(participant);
+            await HandleExistingParticipantAsync(participant, connectionId);
         }
 
-        if (lobby.ParticipantLimit == lobby.Participants.Count)
+        if (lobby.Participants.Count(p => !p.IsKicked) >= lobby.ParticipantLimit)
         {
-            await StartAsync(lobbyId, lobby.OwnerId);
+            await lobbyLifecycleService.StartAsync(lobbyId, lobby.OwnerId);
         }
 
         var lobbyWithParticipants = await context.Lobbies
@@ -124,16 +95,6 @@ public class LobbyService(IApplicationDbContext context,
             .FirstOrDefaultAsync(l => l.Id == lobbyId)
             ?? throw new NotFoundException("Lobby not found");
 
-        foreach (var sound in lobbyWithParticipants.Sounds)
-        {
-            sound.Value = storage.GeneratePresignedUrl($"sounds/{sound.Value}", TimeSpan.FromHours(1));
-        }
-
-        foreach (var submission in lobbyWithParticipants.Submissions)
-        {
-            submission.Value = storage.GeneratePresignedUrl($"submissions/{submission.Value}", TimeSpan.FromHours(1));
-        }
-
         var currentItem = lobbyWithParticipants.State == LobbyState.Voting
             ? await context.LobbyPlaybackItems
                 .Where(x => x.LobbyId == lobbyId && x.StartedAt != null)
@@ -145,6 +106,44 @@ public class LobbyService(IApplicationDbContext context,
         lobbyDto.CurrentPlaybackItem =
             mapper.Map<LobbyPlaybackItemDto?>(currentItem);
         return lobbyDto;       
+    }
+
+    private async Task HandleNewParticipantAsync(Lobby lobby, User user, string connectionId)
+    {
+        var activeLobbyCount = await context.Participation
+            .CountAsync(p => p.UserId == user.Id && p.Lobby!.State != LobbyState.Ended && !p.IsKicked);
+
+        if (activeLobbyCount >= 2)
+            throw new BadRequestException("User cannot join more than 2 active lobbies");
+        if (lobby.State != LobbyState.Waiting)
+            throw new BadRequestException("Lobby is already started");
+        if (lobby.Participants.Count >= lobby.ParticipantLimit)
+            throw new BadRequestException("Lobby is full");
+
+        var newParticipant = new Participation
+        {
+            LobbyId = lobby.Id,
+            UserId = user.Id,
+            User = user,
+            ConnectionId = connectionId
+        };
+
+        lobby.Participants.Add(newParticipant);
+        await context.Participation.AddAsync(newParticipant);
+        await context.SaveChangesAsync();
+
+        await lobbyNotifier.ParticipantJoinedAsync(lobby.Id, mapper.Map<ParticipationDto>(newParticipant));   
+    }
+
+    private async Task HandleExistingParticipantAsync(Participation participant, string connectionId)
+    {
+        if (participant.IsKicked)
+        {
+            throw new BadRequestException("You have been kicked from the lobby");
+        }
+            
+        participant.ConnectionId = connectionId;
+        await RejoinAsync(participant);
     }
 
     private async Task RejoinAsync(Participation participant)
@@ -219,7 +218,7 @@ public class LobbyService(IApplicationDbContext context,
         if (participant != null)
         {
             participant.IsConnected = false;
-            participant .ConnectionId = null;
+            participant.ConnectionId = null;
             
             if (!participant.IsKicked)
             {
@@ -349,50 +348,6 @@ public class LobbyService(IApplicationDbContext context,
         return query;
     }
 
-    public async Task StartAsync(Guid lobbyId, string userId)
-    {
-        var lobby = await context.Lobbies
-                .Include(l => l.Participants)
-                .FirstOrDefaultAsync(l => l.Id == lobbyId)
-            ?? throw new NotFoundException("Lobby not found");
-        if (lobby.OwnerId != userId)
-            throw new BadRequestException("You are not the owner of this lobby");
-        if (lobby.Participants.Count(p => !p.IsKicked) < 2)
-            throw new BadRequestException("Lobby must have at least 2 participants");
-        if (lobby.State != LobbyState.Waiting)
-            return;
-
-        var soundIds = await kitService.GetRandomSoundIdsAsync(lobby.GenreId);
-
-        var sounds = await context.Sounds
-            .Include(s => s.Category)
-            .Where(s => soundIds.Contains(s.Id))
-            .ToListAsync();
-
-        lobby.Sounds = sounds;
-        
-        var soundsDto = sounds.Select(s => new SoundWithCategory
-        {
-            Id = s.Id,
-            Value = storage.GeneratePresignedUrl($"sounds/{s.Value}", TimeSpan.FromHours(1)),
-            Name = s.Name,
-            Category = new CategoryDto
-            {
-                Id = s.CategoryId,
-                Name = s.Category!.Name
-            }
-        }).ToList();
-        await lobbyNotifier.StartedAsync(lobby.Id, soundsDto);
-
-        var jobId = backgroundJobClient.Schedule<ILobbyService>(
-            s => s.TransitionToVotingAsync(lobby.Id),
-            lobby.SubmissionTime);
-        lobby.State = LobbyState.Submitting;
-        lobby.SubmissionStartedAt = DateTime.UtcNow;
-        lobby.JobId = jobId;
-        await context.SaveChangesAsync();
-    }
-
     public async Task KickAsync(Guid lobbyId, string userId, string targetUserId)
     {
         var lobby = await context.Lobbies
@@ -413,166 +368,6 @@ public class LobbyService(IApplicationDbContext context,
             await lobbyNotifier.KickedReceivedAsync(participant.ConnectionId);
         }
         await lobbyNotifier.ParticipantLeftAsync(lobby.Id, targetUserId);
-    }
-
-    public async Task TransitionToVotingAsync(Guid lobbyId)
-    {
-        var lobby = await context.Lobbies.FindAsync(lobbyId);
-        if (lobby == null)
-            return;
-
-        var hasSubmissions = await context.Submissions
-            .AnyAsync(s =>
-                s.LobbyId == lobbyId &&
-                !s.Participant!.IsKicked);
-
-        if (!hasSubmissions)
-        {
-            await TransitionToEndAsync(lobby.Id);
-            return;
-        }
-        
-        lobby.State = LobbyState.Voting;
-        lobby.VotingStartedAt = DateTime.UtcNow;
-        await context.SaveChangesAsync();
-        
-        await lobbyNotifier.VotingStartedAsync(lobby.Id);
-        await StartPlaybackAsync(lobbyId);
-    }
-    
-    public async Task StartPlaybackAsync(Guid lobbyId)
-    {
-        var submissions = await context.Submissions
-            .Where(s =>
-                s.LobbyId == lobbyId &&
-                !s.Participant!.IsKicked)
-            .ToListAsync();
-
-        for (int i = 0; i < submissions.Count; i++)
-        {
-            await context.LobbyPlaybackItems.AddAsync(new LobbyPlaybackItem
-            {
-                LobbyId = lobbyId,
-                SubmissionId = submissions[i].Id,
-                Order = i
-            });
-        }
-        await context.SaveChangesAsync();
-        
-        await PlayNextItemAsync(lobbyId, 0);
-    }
-
-    public async Task PlayNextItemAsync(Guid lobbyId, int order)
-    {
-        var item = await context.LobbyPlaybackItems
-            .Include(x => x.Submission)
-            .FirstOrDefaultAsync(x =>
-                x.LobbyId == lobbyId &&
-                x.Order == order);
-        
-        if (item is null)
-        {
-            await TransitionToEndAsync(lobbyId);
-            return;
-        }
-        
-        var startedAt = DateTime.UtcNow;
-        item.StartedAt = startedAt;
-        await context.SaveChangesAsync();
-        
-        await lobbyNotifier.SubmissionForPlaybackAsync(lobbyId, 
-            new SubmissionDto
-        {
-            Id = item.SubmissionId,
-            LobbyId = lobbyId,
-            ParticipationId = item.Submission!.ParticipationId,
-            Value = storage.GeneratePresignedUrl($"submissions/{item.Submission.Value}", TimeSpan.FromHours(1))
-        }, 
-            startedAt);
-        
-        backgroundJobClient.Schedule<ILobbyService>(
-            s => s.PlayNextItemAsync(lobbyId, item.Order + 1),
-            TimeSpan.FromSeconds(item.Submission!.DurationSeconds));
-    }
-
-    public async Task TransitionToEndAsync(Guid lobbyId)
-    {
-        var lobby = await context.Lobbies
-            .Include(l => l.Participants)
-                .ThenInclude(p => p.Submissions)
-                    .ThenInclude(s => s.Scores)
-            .Include(l => l.Participants)
-                .ThenInclude(p => p.User)
-            .Where(l => l.Id == lobbyId)
-            .FirstOrDefaultAsync();
-        if (lobby == null)
-            return;
-
-        lobby.State = LobbyState.Ended;
-        lobby.EndedAt = DateTime.UtcNow;
-        
-        var winnerSubmission = GetWinnerSubmission(lobby);
-        
-        var ratingResults = mmrService.CalculateRatings(lobby);
-
-        if (!ratingResults.Any())
-            return;
-
-        var ratingChanges = new List<RatingChangeDto>();
-        
-        foreach (var participant in lobby.Participants.Where(p => !p.IsKicked))
-        {
-            if (participant.User != null && ratingResults.TryGetValue(participant.UserId, out var result))
-            {
-                participant.User.Mu = result.NewMu;
-                participant.User.Sigma = result.NewSigma;
-
-                var ratingDelta = result.RatingChange >= 0
-                    ? (int)Math.Round(result.RatingChange * 10)
-                    : (int)Math.Round(result.RatingChange * 5);
-                participant.User.Rating = Math.Max(0, participant.User.Rating + ratingDelta);
-                
-                ratingChanges.Add(new RatingChangeDto
-                {
-                    UserId = participant.UserId,
-                    RatingChange = ratingDelta
-                });
-            }
-        }
-
-        if (winnerSubmission != null)
-        {
-            lobby.WinningSubmissionId = winnerSubmission.Id;
-        }
-        await context.SaveChangesAsync();
-        
-        await lobbyNotifier.EndedAsync(lobby.Id, winnerSubmission?.Id, ratingChanges); 
-    }
-    
-    private Submission? GetWinnerSubmission(Lobby lobby)
-    {
-        var submissions = lobby.Participants
-            .Where(p => !p.IsKicked)
-            .SelectMany(p => p.Submissions)
-            .Where(s => s.Scores.Any())
-            .ToList();
-        
-        if (!submissions.Any())
-            return null;
-
-        var totalScore = submissions.Select(s => new
-        {
-            Submission = s,
-            TotalScore = s.Scores.Sum(x => x.Value),
-            LastVote = s.Scores.Max(x => x.CreatedAt)
-        });
-        
-        var winner = totalScore
-            .OrderByDescending(s => s.TotalScore)
-            .ThenBy(s => s.LastVote)
-            .First();
-        
-        return winner.Submission;
     }
 
     public async Task SendMessageAsync(Guid lobbyId, string userId, string content)

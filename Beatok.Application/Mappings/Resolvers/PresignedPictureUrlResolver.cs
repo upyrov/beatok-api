@@ -4,7 +4,7 @@ using Beatok.Domain.Entities;
 
 namespace Beatok.Application.Mappings.Resolvers;
 
-public class PresignedUrlResolver<T>(IStorage storage): IValueResolver<User, T, string?>
+public class PresignedPictureUrlResolver<T>(IStorage storage): IValueResolver<User, T, string?>
 {
     public string? Resolve(User source, T destination, string? destMember, ResolutionContext context)
     {

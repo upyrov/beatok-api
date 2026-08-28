@@ -11,7 +11,8 @@ namespace Beatok.API.Controllers
     [Route("lobbies")]
     [ApiController]
     public class LobbyController(ILobbyService lobbyService, 
-        IScoreService scoreService) : ControllerBase
+        IScoreService scoreService,
+        ILobbyLifecycleService lobbyLifecycleService) : ControllerBase
     {
         [Authorize]
         [HttpPost]
@@ -42,7 +43,7 @@ namespace Beatok.API.Controllers
             {
                 return Unauthorized();
             }
-            await lobbyService.StartAsync(id, userId);
+            await lobbyLifecycleService.StartAsync(id, userId);
             return Ok();
         }
 

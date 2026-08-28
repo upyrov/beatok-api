@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IMmrService, MmrService>();
+        services.AddScoped<ILobbyLifecycleService, LobbyLifecycleService>();
         
         return services;
     }

@@ -53,10 +53,7 @@ public class SoundService(IApplicationDbContext context,
         var sounds = await context.Sounds
             .Where(s => s.CategoryId == categoryId)
             .ToListAsync();
-        foreach (var sound in sounds)
-        {
-            sound.Value = storage.GeneratePresignedUrl($"sounds/{sound.Value}", TimeSpan.FromHours(1));
-        }
+       
         return mapper.Map<IEnumerable<SoundDto>>(sounds);
     }
 

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Beatok.Application.Services;
 
 public class ScoreService(IApplicationDbContext context, IValidator<CreateScoreDto> createValidator, 
-    IValidator<ScoreUpdateDto> updateValidator, ILobbyService lobbyService) : IScoreService
+    IValidator<ScoreUpdateDto> updateValidator) : IScoreService
 {
     public async Task<Guid> CreateAsync(string userId, Guid lobbyId, CreateScoreDto dto)
     {

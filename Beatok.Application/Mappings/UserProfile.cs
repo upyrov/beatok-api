@@ -11,13 +11,13 @@ public class UserProfile: Profile
     {
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.Picture, opt
-                => opt.MapFrom<PresignedUrlResolver<UserDto>>());
+                => opt.MapFrom<PresignedPictureUrlResolver<UserDto>>());
 
         CreateMap<UserUpdateDto, User>();
 
         CreateMap<User, MeDto>()
             .ForMember(dest => dest.Picture, opt
-                => opt.MapFrom<PresignedUrlResolver<MeDto>>());
+                => opt.MapFrom<PresignedPictureUrlResolver<MeDto>>());
 
         CreateMap<User, ProfileDto>()
             .IncludeBase<User, UserDto>()
