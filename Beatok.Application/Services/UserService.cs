@@ -157,16 +157,16 @@ public class UserService(
             user.Name = dto.Name;
         }
 
-        if (dto.Picture != user.Picture)
+        if (dto.PictureKey != user.Picture)
         {
             if (!string.IsNullOrWhiteSpace(user.Picture))
             {
                 await storage.DeleteFileAsync($"pictures/{user.Picture}");
             }
 
-            user.Picture = string.IsNullOrWhiteSpace(dto.Picture)
+            user.Picture = string.IsNullOrWhiteSpace(dto.PictureKey)
                 ? null
-                : dto.Picture;
+                : dto.PictureKey;
         }
 
         await context.SaveChangesAsync();
@@ -203,8 +203,11 @@ public class UserService(
                     p.Submissions.Any(s =>
                         s.Lobby != null &&
                         s.Lobby.WinningSubmissionId == s.Id)),
-                Picture = u.Picture == null ? null : storage
-                    .GeneratePresignedUrl($"pictures/{u.Picture}", TimeSpan.FromHours(1)),
+                Picture = u.Picture == null ? null : new PictureDto
+                {
+                    Url = storage.GeneratePresignedUrl($"pictures/{u.Picture}", TimeSpan.FromHours(1)),
+                    Key = u.Picture
+                }
             })
             .ToListAsync();
     }

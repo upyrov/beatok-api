@@ -1,15 +1,20 @@
 using AutoMapper;
+using Beatok.Application.DTOs;
 using Beatok.Application.Interfaces;
 using Beatok.Domain.Entities;
 
 namespace Beatok.Application.Mappings.Resolvers;
 
-public class PresignedPictureUrlResolver<T>(IStorage storage): IValueResolver<User, T, string?>
+public class PresignedPictureUrlResolver<T>(IStorage storage): IValueResolver<User, T, PictureDto?>
 {
-    public string? Resolve(User source, T destination, string? destMember, ResolutionContext context)
+    public PictureDto? Resolve(User source, T destination, PictureDto? destMember, ResolutionContext context)
     {
-        return source.Picture is null 
+        return string.IsNullOrWhiteSpace(source.Picture)
             ? null
-            : storage.GeneratePresignedUrl($"pictures/{source.Picture}", TimeSpan.FromDays(1));
+            : new PictureDto
+            {
+                Url = storage.GeneratePresignedUrl($"pictures/{source.Picture}", TimeSpan.FromDays(1)),
+                Key = source.Picture
+            };
     }
 }
