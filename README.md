@@ -1,8 +1,8 @@
 # Beatok API
 
-Welcome to **Beatok API**! The backend API for the Beatok competitive beat-making platform.
+The backend API for the Beatok competitive beat making platform.
 
-The frontend application is available in a [separate repository](https://github.com/upyrov/beatok).
+Our frontend application is available [here](https://github.com/upyrov/beatok).
 
 ## 🛠️ Features
 
@@ -54,15 +54,14 @@ Once the API is running, open `http://localhost:xxxx/scalar` in your browser.
 
 ## 🤝 Contributing
 
-We welcome contributions to Beatok API!
+We welcome contributions to Beatok!
 
-Please refer to our [**CONTRIBUTING.md**](https://github.com/upyrov/beatok-api/blob/main/CONTRIBUTING.md) for detailed instructions on:
+Please refer to our [Contributing Guide](./CONTRIBUTING.md) for detailed instructions on:
 
 - Local development workflow
-- Database migrations
+- Coding guidelines
 - Pull request process
-- Reporting bugs and features
 
 ## 📜 License
 
-This project is licensed under the terms of the [MIT License](https://github.com/upyrov/beatok-api/blob/main/LICENSE).
+This project is licensed under the terms of the [MIT License](./LICENSE).
